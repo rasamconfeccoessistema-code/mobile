@@ -20,24 +20,32 @@
     <style>
       /* ============================================================
            APP MOBILE - FACÇÃO JEANS
+           Dashboard Redesign - Versão Premium
            ============================================================ */
       :root {
         --pink: #e91e63;
+        --pink-light: #f48fb1;
         --pink-dark: #c2185b;
         --gold: #d4a017;
         --gold-light: #f0c75e;
+        --gold-dark: #b8860b;
+        --orange: #ff6f00;
         --black: #0a0a0a;
-        --black-soft: #141414;
-        --black-medium: #1e1e1e;
-        --white: #f5f5f5;
+        --black-soft: #111111;
+        --black-medium: #1a1a1a;
         --gray: #9e9e9e;
-        --gray-dark: #6b6b6b;
+        --gray-dark: #555555;
+        --white: #f5f5f5;
         --error: #ff5252;
         --success: #4caf50;
         --warning: #ffc107;
-        --info: #2196f3;
+        --info: #42a5f5;
         --safe-top: env(safe-area-inset-top, 0px);
         --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --radius: 20px;
+        --radius-sm: 12px;
+        --shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       * {
@@ -73,9 +81,8 @@
         overflow: hidden;
       }
 
-      /* ===== STATUS BAR ===== */
       .status-bar {
-        padding: 4px 16px 0 16px;
+        padding: 4px 20px 0 20px;
         padding-top: var(--safe-top);
         display: flex;
         justify-content: space-between;
@@ -89,80 +96,108 @@
         font-weight: 600;
         color: var(--gray);
       }
+      .status-bar .date {
+        color: var(--gray-dark);
+      }
 
-      /* ===== HEADER ===== */
       .app-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 8px 16px 12px 16px;
+        padding: 6px 20px 10px 20px;
         background: var(--black);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
         flex-shrink: 0;
       }
 
       .app-brand {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
       }
 
-      .app-brand .icon {
-        width: 36px;
-        height: 36px;
+      .app-brand .logo {
+        width: 40px;
+        height: 40px;
         background: linear-gradient(135deg, var(--pink-dark), var(--gold-dark));
-        border-radius: 10px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
+        font-size: 16px;
+        font-weight: 800;
         color: var(--white);
+        letter-spacing: -0.5px;
+        box-shadow: 0 4px 16px rgba(233, 30, 99, 0.25);
       }
 
-      .app-brand h1 {
+      .app-brand .brand-text {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .app-brand .brand-text h1 {
         font-size: 17px;
         font-weight: 700;
-        background: linear-gradient(135deg, var(--gold-light), var(--pink));
+        background: linear-gradient(
+          135deg,
+          var(--gold-light),
+          var(--pink-light)
+        );
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
         line-height: 1.2;
+        letter-spacing: -0.3px;
       }
 
-      .app-brand small {
-        display: block;
+      .app-brand .brand-text small {
         font-size: 9px;
         color: var(--gray);
         font-weight: 400;
+        letter-spacing: 0.3px;
       }
 
       .header-actions {
         display: flex;
-        gap: 6px;
+        align-items: center;
+        gap: 10px;
       }
 
-      .btn-icon {
-        background: rgba(255, 255, 255, 0.05);
-        border: none;
+      .header-actions .info-time {
+        text-align: right;
+        font-size: 10px;
+        line-height: 1.3;
+        color: var(--gray-dark);
+      }
+
+      .header-actions .info-time .hora {
+        font-weight: 600;
+        color: var(--gray);
+        font-size: 11px;
+      }
+
+      .btn-refresh {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
         color: var(--gray);
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        font-size: 18px;
+        font-size: 16px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
-        position: relative;
+        transition: var(--transition);
+        flex-shrink: 0;
       }
 
-      .btn-icon:active {
+      .btn-refresh:active {
         transform: scale(0.92);
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.08);
       }
 
-      .btn-icon .spinning {
+      .btn-refresh .spinning {
         animation: spin 0.7s infinite linear;
       }
 
@@ -172,18 +207,11 @@
         }
       }
 
-      .last-update {
-        font-size: 8px;
-        color: var(--gray-dark);
-        padding-right: 4px;
-      }
-
-      /* ===== CONTEÚDO ===== */
       .app-content {
         flex: 1;
         overflow-y: auto;
         overflow-x: hidden;
-        padding: 12px 16px 80px 16px;
+        padding: 8px 16px 80px 16px;
         -webkit-overflow-scrolling: touch;
         scroll-behavior: smooth;
       }
@@ -199,10 +227,9 @@
         border-radius: 10px;
       }
 
-      /* ===== PULL-TO-REFRESH ===== */
       .pull-indicator {
         text-align: center;
-        padding: 8px 0;
+        padding: 6px 0 10px 0;
         font-size: 11px;
         color: var(--gray-dark);
         display: none;
@@ -210,55 +237,107 @@
       .pull-indicator.active {
         display: block;
       }
-
-      /* ===== CARDS KPI ===== */
-      .kpi-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 16px;
+      .pull-indicator i {
+        display: inline-block;
+        transition: transform 0.3s;
       }
 
-      .kpi-card {
-        background: rgba(255, 255, 255, 0.02);
+      /* ===== CARDS ===== */
+      .card-premium {
+        background: var(--black-soft);
         border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 14px;
-        padding: 14px 12px;
+        border-radius: var(--radius);
+        padding: 16px 18px;
+        box-shadow: var(--shadow);
         position: relative;
         overflow: hidden;
-        transition: all 0.2s;
+        transition: var(--transition);
       }
 
-      .kpi-card:active {
-        transform: scale(0.97);
-        background: rgba(255, 255, 255, 0.04);
-      }
-
-      .kpi-card::before {
+      .card-premium::before {
         content: "";
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(212, 160, 23, 0.2),
+          rgba(233, 30, 99, 0.2),
+          transparent
+        );
+        opacity: 0.6;
+      }
+
+      .card-premium:active {
+        transform: scale(0.99);
+      }
+
+      .card-premium .deco-line {
+        width: 100%;
         height: 2px;
-        background: linear-gradient(90deg, var(--pink), var(--gold));
-        opacity: 0.4;
+        border-radius: 2px;
+        margin-top: 12px;
+        opacity: 0.5;
+      }
+
+      .card-premium .deco-line.gold {
+        background: linear-gradient(
+          90deg,
+          var(--pink),
+          var(--orange),
+          var(--gold-light)
+        );
+      }
+
+      .card-premium .deco-line.green {
+        background: linear-gradient(90deg, var(--success), #66bb6a, #a5d6a7);
+      }
+
+      .cards-grid {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .cards-grid-3 {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+
+      .cards-grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .cards-grid-1 {
+        grid-template-columns: 1fr;
+      }
+
+      .kpi-card {
+        background: var(--black-soft);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: var(--radius-sm);
+        padding: 12px 10px;
+        text-align: center;
+        transition: var(--transition);
+      }
+
+      .kpi-card:active {
+        transform: scale(0.97);
+        background: rgba(255, 255, 255, 0.02);
       }
 
       .kpi-card .kpi-label {
-        font-size: 9px;
+        font-size: 8px;
         text-transform: uppercase;
-        color: var(--gray);
-        letter-spacing: 0.5px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
+        color: var(--gray-dark);
+        letter-spacing: 0.8px;
+        font-weight: 600;
       }
-      .kpi-card .kpi-label i {
-        font-size: 12px;
-      }
+
       .kpi-card .kpi-value {
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 800;
         margin-top: 2px;
         background: linear-gradient(135deg, var(--white), var(--gold-light));
@@ -267,131 +346,226 @@
         color: transparent;
         line-height: 1.2;
       }
-      .kpi-card .kpi-detail {
-        font-size: 9px;
-        color: var(--gray-dark);
-        margin-top: 2px;
-      }
-      .kpi-card.kpi-danger .kpi-value {
+
+      .kpi-card .kpi-value.danger {
         background: linear-gradient(135deg, var(--error), #ff8a80);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
       }
-      .kpi-card.kpi-success .kpi-value {
+
+      .kpi-card .kpi-value.success {
         background: linear-gradient(135deg, var(--success), #a5d6a7);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
       }
-      .kpi-card.kpi-warning .kpi-value {
+
+      .kpi-card .kpi-value.warning {
         background: linear-gradient(135deg, var(--warning), #ffe082);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
       }
 
-      /* ===== SEÇÕES ===== */
-      .section {
-        margin-bottom: 16px;
+      .kpi-card .kpi-detail {
+        font-size: 8px;
+        color: var(--gray-dark);
+        margin-top: 1px;
       }
 
-      .section-header {
+      .big-card {
+        background: var(--black-soft);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: var(--radius);
+        padding: 16px 18px;
+        position: relative;
+        overflow: hidden;
+        transition: var(--transition);
+      }
+
+      .big-card:active {
+        transform: scale(0.99);
+      }
+
+      .big-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(212, 160, 23, 0.25),
+          rgba(233, 30, 99, 0.25),
+          transparent
+        );
+        opacity: 0.6;
+      }
+
+      .big-card .card-label {
+        font-size: 9px;
+        text-transform: uppercase;
+        color: var(--gray-dark);
+        letter-spacing: 0.8px;
+        font-weight: 600;
+      }
+
+      .big-card .card-value {
+        font-size: 28px;
+        font-weight: 800;
+        margin-top: 2px;
+        background: linear-gradient(135deg, var(--white), var(--gold-light));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        line-height: 1.2;
+      }
+
+      .big-card .card-value.danger {
+        background: linear-gradient(135deg, var(--error), #ff8a80);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .big-card .card-value.success {
+        background: linear-gradient(135deg, var(--success), #a5d6a7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .big-card .card-detail {
+        font-size: 10px;
+        color: var(--gray-dark);
+        margin-top: 2px;
+      }
+
+      .divida-card {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 8px;
+        gap: 16px;
       }
 
-      .section-title {
-        font-size: 14px;
+      .divida-card .left {
+        flex: 1;
+      }
+
+      .divida-card .right {
+        flex-shrink: 0;
+        width: 72px;
+        height: 72px;
+        position: relative;
+      }
+
+      .divida-card .right svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+      }
+
+      .divida-card .right .gauge-bg {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.06);
+        stroke-width: 6;
+      }
+
+      .divida-card .right .gauge-fill {
+        fill: none;
+        stroke: url(#gaugeGrad);
+        stroke-width: 6;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1.2s ease;
+      }
+
+      .divida-card .right .gauge-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--gray);
+        text-align: center;
+        line-height: 1.1;
+      }
+
+      .divida-card .right .gauge-center small {
+        display: block;
+        font-size: 7px;
+        font-weight: 400;
+        color: var(--gray-dark);
+      }
+
+      .alert-card {
+        background: var(--black-soft);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        transition: var(--transition);
+      }
+
+      .alert-card .alert-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .alert-card .alert-header .title {
+        font-size: 12px;
         font-weight: 600;
         color: var(--gold-light);
         display: flex;
         align-items: center;
         gap: 6px;
       }
-      .section-title i {
-        font-size: 16px;
-      }
 
-      .section-badge {
+      .alert-card .alert-header .badge {
         font-size: 10px;
-        color: var(--gray);
-        background: rgba(255, 255, 255, 0.05);
+        font-weight: 700;
+        color: var(--white);
+        background: rgba(255, 82, 82, 0.2);
         padding: 2px 10px;
         border-radius: 20px;
-      }
-
-      .section-badge.danger {
-        color: var(--error);
-        background: rgba(255, 82, 82, 0.15);
-      }
-      .section-badge.success {
-        color: var(--success);
-        background: rgba(76, 175, 80, 0.15);
-      }
-      .section-badge.warning {
-        color: var(--warning);
-        background: rgba(255, 193, 7, 0.15);
-      }
-
-      /* ===== ALERTAS ===== */
-      .alert-list {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
+        border: 1px solid rgba(255, 82, 82, 0.2);
       }
 
       .alert-item {
-        background: rgba(255, 255, 255, 0.02);
-        border-left: 3px solid var(--gray);
-        border-radius: 10px;
-        padding: 10px 12px;
         display: flex;
         align-items: center;
         gap: 10px;
-        font-size: 12px;
-        transition: all 0.2s;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        font-size: 11px;
       }
-      .alert-item:active {
-        transform: scale(0.98);
-        background: rgba(255, 255, 255, 0.04);
+
+      .alert-item:last-child {
+        border-bottom: none;
       }
+
       .alert-item i {
-        font-size: 18px;
+        font-size: 14px;
         flex-shrink: 0;
       }
+
       .alert-item .alert-text {
         flex: 1;
-        line-height: 1.3;
+        color: var(--gray);
       }
+
       .alert-item .alert-tag {
-        font-size: 8px;
+        font-size: 7px;
         text-transform: uppercase;
         font-weight: 700;
         padding: 2px 8px;
         border-radius: 20px;
         flex-shrink: 0;
-      }
-
-      .alert-item.alert-high {
-        border-left-color: var(--error);
-      }
-      .alert-item.alert-high i {
-        color: var(--error);
-      }
-      .alert-item.alert-medium {
-        border-left-color: var(--warning);
-      }
-      .alert-item.alert-medium i {
-        color: var(--warning);
-      }
-      .alert-item.alert-low {
-        border-left-color: var(--info);
-      }
-      .alert-item.alert-low i {
-        color: var(--info);
+        letter-spacing: 0.5px;
       }
 
       .alert-tag.tag-high {
@@ -403,8 +577,129 @@
         color: var(--warning);
       }
       .alert-tag.tag-low {
-        background: rgba(33, 150, 243, 0.15);
+        background: rgba(66, 165, 245, 0.15);
         color: var(--info);
+      }
+
+      .resumo-card {
+        background: var(--black-soft);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        transition: var(--transition);
+      }
+
+      .resumo-card .resumo-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .resumo-card .resumo-header .title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--gold-light);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .resumo-card .resumo-header .periodo {
+        font-size: 8px;
+        color: var(--gray-dark);
+      }
+
+      .bar-chart {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .bar-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .bar-row .bar-label {
+        font-size: 10px;
+        color: var(--gray);
+        width: 56px;
+        flex-shrink: 0;
+        text-align: right;
+      }
+
+      .bar-row .bar-track {
+        flex: 1;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .bar-row .bar-track .bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 1s ease;
+      }
+
+      .bar-row .bar-track .bar-fill.receita {
+        background: linear-gradient(90deg, var(--success), #66bb6a);
+      }
+
+      .bar-row .bar-track .bar-fill.despesa {
+        background: linear-gradient(90deg, var(--error), #ff8a80);
+      }
+
+      .bar-row .bar-value {
+        font-size: 10px;
+        font-weight: 600;
+        width: 80px;
+        flex-shrink: 0;
+        text-align: right;
+      }
+
+      .bar-row .bar-value.positive {
+        color: var(--success);
+      }
+      .bar-row .bar-value.negative {
+        color: var(--error);
+      }
+
+      .resumo-card .saldo-final {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        margin-top: 4px;
+      }
+
+      .resumo-card .saldo-final .label {
+        font-size: 10px;
+        color: var(--gray-dark);
+        font-weight: 500;
+      }
+
+      .resumo-card .saldo-final .value {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--error);
+      }
+
+      .dashboard-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .dashboard-row-2col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
       }
 
       /* ===== LISTAS ===== */
@@ -421,12 +716,13 @@
         padding: 10px 14px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.03);
         gap: 10px;
-        transition: all 0.2s;
+        transition: var(--transition);
         cursor: pointer;
       }
 
       .list-item:active {
         background: rgba(255, 255, 255, 0.03);
+        transform: scale(0.98);
       }
       .list-item:last-child {
         border-bottom: none;
@@ -464,7 +760,6 @@
         display: inline-block;
       }
 
-      /* Status para contas financeiras */
       .badge-status-pago {
         background: rgba(76, 175, 80, 0.2);
         color: #a5d6a7;
@@ -477,7 +772,6 @@
         background: rgba(255, 82, 82, 0.2);
         color: #ff8a80;
       }
-
       .badge-status-em_costura {
         background: rgba(33, 150, 243, 0.2);
         color: #64b5f6;
@@ -498,15 +792,6 @@
         background: rgba(255, 82, 82, 0.2);
         color: #ff8a80;
       }
-      .badge-status-parcialmente_entregue {
-        background: rgba(255, 152, 0, 0.2);
-        color: #ffb74d;
-      }
-      .badge-status-em_revisao {
-        background: rgba(255, 193, 7, 0.2);
-        color: #ffe082;
-      }
-
       .badge-status-ativa {
         background: rgba(212, 160, 23, 0.2);
         color: var(--gold-light);
@@ -516,23 +801,94 @@
         color: #a5d6a7;
       }
 
-      /* Cores para itens da lista financeira */
       .item-vencido {
-        border-left: 4px solid var(--error);
+        border-left: 3px solid var(--error);
         background: rgba(255, 82, 82, 0.05);
       }
       .item-vencido .item-title {
         color: var(--error);
       }
       .item-pago {
-        border-left: 4px solid var(--success);
+        border-left: 3px solid var(--success);
         background: rgba(76, 175, 80, 0.05);
       }
       .item-pago .item-title {
         color: var(--success);
       }
-      .item-pendente {
-        border-left: 4px solid var(--gray);
+
+      /* ===== ABAS ===== */
+      .tab-content {
+        display: none;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .tab-section-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--gold-light);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .tab-section-title i {
+        font-size: 16px;
+      }
+
+      .tab-subtitle {
+        font-size: 11px;
+        color: var(--gray);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 24px 16px;
+        color: var(--gray-dark);
+      }
+
+      .empty-state i {
+        font-size: 28px;
+        display: block;
+        margin-bottom: 6px;
+        color: var(--gray);
+      }
+      .empty-state p {
+        font-size: 12px;
+      }
+
+      .loading-state {
+        text-align: center;
+        padding: 20px 0;
+        color: var(--gray);
+      }
+      .loading-state i {
+        font-size: 24px;
+        display: block;
+        margin-bottom: 6px;
+        color: var(--gold-light);
+      }
+      .loading-state p {
+        font-size: 12px;
       }
 
       /* ===== MODAL ===== */
@@ -657,47 +1013,16 @@
         color: var(--gold-light);
       }
 
-      /* ===== EMPTY / LOADING ===== */
-      .empty-state {
-        text-align: center;
-        padding: 24px 16px;
-        color: var(--gray-dark);
-      }
-      .empty-state i {
-        font-size: 28px;
-        display: block;
-        margin-bottom: 6px;
-        color: var(--gray);
-      }
-      .empty-state p {
-        font-size: 12px;
-      }
-
-      .loading-state {
-        text-align: center;
-        padding: 20px 0;
-        color: var(--gray);
-      }
-      .loading-state i {
-        font-size: 24px;
-        display: block;
-        margin-bottom: 6px;
-        color: var(--gold-light);
-      }
-      .loading-state p {
-        font-size: 12px;
-      }
-
       /* ===== TAB BAR ===== */
       .tab-bar {
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
-        background: rgba(10, 10, 10, 0.92);
+        background: rgba(10, 10, 10, 0.95);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
         display: flex;
         justify-content: space-around;
         padding: 6px 0;
@@ -716,36 +1041,44 @@
         background: none;
         border: none;
         color: var(--gray-dark);
-        font-size: 9px;
+        font-size: 8px;
         font-weight: 500;
         cursor: pointer;
-        padding: 4px 12px;
-        transition: all 0.2s;
+        padding: 4px 10px;
+        transition: var(--transition);
         position: relative;
         -webkit-tap-highlight-color: transparent;
+        font-family: inherit;
+        border-radius: 12px;
+        min-width: 52px;
       }
 
       .tab-item:active {
         transform: scale(0.92);
       }
+
       .tab-item i {
-        font-size: 22px;
-        transition: all 0.2s;
+        font-size: 20px;
+        transition: var(--transition);
       }
+
       .tab-item.active {
         color: var(--gold-light);
+        background: rgba(212, 160, 23, 0.06);
       }
+
       .tab-item.active i {
         color: var(--gold-light);
-        text-shadow: 0 0 12px rgba(212, 160, 23, 0.3);
+        text-shadow: 0 0 20px rgba(212, 160, 23, 0.2);
       }
+
       .tab-item .tab-badge {
         position: absolute;
         top: 0;
         right: 4px;
         background: var(--error);
         color: white;
-        font-size: 8px;
+        font-size: 7px;
         font-weight: 700;
         min-width: 16px;
         height: 16px;
@@ -757,14 +1090,13 @@
         border: 2px solid var(--black);
       }
 
-      /* ===== SCROLL TOP ===== */
       .scroll-top-btn {
         position: fixed;
         bottom: 80px;
         right: 16px;
-        background: rgba(212, 160, 23, 0.15);
+        background: rgba(212, 160, 23, 0.12);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(212, 160, 23, 0.2);
+        border: 1px solid rgba(212, 160, 23, 0.15);
         color: var(--gold-light);
         width: 40px;
         height: 40px;
@@ -774,7 +1106,7 @@
         display: none;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s;
+        transition: var(--transition);
         z-index: 50;
         max-width: 500px;
         margin: 0 auto;
@@ -788,32 +1120,85 @@
         display: flex;
       }
 
-      /* ===== RESPONSIVIDADE ===== */
-      @media (max-width: 400px) {
-        .kpi-grid {
-          gap: 8px;
+      @media (max-width: 420px) {
+        .cards-grid-3 {
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 6px;
         }
         .kpi-card {
-          padding: 10px 10px;
+          padding: 8px 6px;
         }
         .kpi-card .kpi-value {
-          font-size: 20px;
+          font-size: 18px;
         }
-        .app-content {
-          padding: 8px 12px 80px 12px;
+        .big-card .card-value {
+          font-size: 22px;
+        }
+        .dashboard-row-2col {
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .divida-card .right {
+          width: 60px;
+          height: 60px;
+        }
+        .bar-row .bar-label {
+          width: 44px;
+          font-size: 9px;
+        }
+        .bar-row .bar-value {
+          width: 64px;
+          font-size: 9px;
         }
         .tab-item {
-          padding: 4px 8px;
-          font-size: 8px;
+          padding: 4px 6px;
+          min-width: 44px;
         }
         .tab-item i {
-          font-size: 20px;
+          font-size: 18px;
+        }
+        .tab-item span {
+          font-size: 7px;
+        }
+        .app-header {
+          padding: 4px 14px 8px 14px;
+        }
+        .app-brand .logo {
+          width: 34px;
+          height: 34px;
+          font-size: 13px;
+        }
+        .app-brand .brand-text h1 {
+          font-size: 15px;
+        }
+        .app-content {
+          padding: 6px 12px 76px 12px;
+        }
+        .card-premium {
+          padding: 12px 14px;
+          border-radius: 16px;
+        }
+        .alert-item {
+          font-size: 10px;
+          padding: 4px 0;
         }
         .list-item {
           padding: 8px 12px;
         }
         .list-item .item-title {
           font-size: 12px;
+        }
+      }
+
+      @media (max-width: 360px) {
+        .kpi-card .kpi-value {
+          font-size: 15px;
+        }
+        .kpi-card .kpi-label {
+          font-size: 7px;
+        }
+        .big-card .card-value {
+          font-size: 19px;
         }
       }
 
@@ -826,6 +1211,9 @@
           border-left: 1px solid rgba(255, 255, 255, 0.04);
           border-right: 1px solid rgba(255, 255, 255, 0.04);
         }
+        .scroll-top-btn {
+          right: calc(50% - 250px + 24px);
+        }
       }
 
       .text-muted {
@@ -833,15 +1221,6 @@
       }
       .text-center {
         text-align: center;
-      }
-      .text-error {
-        color: var(--error);
-      }
-      .text-success {
-        color: var(--success);
-      }
-      .text-gold {
-        color: var(--gold-light);
       }
       .mt-1 {
         margin-top: 4px;
@@ -874,21 +1253,24 @@
       <!-- ===== STATUS BAR ===== -->
       <div class="status-bar">
         <span class="time" id="statusTime">--:--</span>
-        <span id="statusDate">--/--/----</span>
+        <span class="date" id="statusDate">--/--/----</span>
       </div>
 
       <!-- ===== HEADER ===== -->
       <header class="app-header">
         <div class="app-brand">
-          <div class="icon"><i class="ph ph-scissors"></i></div>
-          <div>
+          <div class="logo">FJ</div>
+          <div class="brand-text">
             <h1>Facção Jeans</h1>
             <small>Visão do Gestor · Modo Leitura</small>
           </div>
         </div>
         <div class="header-actions">
-          <span class="last-update" id="lastUpdate">--:--</span>
-          <button class="btn-icon" id="btnRefresh" aria-label="Atualizar">
+          <div class="info-time">
+            <div class="hora" id="headerHora">--:--</div>
+            <div id="headerData">--/--</div>
+          </div>
+          <button class="btn-refresh" id="btnRefresh" aria-label="Atualizar">
             <i class="ph ph-arrows-clockwise" id="refreshIcon"></i>
           </button>
         </div>
@@ -900,155 +1282,283 @@
           <i class="ph ph-arrow-down"></i> Solte para atualizar
         </div>
 
-        <!-- ===== KPIs ===== -->
-        <section class="kpi-grid" id="kpiGrid">
-          <div class="kpi-card" data-tab="producao">
-            <div class="kpi-label">
-              <i class="ph ph-factory"></i> Em Produção
+        <!-- ============================================================
+            ABA: GERAL (DASHBOARD)
+            ============================================================ -->
+        <div class="tab-content active" id="tab-geral">
+          <div class="dashboard-grid">
+            <!-- LINHA 1: 3 cards pequenos -->
+            <div class="cards-grid cards-grid-3">
+              <div class="kpi-card" data-tab="producao">
+                <div class="kpi-label">Em Produção</div>
+                <div class="kpi-value" id="kpiEmProducao">-</div>
+                <div class="kpi-detail">OS ativas no mês</div>
+              </div>
+              <div class="kpi-card" data-tab="financeiro">
+                <div class="kpi-label">Contas Vencidas</div>
+                <div class="kpi-value danger" id="kpiContasVencidas">-</div>
+                <div class="kpi-detail">do mês atual</div>
+              </div>
+              <div class="kpi-card" data-tab="rh">
+                <div class="kpi-label">Em Férias</div>
+                <div class="kpi-value warning" id="kpiFerias">-</div>
+                <div class="kpi-detail">funcionários</div>
+              </div>
             </div>
-            <div class="kpi-value" id="kpiEmProducao">-</div>
-            <div class="kpi-detail">OS ativas no mês</div>
-          </div>
-          <div class="kpi-card kpi-danger" data-tab="financeiro">
-            <div class="kpi-label">
-              <i class="ph ph-warning-circle"></i> Contas Vencidas
-            </div>
-            <div class="kpi-value" id="kpiContasVencidas">-</div>
-            <div class="kpi-detail">do mês atual</div>
-          </div>
-          <div class="kpi-card kpi-warning" data-tab="rh">
-            <div class="kpi-label"><i class="ph ph-sun"></i> Em Férias</div>
-            <div class="kpi-value" id="kpiFerias">-</div>
-            <div class="kpi-detail">funcionários</div>
-          </div>
-          <div class="kpi-card" data-tab="financeiro">
-            <div class="kpi-label">
-              <i class="ph ph-currency-circle-dollar"></i> Saldo Mês
-            </div>
-            <div class="kpi-value" id="kpiSaldoMes">-</div>
-            <div class="kpi-detail">receitas - despesas</div>
-          </div>
-          <div class="kpi-card kpi-success" data-tab="producao">
-            <div class="kpi-label">
-              <i class="ph ph-check-circle"></i> Entregas Mês
-            </div>
-            <div class="kpi-value" id="kpiEntregasMes">-</div>
-            <div class="kpi-detail">lotes entregues</div>
-          </div>
-          <div class="kpi-card kpi-danger" data-tab="dividas">
-            <div class="kpi-label">
-              <i class="ph ph-warning"></i> Dívidas Ativas
-            </div>
-            <div class="kpi-value" id="kpiDividasAtivas">-</div>
-            <div class="kpi-detail">total em aberto</div>
-          </div>
-        </section>
 
-        <!-- ===== ALERTAS ===== -->
-        <section class="section" id="secAlertas">
-          <div class="section-header">
-            <div class="section-title"><i class="ph ph-bell"></i> Alertas</div>
-            <span class="section-badge" id="alertasCount">0</span>
-          </div>
-          <div class="alert-list" id="alertasContainer">
-            <div class="loading-state">
-              <i class="ph ph-spinner spinning"></i>
-              <p>Carregando alertas...</p>
+            <!-- LINHA 2: 2 cards grandes -->
+            <div class="dashboard-row-2col">
+              <div class="big-card">
+                <div class="card-label">Saldo do Mês</div>
+                <div class="card-value danger" id="kpiSaldoMes">R$ --</div>
+                <div class="card-detail">receitas - despesas</div>
+                <div class="deco-line gold"></div>
+              </div>
+              <div class="big-card">
+                <div class="card-label">Entregas do Mês</div>
+                <div class="card-value" id="kpiEntregasMes">-</div>
+                <div class="card-detail">lotes entregues</div>
+                <div class="deco-line green"></div>
+              </div>
             </div>
-          </div>
-        </section>
 
-        <!-- ===== PRODUÇÃO ===== -->
-        <section class="section" id="secProducao">
-          <div class="section-header">
-            <div class="section-title">
-              <i class="ph ph-factory"></i> Em Produção (Mês)
+            <!-- LINHA 3: Dívidas Ativas -->
+            <div class="big-card">
+              <div class="card-label">Dívidas Ativas</div>
+              <div class="divida-card">
+                <div class="left">
+                  <div class="card-value danger" id="kpiDividasAtivas">
+                    R$ --
+                  </div>
+                  <div class="card-detail">total em aberto</div>
+                </div>
+                <div class="right" id="gaugeContainer">
+                  <svg viewBox="0 0 72 72">
+                    <circle class="gauge-bg" cx="36" cy="36" r="30" />
+                    <circle
+                      class="gauge-fill"
+                      id="gaugeFill"
+                      cx="36"
+                      cy="36"
+                      r="30"
+                      stroke-dasharray="188.5"
+                      stroke-dashoffset="188.5"
+                    />
+                    <defs>
+                      <linearGradient
+                        id="gaugeGrad"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="100%"
+                      >
+                        <stop offset="0%" stop-color="#e91e63" />
+                        <stop offset="50%" stop-color="#ff6f00" />
+                        <stop offset="100%" stop-color="#f0c75e" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div class="gauge-center">
+                    <span id="gaugePercent">0%</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <span class="section-badge" id="prodCount">0</span>
-          </div>
-          <div class="list-wrapper" id="listaProducao">
-            <div class="loading-state">
-              <i class="ph ph-spinner spinning"></i>
-              <p>Carregando...</p>
-            </div>
-          </div>
-        </section>
 
-        <!-- ===== FINANCEIRO ===== -->
-        <section class="section" id="secFinanceiro">
-          <div class="section-header">
-            <div class="section-title">
-              <i class="ph ph-currency-circle-dollar"></i> Contas do Mês
-            </div>
-            <span class="section-badge" id="finCount">0</span>
-          </div>
-          <div class="list-wrapper" id="listaFinanceiro">
-            <div class="loading-state">
-              <i class="ph ph-spinner spinning"></i>
-              <p>Carregando...</p>
-            </div>
-          </div>
-        </section>
+            <!-- LINHA 4: Alertas + Resumo Financeiro -->
+            <div class="dashboard-row-2col">
+              <div class="alert-card">
+                <div class="alert-header">
+                  <div class="title"><i class="ph ph-bell"></i> Alertas</div>
+                  <span class="badge" id="alertasCount">0</span>
+                </div>
+                <div id="alertasContainer">
+                  <div
+                    class="loading-state"
+                    style="
+                      padding: 12px 0;
+                      text-align: center;
+                      color: var(--gray-dark);
+                      font-size: 11px;
+                    "
+                  >
+                    <i class="ph ph-spinner spinning"></i> Carregando...
+                  </div>
+                </div>
+              </div>
 
-        <!-- ===== RH ===== -->
-        <section class="section" id="secRH">
-          <div class="section-header">
-            <div class="section-title">
-              <i class="ph ph-users-three"></i> Funcionários
-            </div>
-            <span class="section-badge" id="rhCount">0</span>
-          </div>
-          <!-- Subseção: Férias em andamento -->
-          <div id="rhFeriasContainer" style="margin-bottom: 12px">
-            <div
-              style="font-size: 11px; color: var(--gray); margin-bottom: 6px"
-            >
-              <i class="ph ph-sun"></i> Férias em andamento
-            </div>
-            <div class="list-wrapper" id="listaRHFerias">
-              <div class="loading-state">
-                <i class="ph ph-spinner spinning"></i>
-                <p>Carregando...</p>
+              <div class="resumo-card">
+                <div class="resumo-header">
+                  <div class="title">
+                    <i class="ph ph-currency-circle-dollar"></i> Resumo
+                    Financeiro
+                  </div>
+                  <span class="periodo" id="resumoPeriodo">Mês atual</span>
+                </div>
+                <div class="bar-chart">
+                  <div class="bar-row">
+                    <span class="bar-label">Receitas</span>
+                    <div class="bar-track">
+                      <div
+                        class="bar-fill receita"
+                        id="barReceita"
+                        style="width: 0%"
+                      ></div>
+                    </div>
+                    <span class="bar-value positive" id="valorReceita"
+                      >R$ 0</span
+                    >
+                  </div>
+                  <div class="bar-row">
+                    <span class="bar-label">Despesas</span>
+                    <div class="bar-track">
+                      <div
+                        class="bar-fill despesa"
+                        id="barDespesa"
+                        style="width: 0%"
+                      ></div>
+                    </div>
+                    <span class="bar-value negative" id="valorDespesa"
+                      >R$ 0</span
+                    >
+                  </div>
+                </div>
+                <div class="saldo-final">
+                  <span class="label">Saldo do mês</span>
+                  <span class="value" id="saldoFinal">R$ 0,00</span>
+                </div>
               </div>
             </div>
           </div>
-          <!-- Subseção: Funcionários ativos -->
-          <div id="rhFuncionariosContainer">
-            <div
-              style="font-size: 11px; color: var(--gray); margin-bottom: 6px"
-            >
-              <i class="ph ph-users"></i> Funcionários ativos
-            </div>
-            <div class="list-wrapper" id="listaRHFuncionarios">
-              <div class="loading-state">
-                <i class="ph ph-spinner spinning"></i>
-                <p>Carregando...</p>
-              </div>
-            </div>
-          </div>
-        </section>
+        </div>
 
-        <!-- ===== DÍVIDAS ===== -->
-        <section class="section" id="secDividas">
-          <div class="section-header">
-            <div class="section-title">
-              <i class="ph ph-warning-circle"></i> Dívidas
-            </div>
-            <span class="section-badge" id="divCount">0</span>
+        <!-- ============================================================
+            ABA: PRODUÇÃO
+            ============================================================ -->
+        <div class="tab-content" id="tab-producao">
+          <div class="tab-section-title">
+            <i class="ph ph-factory"></i> Produção do Mês
           </div>
-          <div class="list-wrapper" id="listaDividas">
+          <div
+            id="producaoCards"
+            class="cards-grid cards-grid-2"
+            style="margin-bottom: 12px"
+          >
+            <div class="kpi-card">
+              <div class="kpi-label">Em Costura</div>
+              <div class="kpi-value" id="prodEmCostura">-</div>
+              <div class="kpi-detail">lotes em andamento</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Costurados</div>
+              <div class="kpi-value success" id="prodCosturados">-</div>
+              <div class="kpi-detail">aguardando revisão</div>
+            </div>
+          </div>
+          <div id="listaProducao">
             <div class="loading-state">
               <i class="ph ph-spinner spinning"></i>
-              <p>Carregando...</p>
+              <p>Carregando produção...</p>
             </div>
           </div>
-        </section>
+        </div>
+
+        <!-- ============================================================
+            ABA: FINANCEIRO
+            ============================================================ -->
+        <div class="tab-content" id="tab-financeiro">
+          <div class="tab-section-title">
+            <i class="ph ph-currency-circle-dollar"></i> Contas do Mês
+          </div>
+          <div
+            id="financeiroCards"
+            class="cards-grid cards-grid-2"
+            style="margin-bottom: 12px"
+          >
+            <div class="kpi-card">
+              <div class="kpi-label">A Pagar</div>
+              <div class="kpi-value danger" id="finTotalPagar">R$ --</div>
+              <div class="kpi-detail">pendentes</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">A Receber</div>
+              <div class="kpi-value success" id="finTotalReceber">R$ --</div>
+              <div class="kpi-detail">pendentes</div>
+            </div>
+          </div>
+          <div id="listaFinanceiro">
+            <div class="loading-state">
+              <i class="ph ph-spinner spinning"></i>
+              <p>Carregando contas...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+            ABA: RH
+            ============================================================ -->
+        <div class="tab-content" id="tab-rh">
+          <div class="tab-section-title">
+            <i class="ph ph-users-three"></i> Recursos Humanos
+          </div>
+
+          <div class="tab-subtitle">
+            <i class="ph ph-sun"></i> Férias em andamento
+          </div>
+          <div id="listaRHFerias">
+            <div class="loading-state">
+              <i class="ph ph-spinner spinning"></i>
+              <p>Carregando férias...</p>
+            </div>
+          </div>
+
+          <div class="tab-subtitle" style="margin-top: 14px">
+            <i class="ph ph-users"></i> Funcionários ativos
+          </div>
+          <div id="listaRHFuncionarios">
+            <div class="loading-state">
+              <i class="ph ph-spinner spinning"></i>
+              <p>Carregando funcionários...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+            ABA: DÍVIDAS
+            ============================================================ -->
+        <div class="tab-content" id="tab-dividas">
+          <div class="tab-section-title">
+            <i class="ph ph-warning-circle"></i> Dívidas
+          </div>
+          <div
+            id="dividasCards"
+            class="cards-grid cards-grid-2"
+            style="margin-bottom: 12px"
+          >
+            <div class="kpi-card">
+              <div class="kpi-label">Total</div>
+              <div class="kpi-value danger" id="divTotalGeral">R$ --</div>
+              <div class="kpi-detail">valor original</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Saldo Devedor</div>
+              <div class="kpi-value danger" id="divSaldoDevedor">R$ --</div>
+              <div class="kpi-detail">restante</div>
+            </div>
+          </div>
+          <div id="listaDividas">
+            <div class="loading-state">
+              <i class="ph ph-spinner spinning"></i>
+              <p>Carregando dívidas...</p>
+            </div>
+          </div>
+        </div>
 
         <div
           style="
             text-align: center;
-            padding: 12px 0 8px 0;
-            font-size: 9px;
+            padding: 16px 0 8px 0;
+            font-size: 8px;
             color: var(--gray-dark);
           "
         >
@@ -1060,29 +1570,32 @@
       <!-- ===== TAB BAR ===== -->
       <nav class="tab-bar" id="tabBar">
         <button class="tab-item active" data-tab="geral">
-          <i class="ph ph-squares-four"></i><span>Geral</span>
+          <i class="ph ph-squares-four"></i>
+          <span>Geral</span>
         </button>
         <button class="tab-item" data-tab="producao">
-          <i class="ph ph-factory"></i><span>Produção</span
-          ><span class="tab-badge" id="tabBadgeProd" style="display: none"
+          <i class="ph ph-factory"></i>
+          <span>Produção</span>
+          <span class="tab-badge" id="tabBadgeProd" style="display: none"
             >0</span
           >
         </button>
         <button class="tab-item" data-tab="financeiro">
-          <i class="ph ph-currency-circle-dollar"></i><span>Financeiro</span
-          ><span class="tab-badge" id="tabBadgeFin" style="display: none"
+          <i class="ph ph-currency-circle-dollar"></i>
+          <span>Financeiro</span>
+          <span class="tab-badge" id="tabBadgeFin" style="display: none"
             >0</span
           >
         </button>
         <button class="tab-item" data-tab="rh">
-          <i class="ph ph-users-three"></i><span>RH</span
-          ><span class="tab-badge" id="tabBadgeRH" style="display: none"
-            >0</span
-          >
+          <i class="ph ph-users-three"></i>
+          <span>RH</span>
+          <span class="tab-badge" id="tabBadgeRH" style="display: none">0</span>
         </button>
         <button class="tab-item" data-tab="dividas">
-          <i class="ph ph-warning-circle"></i><span>Dívidas</span
-          ><span class="tab-badge" id="tabBadgeDiv" style="display: none"
+          <i class="ph ph-warning-circle"></i>
+          <span>Dívidas</span>
+          <span class="tab-badge" id="tabBadgeDiv" style="display: none"
             >0</span
           >
         </button>
@@ -1098,13 +1611,15 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SCRIPT PRINCIPAL -->
+    <!-- SCRIPT PRINCIPAL - TODOS OS DADOS DO SUPABASE, SEM MOCK -->
     <!-- ============================================================ -->
     <script>
       (function () {
         "use strict";
 
-        console.log("🚀 App do Gestor iniciado");
+        console.log(
+          "🚀 App do Gestor - Redesign com abas funcionais (SEM MOCK)",
+        );
 
         // ============================================================
         // SUPABASE
@@ -1143,7 +1658,7 @@
         const supabase = window.__supabaseClient;
 
         // ============================================================
-        // AUXILIARES
+        // AUXILIARES (MESMOS DO DESKTOP)
         // ============================================================
         function todayISO() {
           return new Date().toISOString().split("T")[0];
@@ -1181,6 +1696,13 @@
           });
         }
 
+        function formatDateShort() {
+          return new Date().toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+          });
+        }
+
         function getMonthRange() {
           const now = new Date();
           const primeiroDia = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -1200,17 +1722,6 @@
             d.setDate(d.getDate() + 1);
           }
           return d;
-        }
-
-        function formatarTipoFalta(tipo) {
-          const map = {
-            falta_injustificada: "❌ Injustificada",
-            falta_justificada: "⚠️ Justificada",
-            atestado: "🏥 Atestado",
-            ferias: "🏖️ Férias",
-            licenca: "📋 Licença",
-          };
-          return map[tipo] || tipo || "-";
         }
 
         function formatStatus(s) {
@@ -1264,780 +1775,7 @@
             });
         }
 
-        // ============================================================
-        // VARIÁVEIS GLOBAIS
-        // ============================================================
-        let abaAtual = "geral";
-        let dados = {};
-        let carregando = false;
-
-        // ============================================================
-        // ELEMENTOS
-        // ============================================================
-        const $ = (id) => document.getElementById(id);
-        const appContent = $("appContent");
-        const refreshIcon = $("refreshIcon");
-        const lastUpdate = $("lastUpdate");
-        const pullIndicator = $("pullIndicator");
-        const scrollTopBtn = $("scrollTopBtn");
-
-        // ============================================================
-        // CARREGAR DADOS
-        // ============================================================
-        async function carregarDados() {
-          console.log("🔄 Carregando dados...");
-          if (carregando) return;
-          carregando = true;
-          refreshIcon.className = "ph ph-spinner spinning";
-
-          try {
-            const hoje = todayISO();
-            const mesRange = getMonthRange();
-            console.log(`📅 Mês atual: ${mesRange.mes}/${mesRange.ano}`);
-
-            // ============================================================
-            // 1. PRODUÇÃO
-            // ============================================================
-            let queryOS = supabase
-              .from("service_orders")
-              .select(
-                `
-                            id, order_number, product_description, product_reference,
-                            total_quantity, unit_price, total, received_date, expected_delivery,
-                            status, notes, created_at, updated_at, started_date,
-                            customers(company_name, trade_name, contact_name, phone)
-                        `,
-              )
-              .order("expected_delivery", { ascending: true });
-
-            queryOS = queryOS
-              .gte("received_date", mesRange.inicio)
-              .lte("received_date", mesRange.fim + "T23:59:59")
-              .not("status", "in", '("entregue","cancelado")');
-
-            const { data: osAtivas, error: errOs } = await queryOS;
-            if (errOs) console.error("❌ Erro OS:", errOs);
-
-            const osIds = osAtivas ? osAtivas.map((o) => o.id) : [];
-            let progressoMap = {};
-            if (osIds.length > 0) {
-              const { data: items } = await supabase
-                .from("service_order_items")
-                .select(
-                  "service_order_id, quantity, sewn_quantity, delivered_quantity",
-                )
-                .in("service_order_id", osIds);
-              if (items) {
-                items.forEach((item) => {
-                  if (!progressoMap[item.service_order_id]) {
-                    progressoMap[item.service_order_id] = {
-                      total: 0,
-                      costurado: 0,
-                      entregue: 0,
-                    };
-                  }
-                  progressoMap[item.service_order_id].total += item.quantity;
-                  progressoMap[item.service_order_id].costurado +=
-                    item.sewn_quantity || 0;
-                  progressoMap[item.service_order_id].entregue +=
-                    item.delivered_quantity || 0;
-                });
-              }
-            }
-
-            // ============================================================
-            // 2. FINANCEIRO
-            // ============================================================
-            let queryTrans = supabase
-              .from("financial_transactions")
-              .select(
-                `
-                            id, description, amount, due_date, date, status, type,
-                            payment_method, account_id, category_id,
-                            installments, total_installments, entry_amount, notes,
-                            chart_of_accounts(id, code, name, type)
-                        `,
-              )
-              .gte("due_date", mesRange.inicio)
-              .lte("due_date", mesRange.fim)
-              .neq("status", "cancelado");
-
-            const { data: transacoes, error: errTrans } = await queryTrans;
-            if (errTrans) console.error("❌ Erro transações:", errTrans);
-
-            const { data: parcelasPeriodo, error: errParc } = await supabase
-              .from("financial_installments")
-              .select(
-                "transaction_id, id, numero_parcela, valor, vencimento, status, payment_date, interest_paid, late_fee_paid",
-              )
-              .gte("vencimento", mesRange.inicio)
-              .lte("vencimento", mesRange.fim)
-              .order("vencimento", { ascending: true });
-            if (errParc) console.error("❌ Erro parcelas:", errParc);
-
-            const idsTransacoes = [
-              ...new Set(
-                parcelasPeriodo
-                  ?.map((p) => p.transaction_id)
-                  .filter((id) => id) || [],
-              ),
-            ];
-
-            let transacoesParceladas = [];
-            if (idsTransacoes.length > 0) {
-              const { data: parceladas } = await supabase
-                .from("financial_transactions")
-                .select(
-                  `
-                                id, description, amount, due_date, date, status, type,
-                                payment_method, account_id, category_id,
-                                installments, total_installments, entry_amount, notes,
-                                chart_of_accounts(id, code, name, type)
-                            `,
-                )
-                .in("id", idsTransacoes)
-                .eq("installments", true)
-                .neq("status", "cancelado");
-              if (parceladas) transacoesParceladas = parceladas;
-            }
-
-            const transacoesComParcelas = [];
-            for (const t of transacoes || []) {
-              transacoesComParcelas.push({ ...t, financial_installments: [] });
-            }
-            for (const t of transacoesParceladas) {
-              const parcelasDaTransacao =
-                parcelasPeriodo?.filter((p) => p.transaction_id === t.id) || [];
-              transacoesComParcelas.push({
-                ...t,
-                financial_installments: parcelasDaTransacao,
-              });
-            }
-
-            const eventosFinanceiros = [];
-            for (const t of transacoesComParcelas) {
-              const transacaoParcelada = t.installments === true;
-              if (transacaoParcelada && t.financial_installments?.length) {
-                for (const parcela of t.financial_installments) {
-                  eventosFinanceiros.push({
-                    id: parcela.id,
-                    transaction_id: t.id,
-                    descricao: t.description || "Sem descrição",
-                    categoria: t.chart_of_accounts?.name || "-",
-                    tipo: t.type,
-                    valor: Number(parcela.valor),
-                    vencimento: parcela.vencimento,
-                    status: parcela.status || t.status,
-                    numero_parcela: parcela.numero_parcela,
-                    total_parcelas: t.total_installments || 1,
-                    payment_method: t.payment_method,
-                    isParcela: true,
-                    parcelas: t.financial_installments || [],
-                  });
-                }
-              } else {
-                eventosFinanceiros.push({
-                  id: t.id,
-                  transaction_id: t.id,
-                  descricao: t.description || "Sem descrição",
-                  categoria: t.chart_of_accounts?.name || "-",
-                  tipo: t.type,
-                  valor: Math.abs(Number(t.amount)),
-                  vencimento: t.due_date || t.date,
-                  status: t.status,
-                  numero_parcela: 1,
-                  total_parcelas: 1,
-                  payment_method: t.payment_method,
-                  isParcela: false,
-                  parcelas: [],
-                });
-              }
-            }
-
-            eventosFinanceiros.sort((a, b) =>
-              a.vencimento.localeCompare(b.vencimento),
-            );
-
-            // ============================================================
-            // 3. RH
-            // ============================================================
-            const { data: funcionarios, error: errFunc } = await supabase
-              .from("employees")
-              .select("*")
-              .eq("active", true)
-              .order("full_name");
-            if (errFunc) console.error("❌ Erro funcionários:", errFunc);
-
-            const { data: ferias, error: errFer } = await supabase
-              .from("employee_vacations")
-              .select(
-                "*, employees(full_name, role, photo_url, phone_cell, email_personal)",
-              )
-              .eq("status", "agendada")
-              .lte("start_date", hoje)
-              .gte("end_date", hoje)
-              .order("start_date", { ascending: true });
-            if (errFer) console.error("❌ Erro férias:", errFer);
-
-            // ============================================================
-            // 4. DÍVIDAS
-            // ============================================================
-            const { data: dividas, error: errDiv } = await supabase
-              .from("debts")
-              .select("*")
-              .order("created_at", { ascending: false });
-            if (errDiv) console.error("❌ Erro dívidas:", errDiv);
-
-            const idsDividas = dividas ? dividas.map((d) => d.id) : [];
-            let parcelasDividasMap = {};
-            if (idsDividas.length > 0) {
-              const { data: parcelasDiv } = await supabase
-                .from("debt_installments")
-                .select("*")
-                .in("debt_id", idsDividas)
-                .order("installment_number", { ascending: true });
-              if (parcelasDiv) {
-                parcelasDiv.forEach((p) => {
-                  if (!parcelasDividasMap[p.debt_id])
-                    parcelasDividasMap[p.debt_id] = [];
-                  parcelasDividasMap[p.debt_id].push(p);
-                });
-              }
-            }
-
-            // ============================================================
-            // ARMAZENA DADOS
-            // ============================================================
-            dados = {
-              osAtivas: osAtivas || [],
-              progressoMap: progressoMap || {},
-              eventosFinanceiros: eventosFinanceiros || [],
-              funcionarios: funcionarios || [],
-              ferias: ferias || [],
-              dividas: dividas || [],
-              parcelasDividasMap: parcelasDividasMap || {},
-              mesRange: mesRange,
-            };
-
-            // ============================================================
-            // RENDERIZA
-            // ============================================================
-            renderizarDados(dados);
-
-            // ============================================================
-            // BADGES
-            // ============================================================
-            const contasVencidas = eventosFinanceiros.filter(
-              (e) =>
-                e.status === "pendente" && new Date(e.vencimento) < new Date(),
-            ).length;
-
-            const divAtivas = (dividas || []).filter(
-              (d) => d.status !== "quitada",
-            ).length;
-
-            $("tabBadgeProd").textContent = (osAtivas || []).length;
-            $("tabBadgeProd").style.display =
-              (osAtivas || []).length > 0 ? "flex" : "none";
-            $("tabBadgeFin").textContent = contasVencidas;
-            $("tabBadgeFin").style.display =
-              contasVencidas > 0 ? "flex" : "none";
-            $("tabBadgeRH").textContent = (ferias || []).length;
-            $("tabBadgeRH").style.display =
-              (ferias || []).length > 0 ? "flex" : "none";
-            $("tabBadgeDiv").textContent = divAtivas;
-            $("tabBadgeDiv").style.display = divAtivas > 0 ? "flex" : "none";
-
-            console.log("✅ Renderização concluída!");
-          } catch (e) {
-            console.error("❌ Erro:", e);
-          } finally {
-            carregando = false;
-            refreshIcon.className = "ph ph-arrows-clockwise";
-            pullIndicator.classList.remove("active");
-          }
-        }
-
-        // ============================================================
-        // RENDERIZAR DADOS
-        // ============================================================
-        function renderizarDados(dados) {
-          const {
-            osAtivas,
-            progressoMap,
-            eventosFinanceiros,
-            funcionarios,
-            ferias,
-            dividas,
-            parcelasDividasMap,
-            mesRange,
-          } = dados;
-
-          // Status
-          $("statusTime").textContent = formatTime();
-          $("statusDate").textContent = new Date().toLocaleDateString("pt-BR");
-          lastUpdate.textContent = formatTime();
-
-          // ===== KPIs =====
-          const contasVencidas = eventosFinanceiros.filter(
-            (e) =>
-              e.status === "pendente" && new Date(e.vencimento) < new Date(),
-          ).length;
-
-          let receitasMes = 0,
-            despesasMes = 0;
-          eventosFinanceiros.forEach((e) => {
-            if (e.tipo === "receber") receitasMes += e.valor;
-            else despesasMes += e.valor;
-          });
-
-          const divAtivas = (dividas || []).filter(
-            (d) => d.status !== "quitada",
-          ).length;
-
-          let totalDividasMes = 0;
-          const hoje = new Date();
-          const mesAtual = hoje.getMonth();
-          const anoAtual = hoje.getFullYear();
-          for (const d of dividas || []) {
-            const parcelas = parcelasDividasMap[d.id] || [];
-            for (const p of parcelas) {
-              if (!p.paid) {
-                const dataVenc = new Date(p.due_date);
-                if (
-                  dataVenc.getMonth() === mesAtual &&
-                  dataVenc.getFullYear() === anoAtual
-                ) {
-                  totalDividasMes += parseFloat(p.amount) || 0;
-                }
-              }
-            }
-          }
-
-          $("kpiEmProducao").textContent = (osAtivas || []).length;
-          $("kpiContasVencidas").textContent = contasVencidas;
-          $("kpiFerias").textContent = (ferias || []).length;
-          $("kpiSaldoMes").textContent = formatCurrency(
-            receitasMes - despesasMes,
-          );
-          $("kpiEntregasMes").textContent =
-            osAtivas.filter((o) => o.status === "entregue").length || 0;
-          $("kpiDividasAtivas").textContent = totalDividasMes;
-
-          // ===== ALERTAS =====
-          const alertas = [];
-          if (contasVencidas > 0)
-            alertas.push({
-              prioridade: "high",
-              icone: "ph-currency-circle-dollar",
-              texto: `${contasVencidas} conta(s) vencida(s) no mês`,
-              tag: "urgente",
-            });
-          if (divAtivas > 0)
-            alertas.push({
-              prioridade: "medium",
-              icone: "ph-warning",
-              texto: `${divAtivas} dívida(s) ativa(s) em aberto`,
-              tag: "atenção",
-            });
-          if ((ferias || []).length > 0)
-            alertas.push({
-              prioridade: "medium",
-              icone: "ph-sun",
-              texto: `${ferias.length} funcionário(s) em férias`,
-              tag: "atenção",
-            });
-          if ((osAtivas || []).length === 0)
-            alertas.push({
-              prioridade: "low",
-              icone: "ph-factory",
-              texto: "Nenhuma OS em produção no mês",
-              tag: "info",
-            });
-
-          $("alertasCount").textContent = alertas.length;
-          const container = $("alertasContainer");
-          if (alertas.length === 0) {
-            container.innerHTML = `<div class="alert-item alert-low"><i class="ph ph-check-circle" style="color:var(--success);"></i><span class="alert-text">Tudo em dia! ✅</span></div>`;
-          } else {
-            container.innerHTML = alertas
-              .map(
-                (a) =>
-                  `<div class="alert-item alert-${a.prioridade}"><i class="ph ${a.icone}"></i><span class="alert-text">${a.texto}</span><span class="alert-tag tag-${a.prioridade}">${a.tag}</span></div>`,
-              )
-              .join("");
-          }
-
-          // ===== PRODUÇÃO =====
-          $("prodCount").textContent = (osAtivas || []).length;
-          const listaProd = $("listaProducao");
-          if (osAtivas && osAtivas.length > 0) {
-            listaProd.innerHTML = osAtivas
-              .slice(0, 15)
-              .map((os) => {
-                const cliente =
-                  os.customers?.trade_name || os.customers?.company_name || "-";
-                const atrasado = new Date(os.expected_delivery) < new Date();
-                const prog = progressoMap[os.id] || {
-                  total: os.total_quantity,
-                  costurado: 0,
-                  entregue: 0,
-                };
-                const percentCosturado =
-                  prog.total > 0
-                    ? Math.round((prog.costurado / prog.total) * 100)
-                    : 0;
-                return `<div class="list-item ${atrasado ? "item-danger" : ""}">
-                                    <div class="item-main"><div class="item-title">${os.order_number}</div>
-                                    <div class="item-sub">${cliente} · ${os.total_quantity || 0} peças</div>
-                                    <div style="font-size:9px;color:var(--gray);margin-top:2px;">
-                                        <div style="height:3px;background:rgba(255,255,255,0.1);border-radius:2px;width:100%;">
-                                            <div style="height:100%;width:${percentCosturado}%;background:var(--gold);border-radius:2px;"></div>
-                                        </div>
-                                        ${prog.costurado}/${prog.total} costuradas
-                                    </div>
-                                    </div>
-                                    <div class="item-right"><span class="item-badge ${getStatusClass(os.status)}">${formatStatus(os.status)}</span>
-                                    <div style="font-size:9px;color:${atrasado ? "var(--error)" : "var(--gray-dark)"};">${formatDate(os.expected_delivery)}${atrasado ? " ⚠️" : ""}</div>
-                                    </div>
-                                </div>`;
-              })
-              .join("");
-          } else {
-            listaProd.innerHTML = `<div class="empty-state"><i class="ph ph-factory"></i><p>Nenhuma OS em produção no mês</p></div>`;
-          }
-
-          // ===== FINANCEIRO =====
-          $("finCount").textContent = eventosFinanceiros.length;
-          const listaFin = $("listaFinanceiro");
-          if (eventosFinanceiros && eventosFinanceiros.length > 0) {
-            listaFin.innerHTML = eventosFinanceiros
-              .slice(0, 15)
-              .map((e) => {
-                const isPagar = e.tipo === "pagar";
-                const vencido =
-                  e.status === "pendente" &&
-                  new Date(e.vencimento) < new Date();
-                const pago = e.status === "pago" || e.status === "recebido";
-
-                let classeItem = "";
-                let classeCor = "";
-                if (pago) {
-                  classeItem = "item-pago";
-                  classeCor = "var(--success)";
-                } else if (vencido) {
-                  classeItem = "item-vencido";
-                  classeCor = "var(--error)";
-                } else {
-                  classeItem = "item-pendente";
-                  classeCor = "var(--white)";
-                }
-
-                const parcelaInfo = e.isParcela
-                  ? `Parcela ${e.numero_parcela}/${e.total_parcelas}`
-                  : "Avulsa";
-                const statusClass = pago
-                  ? "pago"
-                  : vencido
-                    ? "vencido"
-                    : "pendente";
-
-                return `<div class="list-item ${classeItem}" onclick="abrirModalConta('${e.transaction_id}')" style="cursor:pointer;">
-                                    <div class="item-main">
-                                        <div class="item-title" style="color:${classeCor};">${e.descricao}</div>
-                                        <div class="item-sub">${formatDate(e.vencimento)} ${e.isParcela ? `· ${parcelaInfo}` : ""}</div>
-                                    </div>
-                                    <div class="item-right">
-                                        <span class="item-badge badge-status-${statusClass}">${pago ? "✅ Pago" : vencido ? "🔴 Vencido" : "🟡 Pendente"}</span>
-                                        <div class="item-value ${isPagar ? "item-error" : "item-success"}" style="color:${classeCor};">${isPagar ? "-" : "+"}${formatCurrency(e.valor)}</div>
-                                    </div>
-                                </div>`;
-              })
-              .join("");
-          } else {
-            listaFin.innerHTML = `<div class="empty-state"><i class="ph ph-currency-circle-dollar"></i><p>Nenhuma conta no mês</p></div>`;
-          }
-
-          // ===== RH - Férias =====
-          const listaRHFerias = $("listaRHFerias");
-          if (ferias && ferias.length > 0) {
-            listaRHFerias.innerHTML = ferias
-              .slice(0, 10)
-              .map((f) => {
-                const func = f.employees;
-                const dataRetorno = getProximoDiaUtil(f.end_date);
-                return `<div class="list-item" style="cursor:default;">
-                                    <div class="item-main"><div class="item-title">${func?.full_name || "-"} 🌴</div>
-                                    <div class="item-sub">${func?.role || "-"} · Retorno: ${formatDate(dataRetorno.toISOString())}</div>
-                                    </div>
-                                    <div class="item-right"><span class="item-badge badge-status-em_costura">Em Gozo</span>
-                                    <div style="font-size:9px;color:var(--gray-dark);">${formatDate(f.start_date)} - ${formatDate(f.end_date)}</div>
-                                    </div>
-                                </div>`;
-              })
-              .join("");
-          } else {
-            listaRHFerias.innerHTML = `<div class="empty-state"><i class="ph ph-sun"></i><p>Nenhum funcionário em férias</p></div>`;
-          }
-
-          // ===== RH - Funcionários =====
-          const listaRHFunc = $("listaRHFuncionarios");
-          $("rhCount").textContent = (funcionarios || []).length;
-          if (funcionarios && funcionarios.length > 0) {
-            listaRHFunc.innerHTML = funcionarios
-              .slice(0, 15)
-              .map((f) => {
-                const emFerias = (ferias || []).some(
-                  (ff) => ff.employee_id === f.id,
-                );
-                return `<div class="list-item ${emFerias ? "item-warning" : ""}" data-id="${f.id}">
-                                    <div class="item-main"><div class="item-title">${f.full_name}${emFerias ? " 🌴" : ""}</div>
-                                    <div class="item-sub">${f.role || "-"} · ${f.contract_type === "clt" ? "CLT" : "Diarista"}</div>
-                                    </div>
-                                    <div class="item-right"><span class="item-badge ${emFerias ? "badge-status-em_costura" : "badge-status-entregue"}">${emFerias ? "De Férias" : "Ativo"}</span></div>
-                                </div>`;
-              })
-              .join("");
-
-            listaRHFunc
-              .querySelectorAll(".list-item[data-id]")
-              .forEach((el) => {
-                el.addEventListener("click", function () {
-                  const id = this.dataset.id;
-                  const func = funcionarios.find((f) => f.id == id);
-                  if (func) abrirModalFuncionario(func, ferias);
-                });
-              });
-          } else {
-            listaRHFunc.innerHTML = `<div class="empty-state"><i class="ph ph-users"></i><p>Nenhum funcionário ativo</p></div>`;
-          }
-
-          // ===== DÍVIDAS =====
-          $("divCount").textContent = (dividas || []).length;
-          const listaDiv = $("listaDividas");
-          if (dividas && dividas.length > 0) {
-            listaDiv.innerHTML = dividas
-              .slice(0, 15)
-              .map((d) => {
-                const total = d.total_amount || 0;
-                const parcelas = parcelasDividasMap[d.id] || [];
-                const pago = parcelas
-                  .filter((p) => p.paid)
-                  .reduce((s, p) => s + parseFloat(p.amount), 0);
-                const percentual =
-                  total > 0 ? Math.round((pago / total) * 100) : 0;
-                const statusClass =
-                  d.status === "quitada" ? "quitada" : "ativa";
-                return `<div class="list-item" data-id="${d.id}">
-                                    <div class="item-main"><div class="item-title">${d.creditor || "Credor"}</div>
-                                    <div class="item-sub">${d.description || "-"} · ${percentual}% pago</div>
-                                    </div>
-                                    <div class="item-right"><span class="item-badge badge-status-${statusClass}">${statusClass === "quitada" ? "✅ Quitada" : "🟡 Ativa"}</span>
-                                    <div style="font-size:9px;color:var(--gray-dark);">${formatCurrency(total - pago)} restante</div>
-                                    </div>
-                                </div>`;
-              })
-              .join("");
-
-            listaDiv.querySelectorAll(".list-item[data-id]").forEach((el) => {
-              el.addEventListener("click", function () {
-                const id = this.dataset.id;
-                const div = dividas.find((d) => d.id == id);
-                if (div) abrirModalDivida(div, parcelasDividasMap[id] || []);
-              });
-            });
-          } else {
-            listaDiv.innerHTML = `<div class="empty-state"><i class="ph ph-warning-circle"></i><p>Nenhuma dívida cadastrada</p></div>`;
-          }
-        }
-
-        // ============================================================
-        // ABRIR MODAL CONTA (FINANCEIRO)
-        // ============================================================
-        window.abrirModalConta = function (transactionId) {
-          const evento = dados.eventosFinanceiros?.find(
-            (e) => e.transaction_id === transactionId,
-          );
-          if (!evento) {
-            showFeedback("Erro", "Conta não encontrada.", "error");
-            return;
-          }
-
-          const isPagar = evento.tipo === "pagar";
-          const vencido =
-            evento.status === "pendente" &&
-            new Date(evento.vencimento) < new Date();
-          const pago = evento.status === "pago" || evento.status === "recebido";
-
-          let statusText = "";
-          let statusColor = "";
-          if (pago) {
-            statusText = "✅ Pago";
-            statusColor = "var(--success)";
-          } else if (vencido) {
-            statusText = "🔴 Vencido";
-            statusColor = "var(--error)";
-          } else {
-            statusText = "🟡 Pendente";
-            statusColor = "var(--warning)";
-          }
-
-          let parcelasHtml = "";
-          if (evento.parcelas && evento.parcelas.length > 0) {
-            parcelasHtml = `
-                        <div style="margin-top:12px;">
-                            <h4 style="font-size:0.8rem;color:var(--gray-dark);margin-bottom:8px;">Parcelas</h4>
-                            ${evento.parcelas
-                              .map(
-                                (p) => `
-                                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.8rem;">
-                                    <span style="color:var(--gray-dark);">${p.numero_parcela}ª</span>
-                                    <span style="color:${p.status === "pago" ? "var(--success)" : "var(--warning)"};">${formatDate(p.vencimento)}</span>
-                                    <span style="font-weight:500;">${formatCurrency(p.valor)}</span>
-                                    <span>${p.status === "pago" ? "✅" : "⏳"}</span>
-                                </div>
-                            `,
-                              )
-                              .join("")}
-                        </div>
-                    `;
-          }
-
-          const html = `
-                    <div style="margin-bottom:16px;">
-                        <h3 style="font-size:1.1rem;color:var(--gold-light);">${evento.descricao}</h3>
-                        <p style="color:var(--gray);font-size:0.85rem;">${evento.categoria || "Sem categoria"}</p>
-                        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
-                    </div>
-                    <div class="info-row"><span class="label">Valor</span><span class="value gold">${formatCurrency(evento.valor)}</span></div>
-                    <div class="info-row"><span class="label">Vencimento</span><span class="value">${formatDate(evento.vencimento)}</span></div>
-                    <div class="info-row"><span class="label">Tipo</span><span class="value ${isPagar ? "danger" : "success"}">${isPagar ? "A Pagar" : "A Receber"}</span></div>
-                    ${evento.payment_method ? `<div class="info-row"><span class="label">Forma de Pagamento</span><span class="value">${evento.payment_method}</span></div>` : ""}
-                    ${parcelasHtml}
-                    ${evento.parcelas && evento.parcelas.length > 0 ? `<div class="info-row"><span class="label">Total Parcelas</span><span class="value">${evento.parcelas.filter((p) => p.status === "pago").length}/${evento.parcelas.length}</span></div>` : ""}
-                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${evento.transaction_id}</div>
-                    </div>
-                `;
-
-          openModal("Detalhes da Conta", html);
-        };
-
-        // ============================================================
-        // ABRIR MODAL FUNCIONÁRIO
-        // ============================================================
-        function abrirModalFuncionario(func, ferias) {
-          const emFerias = (ferias || []).find(
-            (f) => f.employee_id === func.id,
-          );
-          const fotoHtml = func.photo_url
-            ? `<img src="${func.photo_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">`
-            : `<div style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--pink-dark),var(--gold-dark));color:#fff;">${getInitials(func.full_name)}</div>`;
-
-          let feriasHtml =
-            '<div class="info-row"><span class="label">Férias</span><span class="value">Nenhuma férias em andamento</span></div>';
-          if (emFerias) {
-            const dataRetorno = getProximoDiaUtil(emFerias.end_date);
-            feriasHtml = `
-                                <div class="info-row"><span class="label">Férias</span><span class="value gold">🟡 Em andamento</span></div>
-                                <div class="info-row"><span class="label">Período</span><span class="value">${formatDate(emFerias.start_date)} a ${formatDate(emFerias.end_date)}</span></div>
-                                <div class="info-row"><span class="label">Retorno</span><span class="value success">${formatDate(dataRetorno.toISOString())}</span></div>
-                            `;
-          }
-
-          const html = `
-                            <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);">
-                                ${fotoHtml}
-                                <div>
-                                    <h3 style="font-size:1.1rem;">${func.full_name}</h3>
-                                    <p style="color:var(--gold-light);font-size:0.85rem;">${func.role || "Sem função"}</p>
-                                    <p style="font-size:0.75rem;color:${func.active ? "var(--success)" : "var(--error)"};">${func.active ? "🟢 Ativo" : "🔴 Inativo"}</p>
-                                </div>
-                            </div>
-                            <div class="info-row"><span class="label">CPF</span><span class="value">${func.cpf || "-"}</span></div>
-                            <div class="info-row"><span class="label">Celular</span><span class="value">${func.phone_cell || "-"}</span></div>
-                            <div class="info-row"><span class="label">E-mail</span><span class="value">${func.email_personal || "-"}</span></div>
-                            <div class="info-row"><span class="label">Contrato</span><span class="value">${func.contract_type === "clt" ? "CLT" : "Diarista"}</span></div>
-                            <div class="info-row"><span class="label">Salário</span><span class="value gold">${func.contract_type === "clt" ? formatCurrency(func.monthly_salary) : formatCurrency(func.daily_rate) + "/dia"}</span></div>
-                            <div class="info-row"><span class="label">Admissão</span><span class="value">${formatDate(func.admission_date)}</span></div>
-                            ${feriasHtml}
-                            ${func.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${func.notes}</span></div>` : ""}
-                            <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-                                <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${func.id}</div>
-                            </div>
-                        `;
-
-          openModal(func.full_name, html);
-        }
-
-        // ============================================================
-        // ABRIR MODAL DÍVIDA
-        // ============================================================
-        function abrirModalDivida(div, parcelas) {
-          const total = div.total_amount || 0;
-          const pago = parcelas
-            .filter((p) => p.paid)
-            .reduce((s, p) => s + parseFloat(p.amount), 0);
-          const percentual = total > 0 ? Math.round((pago / total) * 100) : 0;
-          const restante = total - pago;
-
-          let statusText = div.status === "quitada" ? "✅ Quitada" : "🟡 Ativa";
-          let statusColor =
-            div.status === "quitada" ? "var(--success)" : "var(--gold-light)";
-
-          const parcelasHtml =
-            parcelas.length > 0
-              ? `
-                            <div style="margin-top:12px;">
-                                <h4 style="font-size:0.8rem;color:var(--gray-dark);margin-bottom:8px;">Parcelas</h4>
-                                ${parcelas
-                                  .map(
-                                    (p) => `
-                                    <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.8rem;">
-                                        <span style="color:var(--gray-dark);">${p.installment_number}ª</span>
-                                        <span style="color:${p.paid ? "var(--success)" : "var(--warning)"};">${formatDate(p.due_date)}</span>
-                                        <span style="font-weight:500;">${formatCurrency(p.amount)}</span>
-                                        <span>${p.paid ? "✅" : "⏳"}</span>
-                                    </div>
-                                `,
-                                  )
-                                  .join("")}
-                            </div>
-                        `
-              : "";
-
-          const html = `
-                            <div style="margin-bottom:16px;">
-                                <h3 style="font-size:1.1rem;color:var(--gold-light);">${div.credor || "Credor não informado"}</h3>
-                                <p style="color:var(--gray);font-size:0.85rem;">${div.description || "Sem descrição"}</p>
-                                <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
-                            </div>
-                            <div class="info-row"><span class="label">Valor Total</span><span class="value gold">${formatCurrency(total)}</span></div>
-                            <div class="info-row"><span class="label">Valor Pago</span><span class="value success">${formatCurrency(pago)}</span></div>
-                            <div class="info-row"><span class="label">Saldo Restante</span><span class="value ${restante > 0 ? "danger" : "success"}">${formatCurrency(restante)}</span></div>
-                            <div class="info-row"><span class="label">Progresso</span><span class="value">${percentual}%</span></div>
-                            ${div.next_due_date ? `<div class="info-row"><span class="label">Próximo Vencimento</span><span class="value">${formatDate(div.next_due_date)}</span></div>` : ""}
-                            ${parcelasHtml}
-                            ${div.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${div.notes}</span></div>` : ""}
-                            <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-                                <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${div.id}</div>
-                            </div>
-                        `;
-
-          openModal(div.credor || "Dívida", html);
-        }
-
-        // ============================================================
-        // SHOW FEEDBACK (FALBACK)
-        // ============================================================
         function showFeedback(title, message, type = "info", callback = null) {
-          const colors = {
-            success: "var(--success)",
-            error: "var(--error)",
-            warning: "var(--warning)",
-            info: "var(--gold)",
-          };
-
           const html = `
                     <div class="modal-overlay" id="feedbackOverlay">
                         <div class="modal-sheet" style="max-width:400px;">
@@ -2081,43 +1819,822 @@
         }
 
         // ============================================================
+        // VARIÁVEIS GLOBAIS
+        // ============================================================
+        let abaAtual = "geral";
+        let dados = {};
+        let carregando = false;
+
+        // ============================================================
+        // ELEMENTOS
+        // ============================================================
+        const $ = (id) => document.getElementById(id);
+        const appContent = $("appContent");
+        const refreshIcon = $("refreshIcon");
+        const pullIndicator = $("pullIndicator");
+        const scrollTopBtn = $("scrollTopBtn");
+
+        // ============================================================
+        // FUNÇÃO DE EVENTOS (MESMA LÓGICA DO financeiro.js DESKTOP)
+        // ============================================================
+        function gerarEventosFinanceiros(transacoes) {
+          const eventos = [];
+
+          for (const t of transacoes || []) {
+            const transacaoParcelada = t.installments === true;
+
+            if (transacaoParcelada && t.financial_installments?.length) {
+              for (const parcela of t.financial_installments) {
+                eventos.push({
+                  id: parcela.id,
+                  transaction_id: t.id,
+                  descricao: t.description || "Sem descrição",
+                  categoria: t.chart_of_accounts?.name || "-",
+                  tipo: t.type,
+                  valor: Number(parcela.valor),
+                  vencimento: parcela.vencimento,
+                  status: parcela.status || t.status,
+                  numero_parcela: parcela.numero_parcela,
+                  total_parcelas: t.total_installments || 1,
+                  payment_method: t.payment_method,
+                  payment_date: parcela.payment_date,
+                  interest_paid: parcela.interest_paid || 0,
+                  late_fee_paid: parcela.late_fee_paid || 0,
+                  isParcela: true,
+                  parcela_original: parcela,
+                  transacao_original: t,
+                });
+              }
+            } else {
+              eventos.push({
+                id: t.id,
+                transaction_id: t.id,
+                descricao: t.description || "Sem descrição",
+                categoria: t.chart_of_accounts?.name || "-",
+                tipo: t.type,
+                valor: Math.abs(Number(t.amount)),
+                vencimento: t.due_date || t.date,
+                status: t.status,
+                numero_parcela: 1,
+                total_parcelas: 1,
+                payment_method: t.payment_method,
+                payment_date: t.payment_date,
+                interest_paid: t.interest || 0,
+                late_fee_paid: 0,
+                isParcela: false,
+                parcela_original: null,
+                transacao_original: t,
+              });
+            }
+          }
+
+          eventos.sort((a, b) => a.vencimento.localeCompare(b.vencimento));
+          return eventos;
+        }
+
+        // ============================================================
+        // CARREGAR DADOS (TODOS DO SUPABASE, SEM MOCK)
+        // ============================================================
+        async function carregarDados() {
+          console.log("🔄 Carregando dados do Supabase...");
+          if (carregando) return;
+          carregando = true;
+          refreshIcon.className = "ph ph-spinner spinning";
+
+          try {
+            const hoje = todayISO();
+            const mesRange = getMonthRange();
+            console.log(`📅 Mês atual: ${mesRange.mes}/${mesRange.ano}`);
+
+            // ============================================================
+            // 1. PRODUÇÃO - OS do mês (mesma lógica do desktop)
+            // ============================================================
+            let queryOS = supabase
+              .from("service_orders")
+              .select(
+                `
+                            id, order_number, product_description,
+                            total_quantity, status, expected_delivery, received_date,
+                            customers(company_name, trade_name)
+                        `,
+              )
+              .gte("received_date", mesRange.inicio)
+              .lte("received_date", mesRange.fim + "T23:59:59")
+              .not("status", "in", '("entregue","cancelado")')
+              .order("expected_delivery", { ascending: true });
+
+            const { data: osAtivas, error: errOs } = await queryOS;
+            if (errOs) console.error("❌ Erro OS:", errOs);
+
+            // Contagem por status (mesma do producao.js)
+            const emCostura = (osAtivas || []).filter(
+              (o) => o.status === "em_costura",
+            ).length;
+            const costurados = (osAtivas || []).filter(
+              (o) => o.status === "costurado",
+            ).length;
+
+            // ============================================================
+            // 2. FINANCEIRO - MESMA LÓGICA DO financeiro.js DESKTOP
+            // ============================================================
+            // Buscar transações avulsas do mês
+            let queryAvulsas = supabase
+              .from("financial_transactions")
+              .select(
+                `
+                            id, description, amount, due_date, date, status, type,
+                            payment_method, account_id, category_id,
+                            installments, total_installments, entry_amount, notes,
+                            chart_of_accounts(id, code, name, type)
+                        `,
+              )
+              .or("installments.is.null,installments.eq.false")
+              .gte("due_date", mesRange.inicio)
+              .lte("due_date", mesRange.fim)
+              .neq("status", "cancelado");
+
+            const { data: avulsas, error: errAvulsas } = await queryAvulsas;
+            if (errAvulsas) console.error("❌ Erro avulsas:", errAvulsas);
+
+            // Buscar parcelas do período
+            const { data: parcelasPeriodo, error: errParc } = await supabase
+              .from("financial_installments")
+              .select(
+                "transaction_id, id, numero_parcela, valor, vencimento, status, payment_date, interest_paid, late_fee_paid",
+              )
+              .gte("vencimento", mesRange.inicio)
+              .lte("vencimento", mesRange.fim)
+              .order("vencimento", { ascending: true });
+            if (errParc) console.error("❌ Erro parcelas:", errParc);
+
+            const idsTransacoes = [
+              ...new Set(
+                parcelasPeriodo
+                  ?.map((p) => p.transaction_id)
+                  .filter((id) => id) || [],
+              ),
+            ];
+
+            // Buscar transações parceladas
+            let transacoesParceladas = [];
+            if (idsTransacoes.length > 0) {
+              let queryParceladas = supabase
+                .from("financial_transactions")
+                .select(
+                  `
+                                id, description, amount, due_date, date, status, type,
+                                payment_method, account_id, category_id,
+                                installments, total_installments, entry_amount, notes,
+                                chart_of_accounts(id, code, name, type)
+                            `,
+                )
+                .in("id", idsTransacoes)
+                .eq("installments", true)
+                .neq("status", "cancelado");
+
+              const { data: parceladas, error: errParceladas } =
+                await queryParceladas;
+              if (errParceladas)
+                console.error("❌ Erro parceladas:", errParceladas);
+              transacoesParceladas = parceladas || [];
+            }
+
+            // Combinar transações com parcelas
+            const transacoesComParcelas = [];
+
+            for (const t of avulsas || []) {
+              transacoesComParcelas.push({
+                ...t,
+                financial_installments: [],
+              });
+            }
+
+            for (const t of transacoesParceladas) {
+              const parcelasDaTransacao =
+                parcelasPeriodo?.filter((p) => p.transaction_id === t.id) || [];
+              transacoesComParcelas.push({
+                ...t,
+                financial_installments: parcelasDaTransacao,
+              });
+            }
+
+            // Gerar eventos (mesma função do desktop)
+            const eventosFinanceiros = gerarEventosFinanceiros(
+              transacoesComParcelas,
+            );
+
+            // Calcular totais (mesmo do desktop)
+            let totalReceitas = 0,
+              totalDespesas = 0;
+            let totalPagar = 0,
+              totalReceber = 0;
+            let contasVencidas = 0;
+
+            for (const e of eventosFinanceiros) {
+              if (e.tipo === "receber") {
+                totalReceitas += e.valor;
+                if (e.status === "pendente" || e.status === "atrasado") {
+                  totalReceber += e.valor;
+                }
+              } else {
+                totalDespesas += e.valor;
+                if (e.status === "pendente" || e.status === "atrasado") {
+                  totalPagar += e.valor;
+                }
+              }
+
+              if (
+                e.status === "pendente" &&
+                new Date(e.vencimento) < new Date()
+              ) {
+                contasVencidas++;
+              }
+            }
+
+            // ============================================================
+            // 3. RH (mesmo do desktop)
+            // ============================================================
+            const { data: funcionarios, error: errFunc } = await supabase
+              .from("employees")
+              .select("*")
+              .eq("active", true)
+              .order("full_name");
+            if (errFunc) console.error("❌ Erro funcionários:", errFunc);
+
+            const { data: ferias, error: errFer } = await supabase
+              .from("employee_vacations")
+              .select(
+                "*, employees(full_name, role, photo_url, phone_cell, email_personal)",
+              )
+              .eq("status", "agendada")
+              .lte("start_date", hoje)
+              .gte("end_date", hoje)
+              .order("start_date", { ascending: true });
+            if (errFer) console.error("❌ Erro férias:", errFer);
+
+            // ============================================================
+            // 4. DÍVIDAS (mesmo do desktop)
+            // ============================================================
+            const { data: dividas, error: errDiv } = await supabase
+              .from("debts")
+              .select("*")
+              .order("created_at", { ascending: false });
+            if (errDiv) console.error("❌ Erro dívidas:", errDiv);
+
+            let totalDividas = 0,
+              totalPago = 0;
+            for (const d of dividas || []) {
+              totalDividas += parseFloat(d.total_amount) || 0;
+              totalPago += parseFloat(d.paid_amount) || 0;
+            }
+            const saldoDevedor = totalDividas - totalPago;
+
+            // ============================================================
+            // ARMAZENA DADOS
+            // ============================================================
+            dados = {
+              osAtivas: osAtivas || [],
+              emCostura: emCostura || 0,
+              costurados: costurados || 0,
+              eventosFinanceiros: eventosFinanceiros || [],
+              totalReceitas: totalReceitas || 0,
+              totalDespesas: totalDespesas || 0,
+              totalPagar: totalPagar || 0,
+              totalReceber: totalReceber || 0,
+              contasVencidas: contasVencidas || 0,
+              funcionarios: funcionarios || [],
+              ferias: ferias || [],
+              dividas: dividas || [],
+              totalDividas: totalDividas || 0,
+              saldoDevedor: saldoDevedor || 0,
+              mesRange: mesRange,
+            };
+
+            // ============================================================
+            // RENDERIZA TODAS AS ABAS
+            // ============================================================
+            renderizarGeral(dados);
+            renderizarProducao(dados);
+            renderizarFinanceiro(dados);
+            renderizarRH(dados);
+            renderizarDividas(dados);
+
+            // ============================================================
+            // BADGES
+            // ============================================================
+            $("tabBadgeProd").textContent = (osAtivas || []).length;
+            $("tabBadgeProd").style.display =
+              (osAtivas || []).length > 0 ? "flex" : "none";
+            $("tabBadgeFin").textContent = contasVencidas;
+            $("tabBadgeFin").style.display =
+              contasVencidas > 0 ? "flex" : "none";
+            $("tabBadgeRH").textContent = (ferias || []).length;
+            $("tabBadgeRH").style.display =
+              (ferias || []).length > 0 ? "flex" : "none";
+            const divAtivas = (dividas || []).filter(
+              (d) => d.status !== "quitada",
+            ).length;
+            $("tabBadgeDiv").textContent = divAtivas;
+            $("tabBadgeDiv").style.display = divAtivas > 0 ? "flex" : "none";
+
+            console.log("✅ Renderização concluída!");
+          } catch (e) {
+            console.error("❌ Erro:", e);
+            showFeedback(
+              "Erro",
+              "Falha ao carregar dados do Supabase.",
+              "error",
+            );
+          } finally {
+            carregando = false;
+            refreshIcon.className = "ph ph-arrows-clockwise";
+            pullIndicator.classList.remove("active");
+          }
+        }
+
+        // ============================================================
+        // RENDERIZAR - ABA GERAL (DASHBOARD)
+        // ============================================================
+        function renderizarGeral(dados) {
+          const {
+            osAtivas,
+            eventosFinanceiros,
+            totalReceitas,
+            totalDespesas,
+            contasVencidas,
+            ferias,
+            dividas,
+            saldoDevedor,
+            mesRange,
+          } = dados;
+
+          const saldo = totalReceitas - totalDespesas;
+
+          // Status
+          const agora = new Date();
+          $("statusTime").textContent = formatTime();
+          $("statusDate").textContent = agora.toLocaleDateString("pt-BR");
+          $("headerHora").textContent = formatTime();
+          $("headerData").textContent = formatDateShort();
+
+          // KPIs
+          $("kpiEmProducao").textContent = (osAtivas || []).length;
+          $("kpiContasVencidas").textContent = contasVencidas;
+          $("kpiFerias").textContent = (ferias || []).length;
+          $("kpiSaldoMes").textContent = formatCurrency(saldo);
+          $("kpiEntregasMes").textContent =
+            osAtivas.filter((o) => o.status === "entregue").length || 0;
+          $("kpiDividasAtivas").textContent = formatCurrency(saldoDevedor);
+
+          // Gauge - baseado no saldo devedor real
+          const maxDivida = Math.max(saldoDevedor, 1000);
+          const pct = Math.min(
+            Math.round((saldoDevedor / maxDivida) * 100),
+            100,
+          );
+          const circumference = 188.5;
+          const offset = circumference - (pct / 100) * circumference;
+          const gaugeFill = document.getElementById("gaugeFill");
+          gaugeFill.style.strokeDashoffset = offset;
+          document.getElementById("gaugePercent").textContent = pct + "%";
+
+          // Alertas - baseados nos dados reais
+          const alertas = [];
+          if (contasVencidas > 0)
+            alertas.push({
+              prioridade: "high",
+              icone: "ph-currency-circle-dollar",
+              texto: `${contasVencidas} conta(s) vencida(s) no mês`,
+              tag: "urgente",
+            });
+          const divAtivas = (dividas || []).filter(
+            (d) => d.status !== "quitada",
+          ).length;
+          if (divAtivas > 0)
+            alertas.push({
+              prioridade: "medium",
+              icone: "ph-warning",
+              texto: `${divAtivas} dívida(s) ativa(s) em aberto`,
+              tag: "atenção",
+            });
+          if ((ferias || []).length > 0)
+            alertas.push({
+              prioridade: "medium",
+              icone: "ph-sun",
+              texto: `${ferias.length} funcionário(s) em férias`,
+              tag: "atenção",
+            });
+          if ((osAtivas || []).length === 0)
+            alertas.push({
+              prioridade: "low",
+              icone: "ph-factory",
+              texto: "Nenhuma OS em produção no mês",
+              tag: "info",
+            });
+
+          $("alertasCount").textContent = alertas.length;
+          const container = $("alertasContainer");
+          if (alertas.length === 0) {
+            container.innerHTML = `<div class="alert-item"><i class="ph ph-check-circle" style="color:var(--success);"></i><span class="alert-text">Tudo em dia! ✅</span></div>`;
+          } else {
+            container.innerHTML = alertas
+              .map(
+                (a) =>
+                  `<div class="alert-item"><i class="ph ${a.icone}" style="color:${a.prioridade === "high" ? "var(--error)" : a.prioridade === "medium" ? "var(--warning)" : "var(--info)"};"></i><span class="alert-text">${a.texto}</span><span class="alert-tag tag-${a.prioridade}">${a.tag}</span></div>`,
+              )
+              .join("");
+          }
+
+          // Resumo Financeiro - barras baseadas nos valores reais
+          const maxValor = Math.max(totalReceitas, totalDespesas, 1);
+          const pctReceita = Math.round((totalReceitas / maxValor) * 100);
+          const pctDespesa = Math.round((totalDespesas / maxValor) * 100);
+
+          document.getElementById("barReceita").style.width =
+            Math.min(pctReceita, 100) + "%";
+          document.getElementById("barDespesa").style.width =
+            Math.min(pctDespesa, 100) + "%";
+          document.getElementById("valorReceita").textContent =
+            formatCurrency(totalReceitas);
+          document.getElementById("valorDespesa").textContent =
+            formatCurrency(totalDespesas);
+          document.getElementById("saldoFinal").textContent =
+            formatCurrency(saldo);
+
+          const mesNome = new Date().toLocaleDateString("pt-BR", {
+            month: "long",
+            year: "numeric",
+          });
+          document.getElementById("resumoPeriodo").textContent = mesNome;
+        }
+
+        // ============================================================
+        // RENDERIZAR - ABA PRODUÇÃO
+        // ============================================================
+        function renderizarProducao(dados) {
+          const { osAtivas, emCostura, costurados } = dados;
+
+          document.getElementById("prodEmCostura").textContent = emCostura;
+          document.getElementById("prodCosturados").textContent = costurados;
+
+          const container = document.getElementById("listaProducao");
+          if (osAtivas && osAtivas.length > 0) {
+            container.innerHTML = osAtivas
+              .slice(0, 15)
+              .map((os) => {
+                const cliente =
+                  os.customers?.trade_name || os.customers?.company_name || "-";
+                const atrasado = new Date(os.expected_delivery) < new Date();
+                return `<div class="list-item ${atrasado ? "item-vencido" : ""}">
+                                    <div class="item-main">
+                                        <div class="item-title">${os.order_number}</div>
+                                        <div class="item-sub">${cliente} · ${os.total_quantity || 0} peças</div>
+                                    </div>
+                                    <div class="item-right">
+                                        <span class="item-badge ${getStatusClass(os.status)}">${formatStatus(os.status)}</span>
+                                        <div style="font-size:9px;color:${atrasado ? "var(--error)" : "var(--gray-dark)"};">${formatDate(os.expected_delivery)}${atrasado ? " ⚠️" : ""}</div>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+          } else {
+            container.innerHTML = `<div class="empty-state"><i class="ph ph-factory"></i><p>Nenhuma OS em produção no mês</p></div>`;
+          }
+        }
+
+        // ============================================================
+        // RENDERIZAR - ABA FINANCEIRO
+        // ============================================================
+        function renderizarFinanceiro(dados) {
+          const { eventosFinanceiros, totalPagar, totalReceber } = dados;
+
+          document.getElementById("finTotalPagar").textContent =
+            formatCurrency(totalPagar);
+          document.getElementById("finTotalReceber").textContent =
+            formatCurrency(totalReceber);
+
+          const container = document.getElementById("listaFinanceiro");
+          if (eventosFinanceiros && eventosFinanceiros.length > 0) {
+            container.innerHTML = eventosFinanceiros
+              .slice(0, 15)
+              .map((e) => {
+                const isPagar = e.tipo === "pagar";
+                const vencido =
+                  e.status === "pendente" &&
+                  new Date(e.vencimento) < new Date();
+                const pago = e.status === "pago" || e.status === "recebido";
+
+                let classeItem = "";
+                let cor = "";
+                if (pago) {
+                  classeItem = "item-pago";
+                  cor = "var(--success)";
+                } else if (vencido) {
+                  classeItem = "item-vencido";
+                  cor = "var(--error)";
+                } else {
+                  cor = "var(--white)";
+                }
+
+                const statusClass = pago
+                  ? "pago"
+                  : vencido
+                    ? "vencido"
+                    : "pendente";
+                const parcelaInfo = e.isParcela
+                  ? `Parcela ${e.numero_parcela}/${e.total_parcelas}`
+                  : "Avulsa";
+
+                return `<div class="list-item ${classeItem}" onclick="abrirModalConta('${e.id}')" style="cursor:pointer;">
+                                    <div class="item-main">
+                                        <div class="item-title" style="color:${cor};">${e.descricao}</div>
+                                        <div class="item-sub">${formatDate(e.vencimento)} ${e.isParcela ? `· ${parcelaInfo}` : ""}</div>
+                                    </div>
+                                    <div class="item-right">
+                                        <span class="item-badge badge-status-${statusClass}">${pago ? "✅ Pago" : vencido ? "🔴 Vencido" : "🟡 Pendente"}</span>
+                                        <div class="item-value ${isPagar ? "item-error" : "item-success"}" style="color:${cor};">${isPagar ? "-" : "+"}${formatCurrency(e.valor)}</div>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+          } else {
+            container.innerHTML = `<div class="empty-state"><i class="ph ph-currency-circle-dollar"></i><p>Nenhuma conta no mês</p></div>`;
+          }
+        }
+
+        // ============================================================
+        // RENDERIZAR - ABA RH
+        // ============================================================
+        function renderizarRH(dados) {
+          const { funcionarios, ferias } = dados;
+
+          // Férias
+          const containerFerias = document.getElementById("listaRHFerias");
+          if (ferias && ferias.length > 0) {
+            containerFerias.innerHTML = ferias
+              .slice(0, 10)
+              .map((f) => {
+                const func = f.employees;
+                const dataRetorno = getProximoDiaUtil(f.end_date);
+                return `<div class="list-item" style="cursor:default;">
+                                    <div class="item-main">
+                                        <div class="item-title">${func?.full_name || "-"} 🌴</div>
+                                        <div class="item-sub">${func?.role || "-"} · Retorno: ${formatDate(dataRetorno.toISOString())}</div>
+                                    </div>
+                                    <div class="item-right">
+                                        <span class="item-badge badge-status-em_costura">Em Gozo</span>
+                                        <div style="font-size:9px;color:var(--gray-dark);">${formatDate(f.start_date)} - ${formatDate(f.end_date)}</div>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+          } else {
+            containerFerias.innerHTML = `<div class="empty-state"><i class="ph ph-sun"></i><p>Nenhum funcionário em férias</p></div>`;
+          }
+
+          // Funcionários ativos
+          const containerFunc = document.getElementById("listaRHFuncionarios");
+          if (funcionarios && funcionarios.length > 0) {
+            containerFunc.innerHTML = funcionarios
+              .slice(0, 15)
+              .map((f) => {
+                const emFerias = (ferias || []).some(
+                  (ff) => ff.employee_id === f.id,
+                );
+                return `<div class="list-item ${emFerias ? "item-warning" : ""}" data-id="${f.id}">
+                                    <div class="item-main">
+                                        <div class="item-title">${f.full_name}${emFerias ? " 🌴" : ""}</div>
+                                        <div class="item-sub">${f.role || "-"} · ${f.contract_type === "clt" ? "CLT" : "Diarista"}</div>
+                                    </div>
+                                    <div class="item-right">
+                                        <span class="item-badge ${emFerias ? "badge-status-em_costura" : "badge-status-entregue"}">${emFerias ? "De Férias" : "Ativo"}</span>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+
+            containerFunc
+              .querySelectorAll(".list-item[data-id]")
+              .forEach((el) => {
+                el.addEventListener("click", function () {
+                  const id = this.dataset.id;
+                  const func = funcionarios.find((f) => f.id == id);
+                  if (func) abrirModalFuncionario(func, ferias);
+                });
+              });
+          } else {
+            containerFunc.innerHTML = `<div class="empty-state"><i class="ph ph-users"></i><p>Nenhum funcionário ativo</p></div>`;
+          }
+        }
+
+        // ============================================================
+        // RENDERIZAR - ABA DÍVIDAS
+        // ============================================================
+        function renderizarDividas(dados) {
+          const { dividas, totalDividas, saldoDevedor } = dados;
+
+          document.getElementById("divTotalGeral").textContent =
+            formatCurrency(totalDividas);
+          document.getElementById("divSaldoDevedor").textContent =
+            formatCurrency(saldoDevedor);
+
+          const container = document.getElementById("listaDividas");
+          if (dividas && dividas.length > 0) {
+            container.innerHTML = dividas
+              .slice(0, 15)
+              .map((d) => {
+                const total = d.total_amount || 0;
+                const pago = d.paid_amount || 0;
+                const percentual =
+                  total > 0 ? Math.round((pago / total) * 100) : 0;
+                const statusClass =
+                  d.status === "quitada" ? "quitada" : "ativa";
+                return `<div class="list-item" data-id="${d.id}">
+                                    <div class="item-main">
+                                        <div class="item-title">${d.creditor || "Credor"}</div>
+                                        <div class="item-sub">${d.description || "-"} · ${percentual}% pago</div>
+                                    </div>
+                                    <div class="item-right">
+                                        <span class="item-badge badge-status-${statusClass}">${statusClass === "quitada" ? "✅ Quitada" : "🟡 Ativa"}</span>
+                                        <div style="font-size:9px;color:var(--gray-dark);">${formatCurrency(total - pago)} restante</div>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+
+            container.querySelectorAll(".list-item[data-id]").forEach((el) => {
+              el.addEventListener("click", function () {
+                const id = this.dataset.id;
+                const div = dividas.find((d) => d.id == id);
+                if (div) abrirModalDivida(div);
+              });
+            });
+          } else {
+            container.innerHTML = `<div class="empty-state"><i class="ph ph-warning-circle"></i><p>Nenhuma dívida cadastrada</p></div>`;
+          }
+        }
+
+        // ============================================================
+        // ABRIR MODAL CONTA (FINANCEIRO)
+        // ============================================================
+        window.abrirModalConta = function (id) {
+          const evento = dados.eventosFinanceiros?.find((e) => e.id === id);
+          if (!evento) {
+            showFeedback("Erro", "Conta não encontrada.", "error");
+            return;
+          }
+
+          const isPagar = evento.tipo === "pagar";
+          const vencido =
+            evento.status === "pendente" &&
+            new Date(evento.vencimento) < new Date();
+          const pago = evento.status === "pago" || evento.status === "recebido";
+
+          let statusText = "";
+          let statusColor = "";
+          if (pago) {
+            statusText = "✅ Pago";
+            statusColor = "var(--success)";
+          } else if (vencido) {
+            statusText = "🔴 Vencido";
+            statusColor = "var(--error)";
+          } else {
+            statusText = "🟡 Pendente";
+            statusColor = "var(--warning)";
+          }
+
+          let parcelasHtml = "";
+          if (evento.isParcela && evento.parcela_original) {
+            // Mostra detalhes da parcela
+            parcelasHtml = `
+                        <div class="info-row"><span class="label">Parcela</span><span class="value">${evento.numero_parcela}/${evento.total_parcelas}</span></div>
+                        ${evento.interest_paid ? `<div class="info-row"><span class="label">Juros pagos</span><span class="value">${formatCurrency(evento.interest_paid)}</span></div>` : ""}
+                        ${evento.late_fee_paid ? `<div class="info-row"><span class="label">Multa paga</span><span class="value">${formatCurrency(evento.late_fee_paid)}</span></div>` : ""}
+                    `;
+          }
+
+          const html = `
+                    <div style="margin-bottom:16px;">
+                        <h3 style="font-size:1.1rem;color:var(--gold-light);">${evento.descricao}</h3>
+                        <p style="color:var(--gray);font-size:0.85rem;">${evento.categoria || "Sem categoria"}</p>
+                        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
+                    </div>
+                    <div class="info-row"><span class="label">Valor</span><span class="value gold">${formatCurrency(evento.valor)}</span></div>
+                    <div class="info-row"><span class="label">Vencimento</span><span class="value">${formatDate(evento.vencimento)}</span></div>
+                    <div class="info-row"><span class="label">Tipo</span><span class="value ${isPagar ? "danger" : "success"}">${isPagar ? "A Pagar" : "A Receber"}</span></div>
+                    ${evento.payment_method ? `<div class="info-row"><span class="label">Forma de Pagamento</span><span class="value">${evento.payment_method}</span></div>` : ""}
+                    ${parcelasHtml}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${evento.id}</div>
+                    </div>
+                `;
+
+          openModal("Detalhes da Conta", html);
+        };
+
+        // ============================================================
+        // ABRIR MODAL FUNCIONÁRIO
+        // ============================================================
+        function abrirModalFuncionario(func, ferias) {
+          const emFerias = (ferias || []).find(
+            (f) => f.employee_id === func.id,
+          );
+          const fotoHtml = func.photo_url
+            ? `<img src="${func.photo_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">`
+            : `<div style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--pink-dark),var(--gold-dark));color:#fff;">${getInitials(func.full_name)}</div>`;
+
+          let feriasHtml =
+            '<div class="info-row"><span class="label">Férias</span><span class="value">Nenhuma férias em andamento</span></div>';
+          if (emFerias) {
+            const dataRetorno = getProximoDiaUtil(emFerias.end_date);
+            feriasHtml = `
+                        <div class="info-row"><span class="label">Férias</span><span class="value gold">🟡 Em andamento</span></div>
+                        <div class="info-row"><span class="label">Período</span><span class="value">${formatDate(emFerias.start_date)} a ${formatDate(emFerias.end_date)}</span></div>
+                        <div class="info-row"><span class="label">Retorno</span><span class="value success">${formatDate(dataRetorno.toISOString())}</span></div>
+                    `;
+          }
+
+          const html = `
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+                        ${fotoHtml}
+                        <div>
+                            <h3 style="font-size:1.1rem;">${func.full_name}</h3>
+                            <p style="color:var(--gold-light);font-size:0.85rem;">${func.role || "Sem função"}</p>
+                            <p style="font-size:0.75rem;color:${func.active ? "var(--success)" : "var(--error)"};">${func.active ? "🟢 Ativo" : "🔴 Inativo"}</p>
+                        </div>
+                    </div>
+                    <div class="info-row"><span class="label">CPF</span><span class="value">${func.cpf || "-"}</span></div>
+                    <div class="info-row"><span class="label">Celular</span><span class="value">${func.phone_cell || "-"}</span></div>
+                    <div class="info-row"><span class="label">E-mail</span><span class="value">${func.email_personal || "-"}</span></div>
+                    <div class="info-row"><span class="label">Contrato</span><span class="value">${func.contract_type === "clt" ? "CLT" : "Diarista"}</span></div>
+                    <div class="info-row"><span class="label">Salário</span><span class="value gold">${func.contract_type === "clt" ? formatCurrency(func.monthly_salary) : formatCurrency(func.daily_rate) + "/dia"}</span></div>
+                    <div class="info-row"><span class="label">Admissão</span><span class="value">${formatDate(func.admission_date)}</span></div>
+                    ${feriasHtml}
+                    ${func.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${func.notes}</span></div>` : ""}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${func.id}</div>
+                    </div>
+                `;
+
+          openModal(func.full_name, html);
+        }
+
+        // ============================================================
+        // ABRIR MODAL DÍVIDA
+        // ============================================================
+        function abrirModalDivida(div) {
+          const total = div.total_amount || 0;
+          const pago = div.paid_amount || 0;
+          const percentual = total > 0 ? Math.round((pago / total) * 100) : 0;
+          const restante = total - pago;
+
+          let statusText = div.status === "quitada" ? "✅ Quitada" : "🟡 Ativa";
+          let statusColor =
+            div.status === "quitada" ? "var(--success)" : "var(--gold-light)";
+
+          const html = `
+                    <div style="margin-bottom:16px;">
+                        <h3 style="font-size:1.1rem;color:var(--gold-light);">${div.credor || "Credor não informado"}</h3>
+                        <p style="color:var(--gray);font-size:0.85rem;">${div.description || "Sem descrição"}</p>
+                        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
+                    </div>
+                    <div class="info-row"><span class="label">Valor Total</span><span class="value gold">${formatCurrency(total)}</span></div>
+                    <div class="info-row"><span class="label">Valor Pago</span><span class="value success">${formatCurrency(pago)}</span></div>
+                    <div class="info-row"><span class="label">Saldo Restante</span><span class="value ${restante > 0 ? "danger" : "success"}">${formatCurrency(restante)}</span></div>
+                    <div class="info-row"><span class="label">Progresso</span><span class="value">${percentual}%</span></div>
+                    ${div.next_due_date ? `<div class="info-row"><span class="label">Próximo Vencimento</span><span class="value">${formatDate(div.next_due_date)}</span></div>` : ""}
+                    ${div.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${div.notes}</span></div>` : ""}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${div.id}</div>
+                    </div>
+                `;
+
+          openModal(div.credor || "Dívida", html);
+        }
+
+        // ============================================================
         // NAVEGAÇÃO POR ABAS
         // ============================================================
         const tabItems = document.querySelectorAll(".tab-item");
-        const sections = {
-          geral: ["secAlertas", "kpiGrid"],
-          producao: ["secProducao"],
-          financeiro: ["secFinanceiro"],
-          rh: ["secRH"],
-          dividas: ["secDividas"],
+        const tabContents = {
+          geral: document.getElementById("tab-geral"),
+          producao: document.getElementById("tab-producao"),
+          financeiro: document.getElementById("tab-financeiro"),
+          rh: document.getElementById("tab-rh"),
+          dividas: document.getElementById("tab-dividas"),
         };
 
         function mostrarAba(aba) {
           abaAtual = aba;
-          tabItems.forEach((tab) =>
-            tab.classList.toggle("active", tab.dataset.tab === aba),
-          );
 
-          const todasSecoes = [
-            "secAlertas",
-            "kpiGrid",
-            "secProducao",
-            "secFinanceiro",
-            "secRH",
-            "secDividas",
-          ];
-          todasSecoes.forEach((id) => {
-            const el = document.getElementById(id);
-            if (el) {
-              if (aba === "geral") {
-                el.style.display =
-                  id === "secAlertas" || id === "kpiGrid" ? "block" : "none";
-              } else {
-                const secao = sections[aba] || [];
-                el.style.display = secao.includes(id) ? "block" : "none";
-              }
-            }
+          tabItems.forEach((tab) => {
+            tab.classList.toggle("active", tab.dataset.tab === aba);
           });
+
+          Object.keys(tabContents).forEach((key) => {
+            tabContents[key].classList.toggle("active", key === aba);
+          });
+
           appContent.scrollTo({ top: 0, behavior: "smooth" });
         }
 
@@ -2206,10 +2723,10 @@
         window.carregarDados = carregarDados;
         window.mostrarAba = mostrarAba;
         window.abrirModalConta = window.abrirModalConta;
-        console.log("✅ App do Gestor pronto!");
         console.log(
-          "💡 Dicas: Puxe para baixo para atualizar | Clique em conta, funcionário ou dívida para detalhes",
+          "✅ App do Gestor - Redesign com abas funcionais (SEM MOCK) pronto!",
         );
+        console.log("💡 Todos os dados vêm diretamente do Supabase");
       })();
     </script>
   </body>
