@@ -1,0 +1,1806 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Facção Jeans - App do Gestor</title>
+
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+      /* ============================================================
+           APP MOBILE - FACÇÃO JEANS
+           Estilo de aplicativo nativo para celular
+           ============================================================ */
+
+      :root {
+        --pink: #e91e63;
+        --pink-dark: #c2185b;
+        --gold: #d4a017;
+        --gold-light: #f0c75e;
+        --black: #0a0a0a;
+        --black-soft: #141414;
+        --black-medium: #1e1e1e;
+        --white: #f5f5f5;
+        --gray: #9e9e9e;
+        --gray-dark: #6b6b6b;
+        --gray-light: #d1d1d1;
+        --error: #ff5252;
+        --success: #4caf50;
+        --warning: #ffc107;
+        --info: #2196f3;
+
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      html,
+      body {
+        height: 100%;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--black);
+        color: var(--white);
+        overflow: hidden;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      /* ========== APP CONTAINER ========== */
+      .app-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        height: 100vh;
+        height: calc(100vh - var(--safe-top) - var(--safe-bottom));
+        max-width: 500px;
+        margin: 0 auto;
+        background: var(--black);
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* ========== STATUS BAR (fake) ========== */
+      .status-bar {
+        padding: 4px 16px 0 16px;
+        padding-top: var(--safe-top);
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        color: var(--gray-dark);
+        background: var(--black);
+        flex-shrink: 0;
+        min-height: 20px;
+      }
+      .status-bar .time {
+        font-weight: 600;
+        color: var(--gray);
+      }
+
+      /* ========== HEADER DO APP ========== */
+      .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 16px 12px 16px;
+        background: var(--black);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        flex-shrink: 0;
+      }
+
+      .app-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .app-brand .icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--pink-dark), var(--gold-dark));
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: var(--white);
+      }
+
+      .app-brand h1 {
+        font-size: 17px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--gold-light), var(--pink));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        line-height: 1.2;
+      }
+
+      .app-brand small {
+        display: block;
+        font-size: 9px;
+        color: var(--gray);
+        font-weight: 400;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      .btn-icon {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        color: var(--gray);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        font-size: 18px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        position: relative;
+      }
+
+      .btn-icon:active {
+        transform: scale(0.92);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .btn-icon .badge-dot {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 8px;
+        height: 8px;
+        background: var(--error);
+        border-radius: 50%;
+        border: 2px solid var(--black);
+      }
+
+      .btn-icon .spinning {
+        animation: spin 0.7s infinite linear;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .last-update {
+        font-size: 8px;
+        color: var(--gray-dark);
+        padding-right: 4px;
+      }
+
+      /* ========== CONTEÚDO PRINCIPAL (SCROLLÁVEL) ========== */
+      .app-content {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 12px 16px 80px 16px;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+      }
+
+      .app-content::-webkit-scrollbar {
+        width: 3px;
+      }
+      .app-content::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .app-content::-webkit-scrollbar-thumb {
+        background: var(--gold-dark);
+        border-radius: 10px;
+      }
+
+      /* ========== PULL-TO-REFRESH INDICATOR ========== */
+      .pull-indicator {
+        text-align: center;
+        padding: 8px 0;
+        font-size: 11px;
+        color: var(--gray-dark);
+        display: none;
+      }
+      .pull-indicator.active {
+        display: block;
+      }
+      .pull-indicator i {
+        display: inline-block;
+        transition: transform 0.3s;
+      }
+
+      /* ========== CARDS DE KPI (GRADE 2x2) ========== */
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .kpi-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 14px;
+        padding: 14px 12px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s;
+      }
+
+      .kpi-card:active {
+        transform: scale(0.97);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .kpi-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--pink), var(--gold));
+        opacity: 0.4;
+      }
+
+      .kpi-card .kpi-label {
+        font-size: 9px;
+        text-transform: uppercase;
+        color: var(--gray);
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .kpi-card .kpi-label i {
+        font-size: 12px;
+      }
+
+      .kpi-card .kpi-value {
+        font-size: 24px;
+        font-weight: 800;
+        margin-top: 2px;
+        background: linear-gradient(135deg, var(--white), var(--gold-light));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        line-height: 1.2;
+      }
+
+      .kpi-card .kpi-detail {
+        font-size: 9px;
+        color: var(--gray-dark);
+        margin-top: 2px;
+      }
+
+      .kpi-card.kpi-danger .kpi-value {
+        background: linear-gradient(135deg, var(--error), #ff8a80);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .kpi-card.kpi-success .kpi-value {
+        background: linear-gradient(135deg, var(--success), #a5d6a7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .kpi-card.kpi-warning .kpi-value {
+        background: linear-gradient(135deg, var(--warning), #ffe082);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      /* ========== SEÇÕES ========== */
+      .section {
+        margin-bottom: 16px;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+
+      .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--gold-light);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .section-title i {
+        font-size: 16px;
+      }
+
+      .section-badge {
+        font-size: 10px;
+        color: var(--gray);
+        background: rgba(255, 255, 255, 0.05);
+        padding: 2px 10px;
+        border-radius: 20px;
+      }
+
+      /* ========== ALERTAS ========== */
+      .alert-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .alert-item {
+        background: rgba(255, 255, 255, 0.02);
+        border-left: 3px solid var(--gray);
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        transition: all 0.2s;
+      }
+
+      .alert-item:active {
+        transform: scale(0.98);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .alert-item i {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+
+      .alert-item .alert-text {
+        flex: 1;
+        line-height: 1.3;
+      }
+
+      .alert-item .alert-tag {
+        font-size: 8px;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 20px;
+        background: rgba(255, 82, 82, 0.15);
+        color: var(--error);
+        flex-shrink: 0;
+      }
+
+      .alert-item.alert-high {
+        border-left-color: var(--error);
+      }
+      .alert-item.alert-high i {
+        color: var(--error);
+      }
+
+      .alert-item.alert-medium {
+        border-left-color: var(--warning);
+      }
+      .alert-item.alert-medium i {
+        color: var(--warning);
+      }
+
+      .alert-item.alert-low {
+        border-left-color: var(--info);
+      }
+      .alert-item.alert-low i {
+        color: var(--info);
+      }
+
+      .alert-item .alert-tag.tag-high {
+        background: rgba(255, 82, 82, 0.15);
+        color: var(--error);
+      }
+      .alert-item .alert-tag.tag-medium {
+        background: rgba(255, 193, 7, 0.15);
+        color: var(--warning);
+      }
+      .alert-item .alert-tag.tag-low {
+        background: rgba(33, 150, 243, 0.15);
+        color: var(--info);
+      }
+
+      /* ========== LISTAS / TABELAS SIMPLES ========== */
+      .list-wrapper {
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        overflow: hidden;
+      }
+
+      .list-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        gap: 10px;
+        transition: all 0.2s;
+      }
+
+      .list-item:active {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .list-item:last-child {
+        border-bottom: none;
+      }
+
+      .list-item .item-main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .list-item .item-title {
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .list-item .item-sub {
+        font-size: 10px;
+        color: var(--gray-dark);
+        margin-top: 1px;
+      }
+
+      .list-item .item-right {
+        text-align: right;
+        flex-shrink: 0;
+      }
+
+      .list-item .item-value {
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .list-item .item-badge {
+        font-size: 9px;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 20px;
+        display: inline-block;
+      }
+
+      .badge-status-em_costura {
+        background: rgba(33, 150, 243, 0.2);
+        color: #64b5f6;
+      }
+      .badge-status-costurado {
+        background: rgba(76, 175, 80, 0.2);
+        color: #a5d6a7;
+      }
+      .badge-status-entregue {
+        background: rgba(212, 160, 23, 0.2);
+        color: var(--gold-light);
+      }
+      .badge-status-recebido {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--gray);
+      }
+      .badge-status-cancelado {
+        background: rgba(255, 82, 82, 0.2);
+        color: #ff8a80;
+      }
+      .badge-status-parcialmente_entregue {
+        background: rgba(255, 152, 0, 0.2);
+        color: #ffb74d;
+      }
+      .badge-status-em_revisao {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffe082;
+      }
+
+      .item-danger .item-title {
+        color: var(--error);
+      }
+      .item-warning .item-title {
+        color: var(--warning);
+      }
+      .item-success .item-value {
+        color: var(--success);
+      }
+      .item-error .item-value {
+        color: var(--error);
+      }
+      .item-gold .item-value {
+        color: var(--gold-light);
+      }
+
+      /* ========== EMPTY STATE ========== */
+      .empty-state {
+        text-align: center;
+        padding: 24px 16px;
+        color: var(--gray-dark);
+      }
+
+      .empty-state i {
+        font-size: 28px;
+        display: block;
+        margin-bottom: 6px;
+        color: var(--gray);
+      }
+
+      .empty-state p {
+        font-size: 12px;
+      }
+
+      /* ========== LOADING ========== */
+      .loading-state {
+        text-align: center;
+        padding: 20px 0;
+        color: var(--gray);
+      }
+
+      .loading-state i {
+        font-size: 24px;
+        display: block;
+        margin-bottom: 6px;
+        color: var(--gold-light);
+      }
+
+      .loading-state p {
+        font-size: 12px;
+      }
+
+      /* ========== BARRA DE NAVEGAÇÃO INFERIOR (TAB BAR) ========== */
+      .tab-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(10, 10, 10, 0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        justify-content: space-around;
+        padding: 6px 0;
+        padding-bottom: calc(6px + var(--safe-bottom));
+        max-width: 500px;
+        margin: 0 auto;
+        z-index: 100;
+        flex-shrink: 0;
+      }
+
+      .tab-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1px;
+        background: none;
+        border: none;
+        color: var(--gray-dark);
+        font-size: 9px;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 4px 12px;
+        transition: all 0.2s;
+        position: relative;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .tab-item:active {
+        transform: scale(0.92);
+      }
+
+      .tab-item i {
+        font-size: 22px;
+        transition: all 0.2s;
+      }
+
+      .tab-item.active {
+        color: var(--gold-light);
+      }
+
+      .tab-item.active i {
+        color: var(--gold-light);
+        text-shadow: 0 0 12px rgba(212, 160, 23, 0.3);
+      }
+
+      .tab-item .tab-badge {
+        position: absolute;
+        top: 0;
+        right: 4px;
+        background: var(--error);
+        color: white;
+        font-size: 8px;
+        font-weight: 700;
+        min-width: 16px;
+        height: 16px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        border: 2px solid var(--black);
+      }
+
+      /* ========== SCROLL INDICATOR ========== */
+      .scroll-top-btn {
+        position: fixed;
+        bottom: 80px;
+        right: 16px;
+        background: rgba(212, 160, 23, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(212, 160, 23, 0.2);
+        color: var(--gold-light);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 18px;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        z-index: 50;
+        max-width: 500px;
+        margin: 0 auto;
+        right: calc(50% - 250px + 16px);
+      }
+
+      .scroll-top-btn:active {
+        transform: scale(0.9);
+      }
+
+      .scroll-top-btn.visible {
+        display: flex;
+      }
+
+      /* ========== RESPONSIVIDADE ========== */
+      @media (max-width: 400px) {
+        .kpi-grid {
+          gap: 8px;
+        }
+        .kpi-card {
+          padding: 10px 10px;
+        }
+        .kpi-card .kpi-value {
+          font-size: 20px;
+        }
+        .app-content {
+          padding: 8px 12px 80px 12px;
+        }
+        .tab-item {
+          padding: 4px 8px;
+          font-size: 8px;
+        }
+        .tab-item i {
+          font-size: 20px;
+        }
+        .list-item {
+          padding: 8px 12px;
+        }
+        .list-item .item-title {
+          font-size: 12px;
+        }
+      }
+
+      @media (min-width: 501px) {
+        .app-container {
+          border-left: 1px solid rgba(255, 255, 255, 0.04);
+          border-right: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .tab-bar {
+          border-left: 1px solid rgba(255, 255, 255, 0.04);
+          border-right: 1px solid rgba(255, 255, 255, 0.04);
+        }
+      }
+
+      /* ========== UTILITÁRIOS ========== */
+      .text-muted {
+        color: var(--gray-dark);
+      }
+      .text-center {
+        text-align: center;
+      }
+      .text-right {
+        text-align: right;
+      }
+      .text-error {
+        color: var(--error);
+      }
+      .text-success {
+        color: var(--success);
+      }
+      .text-warning {
+        color: var(--warning);
+      }
+      .text-gold {
+        color: var(--gold-light);
+      }
+      .mt-1 {
+        margin-top: 4px;
+      }
+      .mb-1 {
+        margin-bottom: 4px;
+      }
+      .mt-2 {
+        margin-top: 8px;
+      }
+      .mb-2 {
+        margin-bottom: 8px;
+      }
+      .gap-1 {
+        gap: 4px;
+      }
+      .gap-2 {
+        gap: 8px;
+      }
+      .flex {
+        display: flex;
+      }
+      .flex-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .flex-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .flex-col {
+        display: flex;
+        flex-direction: column;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container" id="app">
+      <!-- ===== STATUS BAR (fake) ===== -->
+      <div class="status-bar">
+        <span id="statusTime">--:--</span>
+        <span id="statusDate">--/--/----</span>
+      </div>
+
+      <!-- ===== HEADER ===== -->
+      <header class="app-header">
+        <div class="app-brand">
+          <div class="icon"><i class="ph ph-scissors"></i></div>
+          <div>
+            <h1>Facção Jeans</h1>
+            <small>Visão do Gestor · Modo Leitura</small>
+          </div>
+        </div>
+        <div class="header-actions">
+          <span class="last-update" id="lastUpdate">--:--</span>
+          <button class="btn-icon" id="btnRefresh" aria-label="Atualizar">
+            <i class="ph ph-arrows-clockwise" id="refreshIcon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- ===== CONTEÚDO ===== -->
+      <main class="app-content" id="appContent">
+        <!-- Pull-to-refresh indicator -->
+        <div class="pull-indicator" id="pullIndicator">
+          <i class="ph ph-arrow-down"></i> Solte para atualizar
+        </div>
+
+        <!-- ===== KPIs ===== -->
+        <section class="kpi-grid" id="kpiGrid">
+          <div class="kpi-card" data-tab="producao">
+            <div class="kpi-label">
+              <i class="ph ph-sewing-needle"></i> Em Produção
+            </div>
+            <div class="kpi-value" id="kpiEmProducao">-</div>
+            <div class="kpi-detail">OS ativas</div>
+          </div>
+          <div class="kpi-card kpi-danger" data-tab="financeiro">
+            <div class="kpi-label">
+              <i class="ph ph-warning-circle"></i> Contas Vencidas
+            </div>
+            <div class="kpi-value" id="kpiContasVencidas">-</div>
+            <div class="kpi-detail">pendentes</div>
+          </div>
+          <div class="kpi-card kpi-warning" data-tab="rh">
+            <div class="kpi-label"><i class="ph ph-sun"></i> Em Férias</div>
+            <div class="kpi-value" id="kpiFerias">-</div>
+            <div class="kpi-detail">funcionários</div>
+          </div>
+          <div class="kpi-card" data-tab="dividas">
+            <div class="kpi-label">
+              <i class="ph ph-currency-circle-dollar"></i> Saldo Mês
+            </div>
+            <div class="kpi-value" id="kpiSaldoMes">-</div>
+            <div class="kpi-detail">receitas - despesas</div>
+          </div>
+          <div class="kpi-card kpi-success" data-tab="producao">
+            <div class="kpi-label">
+              <i class="ph ph-check-circle"></i> Entregas Hoje
+            </div>
+            <div class="kpi-value" id="kpiEntregasHoje">-</div>
+            <div class="kpi-detail">lotes enviados</div>
+          </div>
+          <div class="kpi-card kpi-danger" data-tab="dividas">
+            <div class="kpi-label">
+              <i class="ph ph-timer"></i> Lotes Atrasados
+            </div>
+            <div class="kpi-value" id="kpiLotesAtrasados">-</div>
+            <div class="kpi-detail">prazo vencido</div>
+          </div>
+        </section>
+
+        <!-- ===== ALERTAS ===== -->
+        <section class="section" id="secAlertas">
+          <div class="section-header">
+            <div class="section-title"><i class="ph ph-bell"></i> Alertas</div>
+            <span class="section-badge" id="alertasCount">0</span>
+          </div>
+          <div class="alert-list" id="alertasContainer">
+            <div class="loading-state">
+              <i class="ph ph-spinner spinning"></i>
+              <p>Carregando alertas...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== PRODUÇÃO ===== -->
+        <section class="section" id="secProducao">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="ph ph-sewing-needle"></i> Em Produção
+            </div>
+            <span class="section-badge" id="prodCount">0</span>
+          </div>
+          <div class="list-wrapper" id="listaProducao">
+            <div class="loading-state">
+              <i class="ph ph-spinner spinning"></i>
+              <p>Carregando...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== FINANCEIRO ===== -->
+        <section class="section" id="secFinanceiro">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="ph ph-currency-circle-dollar"></i> Vencem em 7 dias
+            </div>
+            <span class="section-badge" id="finCount">0</span>
+          </div>
+          <div class="list-wrapper" id="listaFinanceiro">
+            <div class="loading-state">
+              <i class="ph ph-spinner spinning"></i>
+              <p>Carregando...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== RH ===== -->
+        <section class="section" id="secRH">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="ph ph-users-three"></i> Férias
+            </div>
+            <span class="section-badge" id="rhCount">0</span>
+          </div>
+          <div class="list-wrapper" id="listaRH">
+            <div class="loading-state">
+              <i class="ph ph-spinner spinning"></i>
+              <p>Carregando...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== DÍVIDAS ===== -->
+        <section class="section" id="secDividas">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="ph ph-warning-circle"></i> Parcelas (30 dias)
+            </div>
+            <span class="section-badge" id="divCount">0</span>
+          </div>
+          <div class="list-wrapper" id="listaDividas">
+            <div class="loading-state">
+              <i class="ph ph-spinner spinning"></i>
+              <p>Carregando...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== FOOTER DO CONTEÚDO ===== -->
+        <div
+          style="
+            text-align: center;
+            padding: 12px 0 8px 0;
+            font-size: 9px;
+            color: var(--gray-dark);
+          "
+        >
+          <i class="ph ph-heart" style="color: var(--pink)"></i> Dados em tempo
+          real
+        </div>
+      </main>
+
+      <!-- ===== TAB BAR ===== -->
+      <nav class="tab-bar" id="tabBar">
+        <button class="tab-item active" data-tab="geral" aria-label="Geral">
+          <i class="ph ph-squares-four"></i>
+          <span>Geral</span>
+        </button>
+        <button class="tab-item" data-tab="producao" aria-label="Produção">
+          <i class="ph ph-sewing-needle"></i>
+          <span>Produção</span>
+          <span class="tab-badge" id="tabBadgeProd" style="display: none"
+            >0</span
+          >
+        </button>
+        <button class="tab-item" data-tab="financeiro" aria-label="Financeiro">
+          <i class="ph ph-currency-circle-dollar"></i>
+          <span>Financeiro</span>
+          <span class="tab-badge" id="tabBadgeFin" style="display: none"
+            >0</span
+          >
+        </button>
+        <button class="tab-item" data-tab="rh" aria-label="RH">
+          <i class="ph ph-users-three"></i>
+          <span>RH</span>
+          <span class="tab-badge" id="tabBadgeRH" style="display: none">0</span>
+        </button>
+        <button class="tab-item" data-tab="dividas" aria-label="Dívidas">
+          <i class="ph ph-warning-circle"></i>
+          <span>Dívidas</span>
+          <span class="tab-badge" id="tabBadgeDiv" style="display: none"
+            >0</span
+          >
+        </button>
+      </nav>
+
+      <!-- ===== SCROLL TO TOP ===== -->
+      <button
+        class="scroll-top-btn"
+        id="scrollTopBtn"
+        aria-label="Voltar ao topo"
+      >
+        <i class="ph ph-arrow-up"></i>
+      </button>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SCRIPT PRINCIPAL COMPLETO -->
+    <!-- ============================================================ -->
+    <script>
+      (function () {
+        "use strict";
+
+        console.log("🚀 App do Gestor iniciado");
+
+        // ============================================================
+        // VERIFICAÇÃO DE DEPENDÊNCIAS
+        // ============================================================
+        let supabaseLib;
+
+        if (typeof window.supabase !== "undefined") {
+          supabaseLib = window.supabase;
+          console.log("✅ Supabase encontrado em window.supabase");
+        } else if (typeof supabase !== "undefined") {
+          supabaseLib = supabase;
+          console.log("✅ Supabase encontrado globalmente");
+        } else if (typeof supabaseJs !== "undefined") {
+          supabaseLib = supabaseJs;
+          console.log("✅ Supabase encontrado como supabaseJs");
+        } else {
+          console.warn(
+            "⚠️ Supabase não encontrado, tentando carregar via CDN...",
+          );
+          const script = document.createElement("script");
+          script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+          script.onload = function () {
+            console.log("✅ Supabase carregado dinamicamente");
+            location.reload();
+          };
+          script.onerror = function () {
+            document.body.innerHTML = `
+                        <div style="padding:40px;text-align:center;color:#ff5252;font-family:sans-serif;">
+                            <i class="ph ph-warning-circle" style="font-size:48px;display:block;margin-bottom:16px;"></i>
+                            <h2 style="color:#fff;">Erro de Conexão</h2>
+                            <p style="color:#9e9e9e;">Não foi possível carregar a biblioteca Supabase.<br>Verifique sua conexão com a internet.</p>
+                            <button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#d4a017;border:none;border-radius:8px;color:#000;font-weight:600;cursor:pointer;">Recarregar</button>
+                        </div>
+                    `;
+          };
+          document.head.appendChild(script);
+          throw new Error("Carregando Supabase...");
+        }
+
+        // ============================================================
+        // CONFIGURAÇÃO SUPABASE
+        // ============================================================
+        const SUPABASE_URL = "https://evlatdyxcgklunwvnhcv.supabase.co";
+        const SUPABASE_ANON_KEY =
+          "sb_publishable_tn2G-m8F7M3Ey8C0LDJLNg_9MzszdAS";
+
+        if (typeof window.__supabaseClient === "undefined") {
+          window.__supabaseClient = supabaseLib.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY,
+          );
+          console.log("✅ Cliente Supabase criado");
+        } else {
+          console.log("♻️ Reutilizando cliente Supabase existente");
+        }
+        const supabase = window.__supabaseClient;
+
+        // ============================================================
+        // AUXILIARES
+        // ============================================================
+        function todayISO() {
+          return new Date().toISOString().split("T")[0];
+        }
+
+        function formatDate(iso) {
+          if (!iso) return "-";
+          try {
+            const d = new Date(iso + "T00:00:00");
+            return d.toLocaleDateString("pt-BR");
+          } catch {
+            return iso;
+          }
+        }
+
+        function formatCurrency(v) {
+          if (v === null || v === undefined) v = 0;
+          return new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          }).format(v);
+        }
+
+        function formatStatus(s) {
+          const map = {
+            recebido: "Recebido",
+            em_costura: "Em Costura",
+            costurado: "Costurado",
+            em_revisao: "Em Revisão",
+            entregue: "Entregue",
+            cancelado: "Cancelado",
+            parcialmente_entregue: "Parcial",
+          };
+          return map[s] || s || "-";
+        }
+
+        function getStatusClass(s) {
+          return "badge-status-" + s;
+        }
+
+        function formatTime() {
+          return new Date().toLocaleTimeString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+
+        function formatDateTime() {
+          return (
+            new Date().toLocaleDateString("pt-BR") +
+            " " +
+            new Date().toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          );
+        }
+
+        // ============================================================
+        // ESTADO
+        // ============================================================
+        let carregando = false;
+        let abaAtual = "geral";
+        let dadosCache = {};
+
+        // ============================================================
+        // ELEMENTOS DOM
+        // ============================================================
+        const $ = (id) => document.getElementById(id);
+        const $$ = (sel) => document.querySelectorAll(sel);
+
+        const appContent = $("appContent");
+        const refreshIcon = $("refreshIcon");
+        const lastUpdate = $("lastUpdate");
+        const pullIndicator = $("pullIndicator");
+        const scrollTopBtn = $("scrollTopBtn");
+
+        // ============================================================
+        // TESTE DE CONEXÃO
+        // ============================================================
+        async function testarConexao() {
+          console.log("🔄 Testando conexão com Supabase...");
+          try {
+            const { data, error } = await supabase
+              .from("service_orders")
+              .select("id")
+              .limit(1);
+
+            if (error) {
+              console.error("❌ Erro na conexão:", error);
+              return false;
+            }
+            console.log("✅ Conexão OK!");
+            return true;
+          } catch (e) {
+            console.error("❌ Exceção na conexão:", e);
+            return false;
+          }
+        }
+
+        // ============================================================
+        // CARREGAMENTO DE DADOS
+        // ============================================================
+        async function carregarDados() {
+          console.log("🔄 Iniciando carregamento de dados...");
+
+          if (carregando) {
+            console.log("⏳ Já está carregando, ignorando...");
+            return;
+          }
+          carregando = true;
+
+          refreshIcon.className = "ph ph-spinner spinning";
+
+          try {
+            const hoje = todayISO();
+            console.log("📅 Data de referência:", hoje);
+
+            const dataFim7 = new Date();
+            dataFim7.setDate(dataFim7.getDate() + 7);
+            const dataFim7Str = dataFim7.toISOString().split("T")[0];
+
+            const dataFim30 = new Date();
+            dataFim30.setDate(dataFim30.getDate() + 30);
+            const dataFim30Str = dataFim30.toISOString().split("T")[0];
+
+            // ===== 1. Ordens de Serviço =====
+            const {
+              data: osAtivas,
+              count: countOsAtivas,
+              error: errOs,
+            } = await supabase
+              .from("service_orders")
+              .select(
+                "id, order_number, customer_id, total_quantity, status, expected_delivery, customers(company_name, trade_name)",
+                { count: "exact" },
+              )
+              .not("status", "in", '("entregue","cancelado")')
+              .order("expected_delivery", { ascending: true })
+              .limit(15);
+
+            if (errOs) console.error("  ❌ Erro OS:", errOs);
+            else console.log(`  ✅ ${countOsAtivas || 0} OS ativas`);
+
+            // ===== 2. Lotes atrasados =====
+            const { count: countAtrasadas, error: errAtras } = await supabase
+              .from("service_orders")
+              .select("id", { count: "exact" })
+              .not("status", "in", '("entregue","cancelado")')
+              .lt("expected_delivery", hoje);
+
+            if (errAtras) console.error("  ❌ Erro atrasados:", errAtras);
+            else console.log(`  ✅ ${countAtrasadas || 0} lotes atrasados`);
+
+            // ===== 3. Entregas de hoje =====
+            const { count: countEntreguesHoje, error: errEntr } = await supabase
+              .from("service_orders")
+              .select("id", { count: "exact" })
+              .eq("status", "entregue")
+              .gte("updated_at", hoje)
+              .lte("updated_at", hoje + "T23:59:59");
+
+            if (errEntr) console.error("  ❌ Erro entregas:", errEntr);
+            else console.log(`  ✅ ${countEntreguesHoje || 0} entregas hoje`);
+
+            // ===== 4. Produção (peças hoje) =====
+            const { data: recordsHoje, error: errRec } = await supabase
+              .from("sewing_records")
+              .select("pieces_sewn")
+              .gte("start_time", hoje)
+              .lte("start_time", hoje + "T23:59:59");
+
+            if (errRec) console.error("  ❌ Erro produção:", errRec);
+            const pecasHoje = recordsHoje
+              ? recordsHoje.reduce((s, r) => s + r.pieces_sewn, 0)
+              : 0;
+            console.log(`  ✅ ${pecasHoje} peças hoje`);
+
+            // ===== 5. Financeiro (saldo do mês) =====
+            const primeiroDiaMes = new Date();
+            primeiroDiaMes.setDate(1);
+            const primeiroDiaStr = primeiroDiaMes.toISOString().split("T")[0];
+            const ultimoDiaMes = new Date(
+              new Date().getFullYear(),
+              new Date().getMonth() + 1,
+              0,
+            );
+            const ultimoDiaStr = ultimoDiaMes.toISOString().split("T")[0];
+
+            const { data: transacoes, error: errTrans } = await supabase
+              .from("financial_transactions")
+              .select("amount, type")
+              .gte("date", primeiroDiaStr)
+              .lte("date", ultimoDiaStr);
+
+            let receitas = 0,
+              despesas = 0;
+            if (transacoes) {
+              transacoes.forEach((t) => {
+                const v = parseFloat(t.amount);
+                if (v > 0) receitas += v;
+                else despesas += Math.abs(v);
+              });
+            }
+            console.log(
+              `  ✅ Receitas: ${formatCurrency(receitas)}, Despesas: ${formatCurrency(despesas)}`,
+            );
+
+            // ===== 6. Contas vencidas =====
+            const { count: contasVencidas, error: errCV } = await supabase
+              .from("financial_transactions")
+              .select("id", { count: "exact" })
+              .eq("status", "pendente")
+              .lt("due_date", hoje);
+
+            if (errCV) console.error("  ❌ Erro contas vencidas:", errCV);
+            else console.log(`  ✅ ${contasVencidas || 0} contas vencidas`);
+
+            // ===== 7. Contas próximas (7 dias) =====
+            const { data: contasProximas, error: errCP } = await supabase
+              .from("financial_transactions")
+              .select("description, amount, due_date, type")
+              .eq("status", "pendente")
+              .gte("due_date", hoje)
+              .lte("due_date", dataFim7Str)
+              .order("due_date", { ascending: true })
+              .limit(15);
+
+            if (errCP) console.error("  ❌ Erro contas próximas:", errCP);
+            else
+              console.log(
+                `  ✅ ${contasProximas?.length || 0} contas próximas`,
+              );
+
+            // ===== 8. Funcionários =====
+            const { count: qtdFuncionarios, error: errFunc } = await supabase
+              .from("employees")
+              .select("id", { count: "exact" })
+              .eq("active", true);
+
+            if (errFunc) console.error("  ❌ Erro funcionários:", errFunc);
+            else
+              console.log(`  ✅ ${qtdFuncionarios || 0} funcionários ativos`);
+
+            // ===== 9. Férias =====
+            const { data: ferias, error: errFer } = await supabase
+              .from("employee_vacations")
+              .select(
+                "employee_id, start_date, end_date, status, employees(full_name)",
+              )
+              .neq("status", "cancelada")
+              .order("start_date", { ascending: true })
+              .limit(15);
+
+            if (errFer) console.error("  ❌ Erro férias:", errFer);
+            else console.log(`  ✅ ${ferias?.length || 0} registros de férias`);
+
+            const feriasEmAndamento = ferias
+              ? ferias.filter((f) => {
+                  const hojeDate = new Date();
+                  const inicio = new Date(f.start_date);
+                  const fim = new Date(f.end_date);
+                  return (
+                    f.status === "agendada" &&
+                    inicio <= hojeDate &&
+                    fim >= hojeDate
+                  );
+                })
+              : [];
+            console.log(`  ✅ ${feriasEmAndamento.length} férias em andamento`);
+
+            // ===== 10. Parcelas de dívidas =====
+            const { data: parcelasDividas, error: errDiv } = await supabase
+              .from("debt_installments")
+              .select(
+                "id, amount, due_date, installment_number, debts(id, creditor, type)",
+              )
+              .eq("paid", false)
+              .gte("due_date", hoje)
+              .lte("due_date", dataFim30Str)
+              .order("due_date", { ascending: true })
+              .limit(15);
+
+            if (errDiv) console.error("  ❌ Erro dívidas:", errDiv);
+            else
+              console.log(
+                `  ✅ ${parcelasDividas?.length || 0} parcelas próximas`,
+              );
+
+            // ============================================================
+            // ARMAZENA EM CACHE
+            // ============================================================
+            dadosCache = {
+              osAtivas,
+              countOsAtivas,
+              countAtrasadas,
+              countEntreguesHoje,
+              pecasHoje,
+              receitas,
+              despesas,
+              contasVencidas,
+              contasProximas,
+              qtdFuncionarios,
+              ferias,
+              feriasEmAndamento,
+              parcelasDividas,
+            };
+
+            // ============================================================
+            // RENDERIZAÇÃO
+            // ============================================================
+            console.log("🎨 Renderizando dados...");
+
+            // Status bar
+            $("statusTime").textContent = formatTime();
+            $("statusDate").textContent = new Date().toLocaleDateString(
+              "pt-BR",
+            );
+
+            // Última atualização
+            lastUpdate.textContent = formatTime();
+
+            // KPIs
+            $("kpiEmProducao").textContent = countOsAtivas || 0;
+            $("kpiContasVencidas").textContent = contasVencidas || 0;
+            $("kpiFerias").textContent = feriasEmAndamento.length || 0;
+            $("kpiSaldoMes").textContent = formatCurrency(receitas - despesas);
+            $("kpiEntregasHoje").textContent = countEntreguesHoje || 0;
+            $("kpiLotesAtrasados").textContent = countAtrasadas || 0;
+
+            // Alertas
+            const alertas = [];
+            if (countAtrasadas > 0)
+              alertas.push({
+                prioridade: "high",
+                icone: "ph-warning-circle",
+                texto: `${countAtrasadas} lote(s) atrasado(s)`,
+                tag: "urgente",
+              });
+            if (contasVencidas > 0)
+              alertas.push({
+                prioridade: "high",
+                icone: "ph-currency-circle-dollar",
+                texto: `${contasVencidas} conta(s) vencida(s)`,
+                tag: "urgente",
+              });
+            if (feriasEmAndamento.length > 0)
+              alertas.push({
+                prioridade: "medium",
+                icone: "ph-sun",
+                texto: `${feriasEmAndamento.length} funcionário(s) em férias`,
+                tag: "atenção",
+              });
+            if (parcelasDividas && parcelasDividas.length > 0)
+              alertas.push({
+                prioridade: "medium",
+                icone: "ph-warning",
+                texto: `${parcelasDividas.length} parcela(s) de dívidas vencem em 30 dias`,
+                tag: "atenção",
+              });
+
+            $("alertasCount").textContent = alertas.length;
+
+            const alertasContainer = $("alertasContainer");
+            if (alertas.length === 0) {
+              alertasContainer.innerHTML = `
+                            <div class="alert-item alert-low">
+                                <i class="ph ph-check-circle" style="color:var(--success);"></i>
+                                <span class="alert-text">Tudo em dia! Nenhum alerta no momento. ✅</span>
+                            </div>
+                        `;
+            } else {
+              alertasContainer.innerHTML = alertas
+                .map(
+                  (a) => `
+                            <div class="alert-item alert-${a.prioridade}">
+                                <i class="ph ${a.icone}"></i>
+                                <span class="alert-text">${a.texto}</span>
+                                <span class="alert-tag tag-${a.prioridade}">${a.tag}</span>
+                            </div>
+                        `,
+                )
+                .join("");
+            }
+
+            // ===== PRODUÇÃO =====
+            const listaProd = $("listaProducao");
+            $("prodCount").textContent = countOsAtivas || 0;
+
+            if (osAtivas && osAtivas.length > 0) {
+              listaProd.innerHTML = osAtivas
+                .slice(0, 10)
+                .map((os) => {
+                  const cliente =
+                    os.customers?.trade_name ||
+                    os.customers?.company_name ||
+                    "-";
+                  const atrasado = new Date(os.expected_delivery) < new Date();
+                  return `
+                                <div class="list-item ${atrasado ? "item-danger" : ""}">
+                                    <div class="item-main">
+                                        <div class="item-title">${os.order_number}</div>
+                                        <div class="item-sub">${cliente} · ${os.total_quantity} peças</div>
+                                    </div>
+                                    <div class="item-right">
+                                        <span class="item-badge ${getStatusClass(os.status)}">${formatStatus(os.status)}</span>
+                                        <div style="font-size:9px;color:${atrasado ? "var(--error)" : "var(--gray-dark)"};margin-top:2px;">
+                                            ${formatDate(os.expected_delivery)}
+                                            ${atrasado ? " ⚠️" : ""}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                })
+                .join("");
+            } else {
+              listaProd.innerHTML = `
+                            <div class="empty-state">
+                                <i class="ph ph-sewing-needle"></i>
+                                <p>Nenhuma OS em produção</p>
+                            </div>
+                        `;
+            }
+
+            // ===== FINANCEIRO =====
+            const listaFin = $("listaFinanceiro");
+            $("finCount").textContent = contasProximas?.length || 0;
+
+            if (contasProximas && contasProximas.length > 0) {
+              listaFin.innerHTML = contasProximas
+                .slice(0, 10)
+                .map((c) => {
+                  const isReceber = c.type === "receber";
+                  return `
+                                <div class="list-item">
+                                    <div class="item-main">
+                                        <div class="item-title">${c.description || "Sem descrição"}</div>
+                                        <div class="item-sub">${formatDate(c.due_date)}</div>
+                                    </div>
+                                    <div class="item-right">
+                                        <div class="item-value ${isReceber ? "item-success" : "item-error"}">
+                                            ${isReceber ? "+" : "-"}${formatCurrency(Math.abs(c.amount))}
+                                        </div>
+                                        <div style="font-size:9px;color:var(--gray-dark);">
+                                            ${isReceber ? "A Receber" : "A Pagar"}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                })
+                .join("");
+            } else {
+              listaFin.innerHTML = `
+                            <div class="empty-state">
+                                <i class="ph ph-currency-circle-dollar"></i>
+                                <p>Nenhuma conta próxima</p>
+                            </div>
+                        `;
+            }
+
+            // ===== RH =====
+            const listaRH = $("listaRH");
+            const feriasExibir = ferias
+              ? ferias
+                  .filter(
+                    (f) => f.status === "agendada" || f.status === "concluida",
+                  )
+                  .slice(0, 10)
+              : [];
+            $("rhCount").textContent = feriasExibir.length;
+
+            if (feriasExibir.length > 0) {
+              listaRH.innerHTML = feriasExibir
+                .map((f) => {
+                  const dias =
+                    Math.ceil(
+                      (new Date(f.end_date) - new Date(f.start_date)) /
+                        (1000 * 60 * 60 * 24),
+                    ) + 1;
+                  const emAndamento =
+                    f.status === "agendada" &&
+                    new Date(f.start_date) <= new Date() &&
+                    new Date(f.end_date) >= new Date();
+                  return `
+                                <div class="list-item ${emAndamento ? "item-warning" : ""}">
+                                    <div class="item-main">
+                                        <div class="item-title">${f.employees?.full_name || "-"}</div>
+                                        <div class="item-sub">${formatDate(f.start_date)} a ${formatDate(f.end_date)} · ${dias} dias</div>
+                                    </div>
+                                    <div class="item-right">
+                                        <span class="item-badge ${f.status === "agendada" ? "badge-status-em_costura" : "badge-status-entregue"}">
+                                            ${f.status === "agendada" ? (emAndamento ? "Em andamento" : "Agendada") : "Concluída"}
+                                        </span>
+                                    </div>
+                                </div>
+                            `;
+                })
+                .join("");
+            } else {
+              listaRH.innerHTML = `
+                            <div class="empty-state">
+                                <i class="ph ph-sun"></i>
+                                <p>Nenhum registro de férias</p>
+                            </div>
+                        `;
+            }
+
+            // ===== DÍVIDAS =====
+            const listaDiv = $("listaDividas");
+            $("divCount").textContent = parcelasDividas?.length || 0;
+
+            if (parcelasDividas && parcelasDividas.length > 0) {
+              listaDiv.innerHTML = parcelasDividas
+                .slice(0, 10)
+                .map((p) => {
+                  const diasFalta = Math.ceil(
+                    (new Date(p.due_date) - new Date()) / (1000 * 60 * 60 * 24),
+                  );
+                  const isUrgente = diasFalta <= 7;
+                  return `
+                                <div class="list-item ${isUrgente ? "item-danger" : ""}">
+                                    <div class="item-main">
+                                        <div class="item-title">${p.debts?.creditor || "-"}</div>
+                                        <div class="item-sub">${p.installment_number}ª parcela · ${formatDate(p.due_date)}</div>
+                                    </div>
+                                    <div class="item-right">
+                                        <div class="item-value item-error">${formatCurrency(p.amount)}</div>
+                                        <div style="font-size:9px;color:${isUrgente ? "var(--error)" : "var(--gray-dark)"};">
+                                            ${diasFalta} dias${isUrgente ? " ⚠️" : ""}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                })
+                .join("");
+            } else {
+              listaDiv.innerHTML = `
+                            <div class="empty-state">
+                                <i class="ph ph-warning-circle"></i>
+                                <p>Nenhuma parcela próxima</p>
+                            </div>
+                        `;
+            }
+
+            // ===== BADGES DA TAB BAR =====
+            const tabBadgeProd = $("tabBadgeProd");
+            const tabBadgeFin = $("tabBadgeFin");
+            const tabBadgeRH = $("tabBadgeRH");
+            const tabBadgeDiv = $("tabBadgeDiv");
+
+            const prodBadge =
+              (countAtrasadas || 0) + (countOsAtivas > 0 ? 1 : 0);
+            tabBadgeProd.textContent = prodBadge > 0 ? prodBadge : 0;
+            tabBadgeProd.style.display = prodBadge > 0 ? "flex" : "none";
+
+            tabBadgeFin.textContent = contasVencidas || 0;
+            tabBadgeFin.style.display = contasVencidas > 0 ? "flex" : "none";
+
+            tabBadgeRH.textContent = feriasEmAndamento.length || 0;
+            tabBadgeRH.style.display =
+              feriasEmAndamento.length > 0 ? "flex" : "none";
+
+            tabBadgeDiv.textContent = parcelasDividas?.length || 0;
+            tabBadgeDiv.style.display =
+              parcelasDividas?.length > 0 ? "flex" : "none";
+
+            console.log("✅ Renderização concluída!");
+          } catch (e) {
+            console.error("❌ Erro geral:", e);
+          } finally {
+            carregando = false;
+            refreshIcon.className = "ph ph-arrows-clockwise";
+            pullIndicator.classList.remove("active");
+          }
+        }
+
+        // ============================================================
+        // SCROLL TO TOP
+        // ============================================================
+        appContent.addEventListener("scroll", function () {
+          if (this.scrollTop > 200) {
+            scrollTopBtn.classList.add("visible");
+          } else {
+            scrollTopBtn.classList.remove("visible");
+          }
+        });
+
+        scrollTopBtn.addEventListener("click", function () {
+          appContent.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        // ============================================================
+        // PULL-TO-REFRESH (touch)
+        // ============================================================
+        let touchStartY = 0;
+        let touchMoved = false;
+
+        appContent.addEventListener(
+          "touchstart",
+          function (e) {
+            if (this.scrollTop === 0) {
+              touchStartY = e.touches[0].clientY;
+              touchMoved = false;
+            }
+          },
+          { passive: true },
+        );
+
+        appContent.addEventListener(
+          "touchmove",
+          function (e) {
+            if (this.scrollTop === 0 && touchStartY > 0) {
+              const deltaY = e.touches[0].clientY - touchStartY;
+              if (deltaY > 40) {
+                touchMoved = true;
+                pullIndicator.classList.add("active");
+                pullIndicator.innerHTML =
+                  '<i class="ph ph-arrow-down"></i> Solte para atualizar';
+              } else if (deltaY > 10) {
+                pullIndicator.classList.add("active");
+                pullIndicator.innerHTML =
+                  '<i class="ph ph-arrow-down"></i> Puxe para atualizar';
+              } else {
+                pullIndicator.classList.remove("active");
+              }
+            }
+          },
+          { passive: true },
+        );
+
+        appContent.addEventListener(
+          "touchend",
+          function (e) {
+            if (touchMoved && this.scrollTop === 0) {
+              pullIndicator.innerHTML =
+                '<i class="ph ph-spinner spinning"></i> Atualizando...';
+              carregarDados().then(() => {
+                pullIndicator.classList.remove("active");
+              });
+            }
+            touchStartY = 0;
+            touchMoved = false;
+          },
+          { passive: true },
+        );
+
+        // ============================================================
+        // TAB BAR NAVEGAÇÃO
+        // ============================================================
+        const tabItems = document.querySelectorAll(".tab-item");
+        const sections = {
+          geral: ["secAlertas", "kpiGrid"],
+          producao: ["secProducao"],
+          financeiro: ["secFinanceiro"],
+          rh: ["secRH"],
+          dividas: ["secDividas"],
+        };
+
+        function mostrarAba(aba) {
+          abaAtual = aba;
+
+          // Atualiza tabs
+          tabItems.forEach((tab) => {
+            tab.classList.toggle("active", tab.dataset.tab === aba);
+          });
+
+          // Mostra/esconde seções
+          const todasSecoes = [
+            "secAlertas",
+            "kpiGrid",
+            "secProducao",
+            "secFinanceiro",
+            "secRH",
+            "secDividas",
+          ];
+          todasSecoes.forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) {
+              if (aba === "geral") {
+                el.style.display =
+                  id === "secAlertas" || id === "kpiGrid" ? "block" : "none";
+              } else {
+                const secao = sections[aba] || [];
+                el.style.display = secao.includes(id) ? "block" : "none";
+              }
+            }
+          });
+
+          // Scroll para o topo
+          appContent.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        tabItems.forEach((tab) => {
+          tab.addEventListener("click", function () {
+            const aba = this.dataset.tab;
+            mostrarAba(aba);
+          });
+        });
+
+        // ============================================================
+        // INICIALIZAÇÃO
+        // ============================================================
+        document.addEventListener("DOMContentLoaded", async function () {
+          console.log("🚀 DOM carregado, iniciando app...");
+
+          // Botão refresh
+          $("btnRefresh").addEventListener("click", function () {
+            carregarDados();
+          });
+
+          // Mostra apenas a aba geral inicialmente
+          mostrarAba("geral");
+
+          // Testa conexão
+          const conectado = await testarConexao();
+          if (conectado) {
+            await carregarDados();
+            // Atualização automática a cada 60 segundos
+            setInterval(carregarDados, 60000);
+          } else {
+            $("alertasContainer").innerHTML = `
+                        <div class="alert-item alert-high">
+                            <i class="ph ph-warning-circle" style="color:var(--error);"></i>
+                            <span class="alert-text"><strong>Erro de conexão.</strong> Verifique sua internet.</span>
+                            <button onclick="window.carregarDados()" style="background:var(--gold);border:none;border-radius:20px;padding:4px 12px;font-weight:600;cursor:pointer;color:#000;">Tentar</button>
+                        </div>
+                    `;
+          }
+        });
+
+        // ============================================================
+        // EXPORTAÇÃO (debug)
+        // ============================================================
+        window.carregarDados = carregarDados;
+        window.testarConexao = testarConexao;
+        window.supabase = supabase;
+        window.mostrarAba = mostrarAba;
+
+        console.log("✅ App do Gestor pronto!");
+        console.log("💡 Dicas:");
+        console.log("  • Puxe para baixo para atualizar");
+        console.log("  • Use a barra inferior para navegar");
+        console.log(
+          "  • Digite window.carregarDados() para recarregar manualmente",
+        );
+      })();
+    </script>
+  </body>
+</html>
