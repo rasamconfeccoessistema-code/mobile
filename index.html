@@ -20,9 +20,7 @@
     <style>
       /* ============================================================
            APP MOBILE - FACÇÃO JEANS
-           Estilo de aplicativo nativo para celular
            ============================================================ */
-
       :root {
         --pink: #e91e63;
         --pink-dark: #c2185b;
@@ -34,12 +32,10 @@
         --white: #f5f5f5;
         --gray: #9e9e9e;
         --gray-dark: #6b6b6b;
-        --gray-light: #d1d1d1;
         --error: #ff5252;
         --success: #4caf50;
         --warning: #ffc107;
         --info: #2196f3;
-
         --safe-top: env(safe-area-inset-top, 0px);
         --safe-bottom: env(safe-area-inset-bottom, 0px);
       }
@@ -64,7 +60,6 @@
         -webkit-user-select: none;
       }
 
-      /* ========== APP CONTAINER ========== */
       .app-container {
         display: flex;
         flex-direction: column;
@@ -78,7 +73,7 @@
         overflow: hidden;
       }
 
-      /* ========== STATUS BAR (fake) ========== */
+      /* ===== STATUS BAR ===== */
       .status-bar {
         padding: 4px 16px 0 16px;
         padding-top: var(--safe-top);
@@ -95,7 +90,7 @@
         color: var(--gray);
       }
 
-      /* ========== HEADER DO APP ========== */
+      /* ===== HEADER ===== */
       .app-header {
         display: flex;
         align-items: center;
@@ -167,17 +162,6 @@
         background: rgba(255, 255, 255, 0.1);
       }
 
-      .btn-icon .badge-dot {
-        position: absolute;
-        top: 6px;
-        right: 6px;
-        width: 8px;
-        height: 8px;
-        background: var(--error);
-        border-radius: 50%;
-        border: 2px solid var(--black);
-      }
-
       .btn-icon .spinning {
         animation: spin 0.7s infinite linear;
       }
@@ -194,7 +178,7 @@
         padding-right: 4px;
       }
 
-      /* ========== CONTEÚDO PRINCIPAL (SCROLLÁVEL) ========== */
+      /* ===== CONTEÚDO ===== */
       .app-content {
         flex: 1;
         overflow-y: auto;
@@ -215,7 +199,7 @@
         border-radius: 10px;
       }
 
-      /* ========== PULL-TO-REFRESH INDICATOR ========== */
+      /* ===== PULL-TO-REFRESH ===== */
       .pull-indicator {
         text-align: center;
         padding: 8px 0;
@@ -226,12 +210,8 @@
       .pull-indicator.active {
         display: block;
       }
-      .pull-indicator i {
-        display: inline-block;
-        transition: transform 0.3s;
-      }
 
-      /* ========== CARDS DE KPI (GRADE 2x2) ========== */
+      /* ===== CARDS KPI ===== */
       .kpi-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -274,11 +254,9 @@
         align-items: center;
         gap: 4px;
       }
-
       .kpi-card .kpi-label i {
         font-size: 12px;
       }
-
       .kpi-card .kpi-value {
         font-size: 24px;
         font-weight: 800;
@@ -289,27 +267,23 @@
         color: transparent;
         line-height: 1.2;
       }
-
       .kpi-card .kpi-detail {
         font-size: 9px;
         color: var(--gray-dark);
         margin-top: 2px;
       }
-
       .kpi-card.kpi-danger .kpi-value {
         background: linear-gradient(135deg, var(--error), #ff8a80);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
       }
-
       .kpi-card.kpi-success .kpi-value {
         background: linear-gradient(135deg, var(--success), #a5d6a7);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
       }
-
       .kpi-card.kpi-warning .kpi-value {
         background: linear-gradient(135deg, var(--warning), #ffe082);
         -webkit-background-clip: text;
@@ -317,7 +291,7 @@
         color: transparent;
       }
 
-      /* ========== SEÇÕES ========== */
+      /* ===== SEÇÕES ===== */
       .section {
         margin-bottom: 16px;
       }
@@ -337,7 +311,6 @@
         align-items: center;
         gap: 6px;
       }
-
       .section-title i {
         font-size: 16px;
       }
@@ -350,7 +323,20 @@
         border-radius: 20px;
       }
 
-      /* ========== ALERTAS ========== */
+      .section-badge.danger {
+        color: var(--error);
+        background: rgba(255, 82, 82, 0.15);
+      }
+      .section-badge.success {
+        color: var(--success);
+        background: rgba(76, 175, 80, 0.15);
+      }
+      .section-badge.warning {
+        color: var(--warning);
+        background: rgba(255, 193, 7, 0.15);
+      }
+
+      /* ===== ALERTAS ===== */
       .alert-list {
         display: flex;
         flex-direction: column;
@@ -368,30 +354,24 @@
         font-size: 12px;
         transition: all 0.2s;
       }
-
       .alert-item:active {
         transform: scale(0.98);
         background: rgba(255, 255, 255, 0.04);
       }
-
       .alert-item i {
         font-size: 18px;
         flex-shrink: 0;
       }
-
       .alert-item .alert-text {
         flex: 1;
         line-height: 1.3;
       }
-
       .alert-item .alert-tag {
         font-size: 8px;
         text-transform: uppercase;
         font-weight: 700;
         padding: 2px 8px;
         border-radius: 20px;
-        background: rgba(255, 82, 82, 0.15);
-        color: var(--error);
         flex-shrink: 0;
       }
 
@@ -401,14 +381,12 @@
       .alert-item.alert-high i {
         color: var(--error);
       }
-
       .alert-item.alert-medium {
         border-left-color: var(--warning);
       }
       .alert-item.alert-medium i {
         color: var(--warning);
       }
-
       .alert-item.alert-low {
         border-left-color: var(--info);
       }
@@ -416,20 +394,20 @@
         color: var(--info);
       }
 
-      .alert-item .alert-tag.tag-high {
+      .alert-tag.tag-high {
         background: rgba(255, 82, 82, 0.15);
         color: var(--error);
       }
-      .alert-item .alert-tag.tag-medium {
+      .alert-tag.tag-medium {
         background: rgba(255, 193, 7, 0.15);
         color: var(--warning);
       }
-      .alert-item .alert-tag.tag-low {
+      .alert-tag.tag-low {
         background: rgba(33, 150, 243, 0.15);
         color: var(--info);
       }
 
-      /* ========== LISTAS / TABELAS SIMPLES ========== */
+      /* ===== LISTAS ===== */
       .list-wrapper {
         background: rgba(255, 255, 255, 0.02);
         border-radius: 12px;
@@ -444,12 +422,12 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.03);
         gap: 10px;
         transition: all 0.2s;
+        cursor: pointer;
       }
 
       .list-item:active {
         background: rgba(255, 255, 255, 0.03);
       }
-
       .list-item:last-child {
         border-bottom: none;
       }
@@ -458,7 +436,6 @@
         flex: 1;
         min-width: 0;
       }
-
       .list-item .item-title {
         font-size: 13px;
         font-weight: 600;
@@ -466,29 +443,39 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
-
       .list-item .item-sub {
         font-size: 10px;
         color: var(--gray-dark);
         margin-top: 1px;
       }
-
       .list-item .item-right {
         text-align: right;
         flex-shrink: 0;
       }
-
       .list-item .item-value {
         font-size: 14px;
         font-weight: 700;
       }
-
       .list-item .item-badge {
         font-size: 9px;
         font-weight: 600;
         padding: 2px 10px;
         border-radius: 20px;
         display: inline-block;
+      }
+
+      /* Status para contas financeiras */
+      .badge-status-pago {
+        background: rgba(76, 175, 80, 0.2);
+        color: #a5d6a7;
+      }
+      .badge-status-pendente {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffe082;
+      }
+      .badge-status-vencido {
+        background: rgba(255, 82, 82, 0.2);
+        color: #ff8a80;
       }
 
       .badge-status-em_costura {
@@ -520,59 +507,188 @@
         color: #ffe082;
       }
 
-      .item-danger .item-title {
+      .badge-status-ativa {
+        background: rgba(212, 160, 23, 0.2);
+        color: var(--gold-light);
+      }
+      .badge-status-quitada {
+        background: rgba(76, 175, 80, 0.2);
+        color: #a5d6a7;
+      }
+
+      /* Cores para itens da lista financeira */
+      .item-vencido {
+        border-left: 4px solid var(--error);
+        background: rgba(255, 82, 82, 0.05);
+      }
+      .item-vencido .item-title {
         color: var(--error);
       }
-      .item-warning .item-title {
-        color: var(--warning);
+      .item-pago {
+        border-left: 4px solid var(--success);
+        background: rgba(76, 175, 80, 0.05);
       }
-      .item-success .item-value {
+      .item-pago .item-title {
         color: var(--success);
       }
-      .item-error .item-value {
+      .item-pendente {
+        border-left: 4px solid var(--gray);
+      }
+
+      /* ===== MODAL ===== */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeInOverlay 0.3s ease;
+      }
+
+      @keyframes fadeInOverlay {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-sheet {
+        background: var(--black-soft);
+        border-radius: 20px 20px 0 0;
+        max-width: 500px;
+        width: 100%;
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.3s ease;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+
+      .modal-sheet .handle {
+        width: 40px;
+        height: 4px;
+        background: var(--gray-dark);
+        border-radius: 2px;
+        margin: 10px auto 6px;
+        opacity: 0.5;
+      }
+
+      .modal-sheet .modal-header {
+        padding: 8px 20px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        flex-shrink: 0;
+      }
+
+      .modal-sheet .modal-header h2 {
+        font-size: 1.1rem;
+        color: var(--gold-light);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .modal-sheet .modal-header .btn-close {
+        background: var(--pink);
+        border: none;
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: var(--transition);
+        font-family: inherit;
+      }
+
+      .modal-sheet .modal-header .btn-close:active {
+        transform: scale(0.95);
+      }
+
+      .modal-sheet .modal-body {
+        padding: 16px 20px;
+        overflow-y: auto;
+        flex: 1;
+      }
+
+      .modal-body .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .modal-body .info-row .label {
+        color: var(--gray-dark);
+        font-size: 0.8rem;
+      }
+      .modal-body .info-row .value {
+        font-weight: 500;
+        font-size: 0.9rem;
+      }
+      .modal-body .info-row .value.success {
+        color: var(--success);
+      }
+      .modal-body .info-row .value.danger {
         color: var(--error);
       }
-      .item-gold .item-value {
+      .modal-body .info-row .value.gold {
         color: var(--gold-light);
       }
 
-      /* ========== EMPTY STATE ========== */
+      /* ===== EMPTY / LOADING ===== */
       .empty-state {
         text-align: center;
         padding: 24px 16px;
         color: var(--gray-dark);
       }
-
       .empty-state i {
         font-size: 28px;
         display: block;
         margin-bottom: 6px;
         color: var(--gray);
       }
-
       .empty-state p {
         font-size: 12px;
       }
 
-      /* ========== LOADING ========== */
       .loading-state {
         text-align: center;
         padding: 20px 0;
         color: var(--gray);
       }
-
       .loading-state i {
         font-size: 24px;
         display: block;
         margin-bottom: 6px;
         color: var(--gold-light);
       }
-
       .loading-state p {
         font-size: 12px;
       }
 
-      /* ========== BARRA DE NAVEGAÇÃO INFERIOR (TAB BAR) ========== */
+      /* ===== TAB BAR ===== */
       .tab-bar {
         position: fixed;
         bottom: 0;
@@ -612,21 +728,17 @@
       .tab-item:active {
         transform: scale(0.92);
       }
-
       .tab-item i {
         font-size: 22px;
         transition: all 0.2s;
       }
-
       .tab-item.active {
         color: var(--gold-light);
       }
-
       .tab-item.active i {
         color: var(--gold-light);
         text-shadow: 0 0 12px rgba(212, 160, 23, 0.3);
       }
-
       .tab-item .tab-badge {
         position: absolute;
         top: 0;
@@ -645,7 +757,7 @@
         border: 2px solid var(--black);
       }
 
-      /* ========== SCROLL INDICATOR ========== */
+      /* ===== SCROLL TOP ===== */
       .scroll-top-btn {
         position: fixed;
         bottom: 80px;
@@ -672,12 +784,11 @@
       .scroll-top-btn:active {
         transform: scale(0.9);
       }
-
       .scroll-top-btn.visible {
         display: flex;
       }
 
-      /* ========== RESPONSIVIDADE ========== */
+      /* ===== RESPONSIVIDADE ===== */
       @media (max-width: 400px) {
         .kpi-grid {
           gap: 8px;
@@ -717,24 +828,17 @@
         }
       }
 
-      /* ========== UTILITÁRIOS ========== */
       .text-muted {
         color: var(--gray-dark);
       }
       .text-center {
         text-align: center;
       }
-      .text-right {
-        text-align: right;
-      }
       .text-error {
         color: var(--error);
       }
       .text-success {
         color: var(--success);
-      }
-      .text-warning {
-        color: var(--warning);
       }
       .text-gold {
         color: var(--gold-light);
@@ -751,12 +855,6 @@
       .mb-2 {
         margin-bottom: 8px;
       }
-      .gap-1 {
-        gap: 4px;
-      }
-      .gap-2 {
-        gap: 8px;
-      }
       .flex {
         display: flex;
       }
@@ -764,11 +862,6 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-      }
-      .flex-center {
-        display: flex;
-        align-items: center;
-        justify-content: center;
       }
       .flex-col {
         display: flex;
@@ -778,9 +871,9 @@
   </head>
   <body>
     <div class="app-container" id="app">
-      <!-- ===== STATUS BAR (fake) ===== -->
+      <!-- ===== STATUS BAR ===== -->
       <div class="status-bar">
-        <span id="statusTime">--:--</span>
+        <span class="time" id="statusTime">--:--</span>
         <span id="statusDate">--/--/----</span>
       </div>
 
@@ -803,7 +896,6 @@
 
       <!-- ===== CONTEÚDO ===== -->
       <main class="app-content" id="appContent">
-        <!-- Pull-to-refresh indicator -->
         <div class="pull-indicator" id="pullIndicator">
           <i class="ph ph-arrow-down"></i> Solte para atualizar
         </div>
@@ -812,24 +904,24 @@
         <section class="kpi-grid" id="kpiGrid">
           <div class="kpi-card" data-tab="producao">
             <div class="kpi-label">
-              <i class="ph ph-sewing-needle"></i> Em Produção
+              <i class="ph ph-factory"></i> Em Produção
             </div>
             <div class="kpi-value" id="kpiEmProducao">-</div>
-            <div class="kpi-detail">OS ativas</div>
+            <div class="kpi-detail">OS ativas no mês</div>
           </div>
           <div class="kpi-card kpi-danger" data-tab="financeiro">
             <div class="kpi-label">
               <i class="ph ph-warning-circle"></i> Contas Vencidas
             </div>
             <div class="kpi-value" id="kpiContasVencidas">-</div>
-            <div class="kpi-detail">pendentes</div>
+            <div class="kpi-detail">do mês atual</div>
           </div>
           <div class="kpi-card kpi-warning" data-tab="rh">
             <div class="kpi-label"><i class="ph ph-sun"></i> Em Férias</div>
             <div class="kpi-value" id="kpiFerias">-</div>
             <div class="kpi-detail">funcionários</div>
           </div>
-          <div class="kpi-card" data-tab="dividas">
+          <div class="kpi-card" data-tab="financeiro">
             <div class="kpi-label">
               <i class="ph ph-currency-circle-dollar"></i> Saldo Mês
             </div>
@@ -838,17 +930,17 @@
           </div>
           <div class="kpi-card kpi-success" data-tab="producao">
             <div class="kpi-label">
-              <i class="ph ph-check-circle"></i> Entregas Hoje
+              <i class="ph ph-check-circle"></i> Entregas Mês
             </div>
-            <div class="kpi-value" id="kpiEntregasHoje">-</div>
-            <div class="kpi-detail">lotes enviados</div>
+            <div class="kpi-value" id="kpiEntregasMes">-</div>
+            <div class="kpi-detail">lotes entregues</div>
           </div>
           <div class="kpi-card kpi-danger" data-tab="dividas">
             <div class="kpi-label">
-              <i class="ph ph-timer"></i> Lotes Atrasados
+              <i class="ph ph-warning"></i> Dívidas Ativas
             </div>
-            <div class="kpi-value" id="kpiLotesAtrasados">-</div>
-            <div class="kpi-detail">prazo vencido</div>
+            <div class="kpi-value" id="kpiDividasAtivas">-</div>
+            <div class="kpi-detail">total em aberto</div>
           </div>
         </section>
 
@@ -870,7 +962,7 @@
         <section class="section" id="secProducao">
           <div class="section-header">
             <div class="section-title">
-              <i class="ph ph-sewing-needle"></i> Em Produção
+              <i class="ph ph-factory"></i> Em Produção (Mês)
             </div>
             <span class="section-badge" id="prodCount">0</span>
           </div>
@@ -886,7 +978,7 @@
         <section class="section" id="secFinanceiro">
           <div class="section-header">
             <div class="section-title">
-              <i class="ph ph-currency-circle-dollar"></i> Vencem em 7 dias
+              <i class="ph ph-currency-circle-dollar"></i> Contas do Mês
             </div>
             <span class="section-badge" id="finCount">0</span>
           </div>
@@ -902,14 +994,36 @@
         <section class="section" id="secRH">
           <div class="section-header">
             <div class="section-title">
-              <i class="ph ph-users-three"></i> Férias
+              <i class="ph ph-users-three"></i> Funcionários
             </div>
             <span class="section-badge" id="rhCount">0</span>
           </div>
-          <div class="list-wrapper" id="listaRH">
-            <div class="loading-state">
-              <i class="ph ph-spinner spinning"></i>
-              <p>Carregando...</p>
+          <!-- Subseção: Férias em andamento -->
+          <div id="rhFeriasContainer" style="margin-bottom: 12px">
+            <div
+              style="font-size: 11px; color: var(--gray); margin-bottom: 6px"
+            >
+              <i class="ph ph-sun"></i> Férias em andamento
+            </div>
+            <div class="list-wrapper" id="listaRHFerias">
+              <div class="loading-state">
+                <i class="ph ph-spinner spinning"></i>
+                <p>Carregando...</p>
+              </div>
+            </div>
+          </div>
+          <!-- Subseção: Funcionários ativos -->
+          <div id="rhFuncionariosContainer">
+            <div
+              style="font-size: 11px; color: var(--gray); margin-bottom: 6px"
+            >
+              <i class="ph ph-users"></i> Funcionários ativos
+            </div>
+            <div class="list-wrapper" id="listaRHFuncionarios">
+              <div class="loading-state">
+                <i class="ph ph-spinner spinning"></i>
+                <p>Carregando...</p>
+              </div>
             </div>
           </div>
         </section>
@@ -918,7 +1032,7 @@
         <section class="section" id="secDividas">
           <div class="section-header">
             <div class="section-title">
-              <i class="ph ph-warning-circle"></i> Parcelas (30 dias)
+              <i class="ph ph-warning-circle"></i> Dívidas
             </div>
             <span class="section-badge" id="divCount">0</span>
           </div>
@@ -930,7 +1044,6 @@
           </div>
         </section>
 
-        <!-- ===== FOOTER DO CONTEÚDO ===== -->
         <div
           style="
             text-align: center;
@@ -946,50 +1059,46 @@
 
       <!-- ===== TAB BAR ===== -->
       <nav class="tab-bar" id="tabBar">
-        <button class="tab-item active" data-tab="geral" aria-label="Geral">
-          <i class="ph ph-squares-four"></i>
-          <span>Geral</span>
+        <button class="tab-item active" data-tab="geral">
+          <i class="ph ph-squares-four"></i><span>Geral</span>
         </button>
-        <button class="tab-item" data-tab="producao" aria-label="Produção">
-          <i class="ph ph-sewing-needle"></i>
-          <span>Produção</span>
-          <span class="tab-badge" id="tabBadgeProd" style="display: none"
+        <button class="tab-item" data-tab="producao">
+          <i class="ph ph-factory"></i><span>Produção</span
+          ><span class="tab-badge" id="tabBadgeProd" style="display: none"
             >0</span
           >
         </button>
-        <button class="tab-item" data-tab="financeiro" aria-label="Financeiro">
-          <i class="ph ph-currency-circle-dollar"></i>
-          <span>Financeiro</span>
-          <span class="tab-badge" id="tabBadgeFin" style="display: none"
+        <button class="tab-item" data-tab="financeiro">
+          <i class="ph ph-currency-circle-dollar"></i><span>Financeiro</span
+          ><span class="tab-badge" id="tabBadgeFin" style="display: none"
             >0</span
           >
         </button>
-        <button class="tab-item" data-tab="rh" aria-label="RH">
-          <i class="ph ph-users-three"></i>
-          <span>RH</span>
-          <span class="tab-badge" id="tabBadgeRH" style="display: none">0</span>
+        <button class="tab-item" data-tab="rh">
+          <i class="ph ph-users-three"></i><span>RH</span
+          ><span class="tab-badge" id="tabBadgeRH" style="display: none"
+            >0</span
+          >
         </button>
-        <button class="tab-item" data-tab="dividas" aria-label="Dívidas">
-          <i class="ph ph-warning-circle"></i>
-          <span>Dívidas</span>
-          <span class="tab-badge" id="tabBadgeDiv" style="display: none"
+        <button class="tab-item" data-tab="dividas">
+          <i class="ph ph-warning-circle"></i><span>Dívidas</span
+          ><span class="tab-badge" id="tabBadgeDiv" style="display: none"
             >0</span
           >
         </button>
       </nav>
 
-      <!-- ===== SCROLL TO TOP ===== -->
-      <button
-        class="scroll-top-btn"
-        id="scrollTopBtn"
-        aria-label="Voltar ao topo"
-      >
+      <!-- ===== SCROLL TOP ===== -->
+      <button class="scroll-top-btn" id="scrollTopBtn">
         <i class="ph ph-arrow-up"></i>
       </button>
+
+      <!-- ===== MODAL CONTAINER ===== -->
+      <div id="modalContainer"></div>
     </div>
 
     <!-- ============================================================ -->
-    <!-- SCRIPT PRINCIPAL COMPLETO -->
+    <!-- SCRIPT PRINCIPAL -->
     <!-- ============================================================ -->
     <script>
       (function () {
@@ -998,46 +1107,28 @@
         console.log("🚀 App do Gestor iniciado");
 
         // ============================================================
-        // VERIFICAÇÃO DE DEPENDÊNCIAS
+        // SUPABASE
         // ============================================================
         let supabaseLib;
-
         if (typeof window.supabase !== "undefined") {
           supabaseLib = window.supabase;
-          console.log("✅ Supabase encontrado em window.supabase");
         } else if (typeof supabase !== "undefined") {
           supabaseLib = supabase;
-          console.log("✅ Supabase encontrado globalmente");
-        } else if (typeof supabaseJs !== "undefined") {
-          supabaseLib = supabaseJs;
-          console.log("✅ Supabase encontrado como supabaseJs");
         } else {
-          console.warn(
-            "⚠️ Supabase não encontrado, tentando carregar via CDN...",
-          );
+          console.warn("⚠️ Supabase não encontrado, carregando...");
           const script = document.createElement("script");
           script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
           script.onload = function () {
-            console.log("✅ Supabase carregado dinamicamente");
             location.reload();
           };
           script.onerror = function () {
-            document.body.innerHTML = `
-                        <div style="padding:40px;text-align:center;color:#ff5252;font-family:sans-serif;">
-                            <i class="ph ph-warning-circle" style="font-size:48px;display:block;margin-bottom:16px;"></i>
-                            <h2 style="color:#fff;">Erro de Conexão</h2>
-                            <p style="color:#9e9e9e;">Não foi possível carregar a biblioteca Supabase.<br>Verifique sua conexão com a internet.</p>
-                            <button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#d4a017;border:none;border-radius:8px;color:#000;font-weight:600;cursor:pointer;">Recarregar</button>
-                        </div>
-                    `;
+            document.body.innerHTML =
+              '<div style="padding:40px;text-align:center;color:#ff5252;"><h2 style="color:#fff;">Erro de Conexão</h2><p style="color:#9e9e9e;">Não foi possível carregar a biblioteca Supabase.</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#d4a017;border:none;border-radius:8px;color:#000;font-weight:600;cursor:pointer;">Recarregar</button></div>';
           };
           document.head.appendChild(script);
           throw new Error("Carregando Supabase...");
         }
 
-        // ============================================================
-        // CONFIGURAÇÃO SUPABASE
-        // ============================================================
         const SUPABASE_URL = "https://evlatdyxcgklunwvnhcv.supabase.co";
         const SUPABASE_ANON_KEY =
           "sb_publishable_tn2G-m8F7M3Ey8C0LDJLNg_9MzszdAS";
@@ -1048,8 +1139,6 @@
             SUPABASE_ANON_KEY,
           );
           console.log("✅ Cliente Supabase criado");
-        } else {
-          console.log("♻️ Reutilizando cliente Supabase existente");
         }
         const supabase = window.__supabaseClient;
 
@@ -1078,6 +1167,52 @@
           }).format(v);
         }
 
+        function getInitials(name) {
+          if (!name) return "?";
+          const parts = name.trim().split(" ");
+          if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+          return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        function formatTime() {
+          return new Date().toLocaleTimeString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+
+        function getMonthRange() {
+          const now = new Date();
+          const primeiroDia = new Date(now.getFullYear(), now.getMonth(), 1);
+          const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+          return {
+            inicio: primeiroDia.toISOString().split("T")[0],
+            fim: ultimoDia.toISOString().split("T")[0],
+            mes: now.getMonth() + 1,
+            ano: now.getFullYear(),
+          };
+        }
+
+        function getProximoDiaUtil(data) {
+          const d = new Date(data);
+          d.setDate(d.getDate() + 1);
+          while (d.getDay() === 0 || d.getDay() === 6) {
+            d.setDate(d.getDate() + 1);
+          }
+          return d;
+        }
+
+        function formatarTipoFalta(tipo) {
+          const map = {
+            falta_injustificada: "❌ Injustificada",
+            falta_justificada: "⚠️ Justificada",
+            atestado: "🏥 Atestado",
+            ferias: "🏖️ Férias",
+            licenca: "📋 Licença",
+          };
+          return map[tipo] || tipo || "-";
+        }
+
         function formatStatus(s) {
           const map = {
             recebido: "Recebido",
@@ -1095,37 +1230,51 @@
           return "badge-status-" + s;
         }
 
-        function formatTime() {
-          return new Date().toLocaleTimeString("pt-BR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+        function debounce(fn, delay) {
+          let timer;
+          return function (...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delay);
+          };
         }
 
-        function formatDateTime() {
-          return (
-            new Date().toLocaleDateString("pt-BR") +
-            " " +
-            new Date().toLocaleTimeString("pt-BR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          );
+        function openModal(title, html) {
+          const container = document.getElementById("modalContainer");
+          container.innerHTML = `
+                    <div class="modal-overlay" id="modalOverlay">
+                        <div class="modal-sheet">
+                            <div class="handle"></div>
+                            <div class="modal-header">
+                                <h2><i class="ph ph-user-circle"></i> ${title}</h2>
+                                <button class="btn-close" id="closeModalBtn"><i class="ph ph-x"></i> Fechar</button>
+                            </div>
+                            <div class="modal-body">${html}</div>
+                        </div>
+                    </div>
+                `;
+          document
+            .getElementById("closeModalBtn")
+            .addEventListener("click", () => {
+              container.innerHTML = "";
+            });
+          document
+            .getElementById("modalOverlay")
+            .addEventListener("click", (e) => {
+              if (e.target.id === "modalOverlay") container.innerHTML = "";
+            });
         }
 
         // ============================================================
-        // ESTADO
+        // VARIÁVEIS GLOBAIS
         // ============================================================
-        let carregando = false;
         let abaAtual = "geral";
-        let dadosCache = {};
+        let dados = {};
+        let carregando = false;
 
         // ============================================================
-        // ELEMENTOS DOM
+        // ELEMENTOS
         // ============================================================
         const $ = (id) => document.getElementById(id);
-        const $$ = (sel) => document.querySelectorAll(sel);
-
         const appContent = $("appContent");
         const refreshIcon = $("refreshIcon");
         const lastUpdate = $("lastUpdate");
@@ -1133,497 +1282,275 @@
         const scrollTopBtn = $("scrollTopBtn");
 
         // ============================================================
-        // TESTE DE CONEXÃO
-        // ============================================================
-        async function testarConexao() {
-          console.log("🔄 Testando conexão com Supabase...");
-          try {
-            const { data, error } = await supabase
-              .from("service_orders")
-              .select("id")
-              .limit(1);
-
-            if (error) {
-              console.error("❌ Erro na conexão:", error);
-              return false;
-            }
-            console.log("✅ Conexão OK!");
-            return true;
-          } catch (e) {
-            console.error("❌ Exceção na conexão:", e);
-            return false;
-          }
-        }
-
-        // ============================================================
-        // CARREGAMENTO DE DADOS
+        // CARREGAR DADOS
         // ============================================================
         async function carregarDados() {
-          console.log("🔄 Iniciando carregamento de dados...");
-
-          if (carregando) {
-            console.log("⏳ Já está carregando, ignorando...");
-            return;
-          }
+          console.log("🔄 Carregando dados...");
+          if (carregando) return;
           carregando = true;
-
           refreshIcon.className = "ph ph-spinner spinning";
 
           try {
             const hoje = todayISO();
-            console.log("📅 Data de referência:", hoje);
+            const mesRange = getMonthRange();
+            console.log(`📅 Mês atual: ${mesRange.mes}/${mesRange.ano}`);
 
-            const dataFim7 = new Date();
-            dataFim7.setDate(dataFim7.getDate() + 7);
-            const dataFim7Str = dataFim7.toISOString().split("T")[0];
-
-            const dataFim30 = new Date();
-            dataFim30.setDate(dataFim30.getDate() + 30);
-            const dataFim30Str = dataFim30.toISOString().split("T")[0];
-
-            // ===== 1. Ordens de Serviço =====
-            const {
-              data: osAtivas,
-              count: countOsAtivas,
-              error: errOs,
-            } = await supabase
+            // ============================================================
+            // 1. PRODUÇÃO
+            // ============================================================
+            let queryOS = supabase
               .from("service_orders")
               .select(
-                "id, order_number, customer_id, total_quantity, status, expected_delivery, customers(company_name, trade_name)",
-                { count: "exact" },
+                `
+                            id, order_number, product_description, product_reference,
+                            total_quantity, unit_price, total, received_date, expected_delivery,
+                            status, notes, created_at, updated_at, started_date,
+                            customers(company_name, trade_name, contact_name, phone)
+                        `,
               )
-              .not("status", "in", '("entregue","cancelado")')
-              .order("expected_delivery", { ascending: true })
-              .limit(15);
+              .order("expected_delivery", { ascending: true });
 
-            if (errOs) console.error("  ❌ Erro OS:", errOs);
-            else console.log(`  ✅ ${countOsAtivas || 0} OS ativas`);
+            queryOS = queryOS
+              .gte("received_date", mesRange.inicio)
+              .lte("received_date", mesRange.fim + "T23:59:59")
+              .not("status", "in", '("entregue","cancelado")');
 
-            // ===== 2. Lotes atrasados =====
-            const { count: countAtrasadas, error: errAtras } = await supabase
-              .from("service_orders")
-              .select("id", { count: "exact" })
-              .not("status", "in", '("entregue","cancelado")')
-              .lt("expected_delivery", hoje);
+            const { data: osAtivas, error: errOs } = await queryOS;
+            if (errOs) console.error("❌ Erro OS:", errOs);
 
-            if (errAtras) console.error("  ❌ Erro atrasados:", errAtras);
-            else console.log(`  ✅ ${countAtrasadas || 0} lotes atrasados`);
+            const osIds = osAtivas ? osAtivas.map((o) => o.id) : [];
+            let progressoMap = {};
+            if (osIds.length > 0) {
+              const { data: items } = await supabase
+                .from("service_order_items")
+                .select(
+                  "service_order_id, quantity, sewn_quantity, delivered_quantity",
+                )
+                .in("service_order_id", osIds);
+              if (items) {
+                items.forEach((item) => {
+                  if (!progressoMap[item.service_order_id]) {
+                    progressoMap[item.service_order_id] = {
+                      total: 0,
+                      costurado: 0,
+                      entregue: 0,
+                    };
+                  }
+                  progressoMap[item.service_order_id].total += item.quantity;
+                  progressoMap[item.service_order_id].costurado +=
+                    item.sewn_quantity || 0;
+                  progressoMap[item.service_order_id].entregue +=
+                    item.delivered_quantity || 0;
+                });
+              }
+            }
 
-            // ===== 3. Entregas de hoje =====
-            const { count: countEntreguesHoje, error: errEntr } = await supabase
-              .from("service_orders")
-              .select("id", { count: "exact" })
-              .eq("status", "entregue")
-              .gte("updated_at", hoje)
-              .lte("updated_at", hoje + "T23:59:59");
-
-            if (errEntr) console.error("  ❌ Erro entregas:", errEntr);
-            else console.log(`  ✅ ${countEntreguesHoje || 0} entregas hoje`);
-
-            // ===== 4. Produção (peças hoje) =====
-            const { data: recordsHoje, error: errRec } = await supabase
-              .from("sewing_records")
-              .select("pieces_sewn")
-              .gte("start_time", hoje)
-              .lte("start_time", hoje + "T23:59:59");
-
-            if (errRec) console.error("  ❌ Erro produção:", errRec);
-            const pecasHoje = recordsHoje
-              ? recordsHoje.reduce((s, r) => s + r.pieces_sewn, 0)
-              : 0;
-            console.log(`  ✅ ${pecasHoje} peças hoje`);
-
-            // ===== 5. Financeiro (saldo do mês) =====
-            const primeiroDiaMes = new Date();
-            primeiroDiaMes.setDate(1);
-            const primeiroDiaStr = primeiroDiaMes.toISOString().split("T")[0];
-            const ultimoDiaMes = new Date(
-              new Date().getFullYear(),
-              new Date().getMonth() + 1,
-              0,
-            );
-            const ultimoDiaStr = ultimoDiaMes.toISOString().split("T")[0];
-
-            const { data: transacoes, error: errTrans } = await supabase
+            // ============================================================
+            // 2. FINANCEIRO
+            // ============================================================
+            let queryTrans = supabase
               .from("financial_transactions")
-              .select("amount, type")
-              .gte("date", primeiroDiaStr)
-              .lte("date", ultimoDiaStr);
+              .select(
+                `
+                            id, description, amount, due_date, date, status, type,
+                            payment_method, account_id, category_id,
+                            installments, total_installments, entry_amount, notes,
+                            chart_of_accounts(id, code, name, type)
+                        `,
+              )
+              .gte("due_date", mesRange.inicio)
+              .lte("due_date", mesRange.fim)
+              .neq("status", "cancelado");
 
-            let receitas = 0,
-              despesas = 0;
-            if (transacoes) {
-              transacoes.forEach((t) => {
-                const v = parseFloat(t.amount);
-                if (v > 0) receitas += v;
-                else despesas += Math.abs(v);
+            const { data: transacoes, error: errTrans } = await queryTrans;
+            if (errTrans) console.error("❌ Erro transações:", errTrans);
+
+            const { data: parcelasPeriodo, error: errParc } = await supabase
+              .from("financial_installments")
+              .select(
+                "transaction_id, id, numero_parcela, valor, vencimento, status, payment_date, interest_paid, late_fee_paid",
+              )
+              .gte("vencimento", mesRange.inicio)
+              .lte("vencimento", mesRange.fim)
+              .order("vencimento", { ascending: true });
+            if (errParc) console.error("❌ Erro parcelas:", errParc);
+
+            const idsTransacoes = [
+              ...new Set(
+                parcelasPeriodo
+                  ?.map((p) => p.transaction_id)
+                  .filter((id) => id) || [],
+              ),
+            ];
+
+            let transacoesParceladas = [];
+            if (idsTransacoes.length > 0) {
+              const { data: parceladas } = await supabase
+                .from("financial_transactions")
+                .select(
+                  `
+                                id, description, amount, due_date, date, status, type,
+                                payment_method, account_id, category_id,
+                                installments, total_installments, entry_amount, notes,
+                                chart_of_accounts(id, code, name, type)
+                            `,
+                )
+                .in("id", idsTransacoes)
+                .eq("installments", true)
+                .neq("status", "cancelado");
+              if (parceladas) transacoesParceladas = parceladas;
+            }
+
+            const transacoesComParcelas = [];
+            for (const t of transacoes || []) {
+              transacoesComParcelas.push({ ...t, financial_installments: [] });
+            }
+            for (const t of transacoesParceladas) {
+              const parcelasDaTransacao =
+                parcelasPeriodo?.filter((p) => p.transaction_id === t.id) || [];
+              transacoesComParcelas.push({
+                ...t,
+                financial_installments: parcelasDaTransacao,
               });
             }
-            console.log(
-              `  ✅ Receitas: ${formatCurrency(receitas)}, Despesas: ${formatCurrency(despesas)}`,
+
+            const eventosFinanceiros = [];
+            for (const t of transacoesComParcelas) {
+              const transacaoParcelada = t.installments === true;
+              if (transacaoParcelada && t.financial_installments?.length) {
+                for (const parcela of t.financial_installments) {
+                  eventosFinanceiros.push({
+                    id: parcela.id,
+                    transaction_id: t.id,
+                    descricao: t.description || "Sem descrição",
+                    categoria: t.chart_of_accounts?.name || "-",
+                    tipo: t.type,
+                    valor: Number(parcela.valor),
+                    vencimento: parcela.vencimento,
+                    status: parcela.status || t.status,
+                    numero_parcela: parcela.numero_parcela,
+                    total_parcelas: t.total_installments || 1,
+                    payment_method: t.payment_method,
+                    isParcela: true,
+                    parcelas: t.financial_installments || [],
+                  });
+                }
+              } else {
+                eventosFinanceiros.push({
+                  id: t.id,
+                  transaction_id: t.id,
+                  descricao: t.description || "Sem descrição",
+                  categoria: t.chart_of_accounts?.name || "-",
+                  tipo: t.type,
+                  valor: Math.abs(Number(t.amount)),
+                  vencimento: t.due_date || t.date,
+                  status: t.status,
+                  numero_parcela: 1,
+                  total_parcelas: 1,
+                  payment_method: t.payment_method,
+                  isParcela: false,
+                  parcelas: [],
+                });
+              }
+            }
+
+            eventosFinanceiros.sort((a, b) =>
+              a.vencimento.localeCompare(b.vencimento),
             );
 
-            // ===== 6. Contas vencidas =====
-            const { count: contasVencidas, error: errCV } = await supabase
-              .from("financial_transactions")
-              .select("id", { count: "exact" })
-              .eq("status", "pendente")
-              .lt("due_date", hoje);
-
-            if (errCV) console.error("  ❌ Erro contas vencidas:", errCV);
-            else console.log(`  ✅ ${contasVencidas || 0} contas vencidas`);
-
-            // ===== 7. Contas próximas (7 dias) =====
-            const { data: contasProximas, error: errCP } = await supabase
-              .from("financial_transactions")
-              .select("description, amount, due_date, type")
-              .eq("status", "pendente")
-              .gte("due_date", hoje)
-              .lte("due_date", dataFim7Str)
-              .order("due_date", { ascending: true })
-              .limit(15);
-
-            if (errCP) console.error("  ❌ Erro contas próximas:", errCP);
-            else
-              console.log(
-                `  ✅ ${contasProximas?.length || 0} contas próximas`,
-              );
-
-            // ===== 8. Funcionários =====
-            const { count: qtdFuncionarios, error: errFunc } = await supabase
+            // ============================================================
+            // 3. RH
+            // ============================================================
+            const { data: funcionarios, error: errFunc } = await supabase
               .from("employees")
-              .select("id", { count: "exact" })
-              .eq("active", true);
+              .select("*")
+              .eq("active", true)
+              .order("full_name");
+            if (errFunc) console.error("❌ Erro funcionários:", errFunc);
 
-            if (errFunc) console.error("  ❌ Erro funcionários:", errFunc);
-            else
-              console.log(`  ✅ ${qtdFuncionarios || 0} funcionários ativos`);
-
-            // ===== 9. Férias =====
             const { data: ferias, error: errFer } = await supabase
               .from("employee_vacations")
               .select(
-                "employee_id, start_date, end_date, status, employees(full_name)",
+                "*, employees(full_name, role, photo_url, phone_cell, email_personal)",
               )
-              .neq("status", "cancelada")
-              .order("start_date", { ascending: true })
-              .limit(15);
-
-            if (errFer) console.error("  ❌ Erro férias:", errFer);
-            else console.log(`  ✅ ${ferias?.length || 0} registros de férias`);
-
-            const feriasEmAndamento = ferias
-              ? ferias.filter((f) => {
-                  const hojeDate = new Date();
-                  const inicio = new Date(f.start_date);
-                  const fim = new Date(f.end_date);
-                  return (
-                    f.status === "agendada" &&
-                    inicio <= hojeDate &&
-                    fim >= hojeDate
-                  );
-                })
-              : [];
-            console.log(`  ✅ ${feriasEmAndamento.length} férias em andamento`);
-
-            // ===== 10. Parcelas de dívidas =====
-            const { data: parcelasDividas, error: errDiv } = await supabase
-              .from("debt_installments")
-              .select(
-                "id, amount, due_date, installment_number, debts(id, creditor, type)",
-              )
-              .eq("paid", false)
-              .gte("due_date", hoje)
-              .lte("due_date", dataFim30Str)
-              .order("due_date", { ascending: true })
-              .limit(15);
-
-            if (errDiv) console.error("  ❌ Erro dívidas:", errDiv);
-            else
-              console.log(
-                `  ✅ ${parcelasDividas?.length || 0} parcelas próximas`,
-              );
+              .eq("status", "agendada")
+              .lte("start_date", hoje)
+              .gte("end_date", hoje)
+              .order("start_date", { ascending: true });
+            if (errFer) console.error("❌ Erro férias:", errFer);
 
             // ============================================================
-            // ARMAZENA EM CACHE
+            // 4. DÍVIDAS
             // ============================================================
-            dadosCache = {
-              osAtivas,
-              countOsAtivas,
-              countAtrasadas,
-              countEntreguesHoje,
-              pecasHoje,
-              receitas,
-              despesas,
-              contasVencidas,
-              contasProximas,
-              qtdFuncionarios,
-              ferias,
-              feriasEmAndamento,
-              parcelasDividas,
+            const { data: dividas, error: errDiv } = await supabase
+              .from("debts")
+              .select("*")
+              .order("created_at", { ascending: false });
+            if (errDiv) console.error("❌ Erro dívidas:", errDiv);
+
+            const idsDividas = dividas ? dividas.map((d) => d.id) : [];
+            let parcelasDividasMap = {};
+            if (idsDividas.length > 0) {
+              const { data: parcelasDiv } = await supabase
+                .from("debt_installments")
+                .select("*")
+                .in("debt_id", idsDividas)
+                .order("installment_number", { ascending: true });
+              if (parcelasDiv) {
+                parcelasDiv.forEach((p) => {
+                  if (!parcelasDividasMap[p.debt_id])
+                    parcelasDividasMap[p.debt_id] = [];
+                  parcelasDividasMap[p.debt_id].push(p);
+                });
+              }
+            }
+
+            // ============================================================
+            // ARMAZENA DADOS
+            // ============================================================
+            dados = {
+              osAtivas: osAtivas || [],
+              progressoMap: progressoMap || {},
+              eventosFinanceiros: eventosFinanceiros || [],
+              funcionarios: funcionarios || [],
+              ferias: ferias || [],
+              dividas: dividas || [],
+              parcelasDividasMap: parcelasDividasMap || {},
+              mesRange: mesRange,
             };
 
             // ============================================================
-            // RENDERIZAÇÃO
+            // RENDERIZA
             // ============================================================
-            console.log("🎨 Renderizando dados...");
+            renderizarDados(dados);
 
-            // Status bar
-            $("statusTime").textContent = formatTime();
-            $("statusDate").textContent = new Date().toLocaleDateString(
-              "pt-BR",
-            );
+            // ============================================================
+            // BADGES
+            // ============================================================
+            const contasVencidas = eventosFinanceiros.filter(
+              (e) =>
+                e.status === "pendente" && new Date(e.vencimento) < new Date(),
+            ).length;
 
-            // Última atualização
-            lastUpdate.textContent = formatTime();
+            const divAtivas = (dividas || []).filter(
+              (d) => d.status !== "quitada",
+            ).length;
 
-            // KPIs
-            $("kpiEmProducao").textContent = countOsAtivas || 0;
-            $("kpiContasVencidas").textContent = contasVencidas || 0;
-            $("kpiFerias").textContent = feriasEmAndamento.length || 0;
-            $("kpiSaldoMes").textContent = formatCurrency(receitas - despesas);
-            $("kpiEntregasHoje").textContent = countEntreguesHoje || 0;
-            $("kpiLotesAtrasados").textContent = countAtrasadas || 0;
-
-            // Alertas
-            const alertas = [];
-            if (countAtrasadas > 0)
-              alertas.push({
-                prioridade: "high",
-                icone: "ph-warning-circle",
-                texto: `${countAtrasadas} lote(s) atrasado(s)`,
-                tag: "urgente",
-              });
-            if (contasVencidas > 0)
-              alertas.push({
-                prioridade: "high",
-                icone: "ph-currency-circle-dollar",
-                texto: `${contasVencidas} conta(s) vencida(s)`,
-                tag: "urgente",
-              });
-            if (feriasEmAndamento.length > 0)
-              alertas.push({
-                prioridade: "medium",
-                icone: "ph-sun",
-                texto: `${feriasEmAndamento.length} funcionário(s) em férias`,
-                tag: "atenção",
-              });
-            if (parcelasDividas && parcelasDividas.length > 0)
-              alertas.push({
-                prioridade: "medium",
-                icone: "ph-warning",
-                texto: `${parcelasDividas.length} parcela(s) de dívidas vencem em 30 dias`,
-                tag: "atenção",
-              });
-
-            $("alertasCount").textContent = alertas.length;
-
-            const alertasContainer = $("alertasContainer");
-            if (alertas.length === 0) {
-              alertasContainer.innerHTML = `
-                            <div class="alert-item alert-low">
-                                <i class="ph ph-check-circle" style="color:var(--success);"></i>
-                                <span class="alert-text">Tudo em dia! Nenhum alerta no momento. ✅</span>
-                            </div>
-                        `;
-            } else {
-              alertasContainer.innerHTML = alertas
-                .map(
-                  (a) => `
-                            <div class="alert-item alert-${a.prioridade}">
-                                <i class="ph ${a.icone}"></i>
-                                <span class="alert-text">${a.texto}</span>
-                                <span class="alert-tag tag-${a.prioridade}">${a.tag}</span>
-                            </div>
-                        `,
-                )
-                .join("");
-            }
-
-            // ===== PRODUÇÃO =====
-            const listaProd = $("listaProducao");
-            $("prodCount").textContent = countOsAtivas || 0;
-
-            if (osAtivas && osAtivas.length > 0) {
-              listaProd.innerHTML = osAtivas
-                .slice(0, 10)
-                .map((os) => {
-                  const cliente =
-                    os.customers?.trade_name ||
-                    os.customers?.company_name ||
-                    "-";
-                  const atrasado = new Date(os.expected_delivery) < new Date();
-                  return `
-                                <div class="list-item ${atrasado ? "item-danger" : ""}">
-                                    <div class="item-main">
-                                        <div class="item-title">${os.order_number}</div>
-                                        <div class="item-sub">${cliente} · ${os.total_quantity} peças</div>
-                                    </div>
-                                    <div class="item-right">
-                                        <span class="item-badge ${getStatusClass(os.status)}">${formatStatus(os.status)}</span>
-                                        <div style="font-size:9px;color:${atrasado ? "var(--error)" : "var(--gray-dark)"};margin-top:2px;">
-                                            ${formatDate(os.expected_delivery)}
-                                            ${atrasado ? " ⚠️" : ""}
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                })
-                .join("");
-            } else {
-              listaProd.innerHTML = `
-                            <div class="empty-state">
-                                <i class="ph ph-sewing-needle"></i>
-                                <p>Nenhuma OS em produção</p>
-                            </div>
-                        `;
-            }
-
-            // ===== FINANCEIRO =====
-            const listaFin = $("listaFinanceiro");
-            $("finCount").textContent = contasProximas?.length || 0;
-
-            if (contasProximas && contasProximas.length > 0) {
-              listaFin.innerHTML = contasProximas
-                .slice(0, 10)
-                .map((c) => {
-                  const isReceber = c.type === "receber";
-                  return `
-                                <div class="list-item">
-                                    <div class="item-main">
-                                        <div class="item-title">${c.description || "Sem descrição"}</div>
-                                        <div class="item-sub">${formatDate(c.due_date)}</div>
-                                    </div>
-                                    <div class="item-right">
-                                        <div class="item-value ${isReceber ? "item-success" : "item-error"}">
-                                            ${isReceber ? "+" : "-"}${formatCurrency(Math.abs(c.amount))}
-                                        </div>
-                                        <div style="font-size:9px;color:var(--gray-dark);">
-                                            ${isReceber ? "A Receber" : "A Pagar"}
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                })
-                .join("");
-            } else {
-              listaFin.innerHTML = `
-                            <div class="empty-state">
-                                <i class="ph ph-currency-circle-dollar"></i>
-                                <p>Nenhuma conta próxima</p>
-                            </div>
-                        `;
-            }
-
-            // ===== RH =====
-            const listaRH = $("listaRH");
-            const feriasExibir = ferias
-              ? ferias
-                  .filter(
-                    (f) => f.status === "agendada" || f.status === "concluida",
-                  )
-                  .slice(0, 10)
-              : [];
-            $("rhCount").textContent = feriasExibir.length;
-
-            if (feriasExibir.length > 0) {
-              listaRH.innerHTML = feriasExibir
-                .map((f) => {
-                  const dias =
-                    Math.ceil(
-                      (new Date(f.end_date) - new Date(f.start_date)) /
-                        (1000 * 60 * 60 * 24),
-                    ) + 1;
-                  const emAndamento =
-                    f.status === "agendada" &&
-                    new Date(f.start_date) <= new Date() &&
-                    new Date(f.end_date) >= new Date();
-                  return `
-                                <div class="list-item ${emAndamento ? "item-warning" : ""}">
-                                    <div class="item-main">
-                                        <div class="item-title">${f.employees?.full_name || "-"}</div>
-                                        <div class="item-sub">${formatDate(f.start_date)} a ${formatDate(f.end_date)} · ${dias} dias</div>
-                                    </div>
-                                    <div class="item-right">
-                                        <span class="item-badge ${f.status === "agendada" ? "badge-status-em_costura" : "badge-status-entregue"}">
-                                            ${f.status === "agendada" ? (emAndamento ? "Em andamento" : "Agendada") : "Concluída"}
-                                        </span>
-                                    </div>
-                                </div>
-                            `;
-                })
-                .join("");
-            } else {
-              listaRH.innerHTML = `
-                            <div class="empty-state">
-                                <i class="ph ph-sun"></i>
-                                <p>Nenhum registro de férias</p>
-                            </div>
-                        `;
-            }
-
-            // ===== DÍVIDAS =====
-            const listaDiv = $("listaDividas");
-            $("divCount").textContent = parcelasDividas?.length || 0;
-
-            if (parcelasDividas && parcelasDividas.length > 0) {
-              listaDiv.innerHTML = parcelasDividas
-                .slice(0, 10)
-                .map((p) => {
-                  const diasFalta = Math.ceil(
-                    (new Date(p.due_date) - new Date()) / (1000 * 60 * 60 * 24),
-                  );
-                  const isUrgente = diasFalta <= 7;
-                  return `
-                                <div class="list-item ${isUrgente ? "item-danger" : ""}">
-                                    <div class="item-main">
-                                        <div class="item-title">${p.debts?.creditor || "-"}</div>
-                                        <div class="item-sub">${p.installment_number}ª parcela · ${formatDate(p.due_date)}</div>
-                                    </div>
-                                    <div class="item-right">
-                                        <div class="item-value item-error">${formatCurrency(p.amount)}</div>
-                                        <div style="font-size:9px;color:${isUrgente ? "var(--error)" : "var(--gray-dark)"};">
-                                            ${diasFalta} dias${isUrgente ? " ⚠️" : ""}
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                })
-                .join("");
-            } else {
-              listaDiv.innerHTML = `
-                            <div class="empty-state">
-                                <i class="ph ph-warning-circle"></i>
-                                <p>Nenhuma parcela próxima</p>
-                            </div>
-                        `;
-            }
-
-            // ===== BADGES DA TAB BAR =====
-            const tabBadgeProd = $("tabBadgeProd");
-            const tabBadgeFin = $("tabBadgeFin");
-            const tabBadgeRH = $("tabBadgeRH");
-            const tabBadgeDiv = $("tabBadgeDiv");
-
-            const prodBadge =
-              (countAtrasadas || 0) + (countOsAtivas > 0 ? 1 : 0);
-            tabBadgeProd.textContent = prodBadge > 0 ? prodBadge : 0;
-            tabBadgeProd.style.display = prodBadge > 0 ? "flex" : "none";
-
-            tabBadgeFin.textContent = contasVencidas || 0;
-            tabBadgeFin.style.display = contasVencidas > 0 ? "flex" : "none";
-
-            tabBadgeRH.textContent = feriasEmAndamento.length || 0;
-            tabBadgeRH.style.display =
-              feriasEmAndamento.length > 0 ? "flex" : "none";
-
-            tabBadgeDiv.textContent = parcelasDividas?.length || 0;
-            tabBadgeDiv.style.display =
-              parcelasDividas?.length > 0 ? "flex" : "none";
+            $("tabBadgeProd").textContent = (osAtivas || []).length;
+            $("tabBadgeProd").style.display =
+              (osAtivas || []).length > 0 ? "flex" : "none";
+            $("tabBadgeFin").textContent = contasVencidas;
+            $("tabBadgeFin").style.display =
+              contasVencidas > 0 ? "flex" : "none";
+            $("tabBadgeRH").textContent = (ferias || []).length;
+            $("tabBadgeRH").style.display =
+              (ferias || []).length > 0 ? "flex" : "none";
+            $("tabBadgeDiv").textContent = divAtivas;
+            $("tabBadgeDiv").style.display = divAtivas > 0 ? "flex" : "none";
 
             console.log("✅ Renderização concluída!");
           } catch (e) {
-            console.error("❌ Erro geral:", e);
+            console.error("❌ Erro:", e);
           } finally {
             carregando = false;
             refreshIcon.className = "ph ph-arrows-clockwise";
@@ -1632,26 +1559,589 @@
         }
 
         // ============================================================
-        // SCROLL TO TOP
+        // RENDERIZAR DADOS
         // ============================================================
-        appContent.addEventListener("scroll", function () {
-          if (this.scrollTop > 200) {
-            scrollTopBtn.classList.add("visible");
-          } else {
-            scrollTopBtn.classList.remove("visible");
+        function renderizarDados(dados) {
+          const {
+            osAtivas,
+            progressoMap,
+            eventosFinanceiros,
+            funcionarios,
+            ferias,
+            dividas,
+            parcelasDividasMap,
+            mesRange,
+          } = dados;
+
+          // Status
+          $("statusTime").textContent = formatTime();
+          $("statusDate").textContent = new Date().toLocaleDateString("pt-BR");
+          lastUpdate.textContent = formatTime();
+
+          // ===== KPIs =====
+          const contasVencidas = eventosFinanceiros.filter(
+            (e) =>
+              e.status === "pendente" && new Date(e.vencimento) < new Date(),
+          ).length;
+
+          let receitasMes = 0,
+            despesasMes = 0;
+          eventosFinanceiros.forEach((e) => {
+            if (e.tipo === "receber") receitasMes += e.valor;
+            else despesasMes += e.valor;
+          });
+
+          const divAtivas = (dividas || []).filter(
+            (d) => d.status !== "quitada",
+          ).length;
+
+          let totalDividasMes = 0;
+          const hoje = new Date();
+          const mesAtual = hoje.getMonth();
+          const anoAtual = hoje.getFullYear();
+          for (const d of dividas || []) {
+            const parcelas = parcelasDividasMap[d.id] || [];
+            for (const p of parcelas) {
+              if (!p.paid) {
+                const dataVenc = new Date(p.due_date);
+                if (
+                  dataVenc.getMonth() === mesAtual &&
+                  dataVenc.getFullYear() === anoAtual
+                ) {
+                  totalDividasMes += parseFloat(p.amount) || 0;
+                }
+              }
+            }
           }
+
+          $("kpiEmProducao").textContent = (osAtivas || []).length;
+          $("kpiContasVencidas").textContent = contasVencidas;
+          $("kpiFerias").textContent = (ferias || []).length;
+          $("kpiSaldoMes").textContent = formatCurrency(
+            receitasMes - despesasMes,
+          );
+          $("kpiEntregasMes").textContent =
+            osAtivas.filter((o) => o.status === "entregue").length || 0;
+          $("kpiDividasAtivas").textContent = totalDividasMes;
+
+          // ===== ALERTAS =====
+          const alertas = [];
+          if (contasVencidas > 0)
+            alertas.push({
+              prioridade: "high",
+              icone: "ph-currency-circle-dollar",
+              texto: `${contasVencidas} conta(s) vencida(s) no mês`,
+              tag: "urgente",
+            });
+          if (divAtivas > 0)
+            alertas.push({
+              prioridade: "medium",
+              icone: "ph-warning",
+              texto: `${divAtivas} dívida(s) ativa(s) em aberto`,
+              tag: "atenção",
+            });
+          if ((ferias || []).length > 0)
+            alertas.push({
+              prioridade: "medium",
+              icone: "ph-sun",
+              texto: `${ferias.length} funcionário(s) em férias`,
+              tag: "atenção",
+            });
+          if ((osAtivas || []).length === 0)
+            alertas.push({
+              prioridade: "low",
+              icone: "ph-factory",
+              texto: "Nenhuma OS em produção no mês",
+              tag: "info",
+            });
+
+          $("alertasCount").textContent = alertas.length;
+          const container = $("alertasContainer");
+          if (alertas.length === 0) {
+            container.innerHTML = `<div class="alert-item alert-low"><i class="ph ph-check-circle" style="color:var(--success);"></i><span class="alert-text">Tudo em dia! ✅</span></div>`;
+          } else {
+            container.innerHTML = alertas
+              .map(
+                (a) =>
+                  `<div class="alert-item alert-${a.prioridade}"><i class="ph ${a.icone}"></i><span class="alert-text">${a.texto}</span><span class="alert-tag tag-${a.prioridade}">${a.tag}</span></div>`,
+              )
+              .join("");
+          }
+
+          // ===== PRODUÇÃO =====
+          $("prodCount").textContent = (osAtivas || []).length;
+          const listaProd = $("listaProducao");
+          if (osAtivas && osAtivas.length > 0) {
+            listaProd.innerHTML = osAtivas
+              .slice(0, 15)
+              .map((os) => {
+                const cliente =
+                  os.customers?.trade_name || os.customers?.company_name || "-";
+                const atrasado = new Date(os.expected_delivery) < new Date();
+                const prog = progressoMap[os.id] || {
+                  total: os.total_quantity,
+                  costurado: 0,
+                  entregue: 0,
+                };
+                const percentCosturado =
+                  prog.total > 0
+                    ? Math.round((prog.costurado / prog.total) * 100)
+                    : 0;
+                return `<div class="list-item ${atrasado ? "item-danger" : ""}">
+                                    <div class="item-main"><div class="item-title">${os.order_number}</div>
+                                    <div class="item-sub">${cliente} · ${os.total_quantity || 0} peças</div>
+                                    <div style="font-size:9px;color:var(--gray);margin-top:2px;">
+                                        <div style="height:3px;background:rgba(255,255,255,0.1);border-radius:2px;width:100%;">
+                                            <div style="height:100%;width:${percentCosturado}%;background:var(--gold);border-radius:2px;"></div>
+                                        </div>
+                                        ${prog.costurado}/${prog.total} costuradas
+                                    </div>
+                                    </div>
+                                    <div class="item-right"><span class="item-badge ${getStatusClass(os.status)}">${formatStatus(os.status)}</span>
+                                    <div style="font-size:9px;color:${atrasado ? "var(--error)" : "var(--gray-dark)"};">${formatDate(os.expected_delivery)}${atrasado ? " ⚠️" : ""}</div>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+          } else {
+            listaProd.innerHTML = `<div class="empty-state"><i class="ph ph-factory"></i><p>Nenhuma OS em produção no mês</p></div>`;
+          }
+
+          // ===== FINANCEIRO =====
+          $("finCount").textContent = eventosFinanceiros.length;
+          const listaFin = $("listaFinanceiro");
+          if (eventosFinanceiros && eventosFinanceiros.length > 0) {
+            listaFin.innerHTML = eventosFinanceiros
+              .slice(0, 15)
+              .map((e) => {
+                const isPagar = e.tipo === "pagar";
+                const vencido =
+                  e.status === "pendente" &&
+                  new Date(e.vencimento) < new Date();
+                const pago = e.status === "pago" || e.status === "recebido";
+
+                let classeItem = "";
+                let classeCor = "";
+                if (pago) {
+                  classeItem = "item-pago";
+                  classeCor = "var(--success)";
+                } else if (vencido) {
+                  classeItem = "item-vencido";
+                  classeCor = "var(--error)";
+                } else {
+                  classeItem = "item-pendente";
+                  classeCor = "var(--white)";
+                }
+
+                const parcelaInfo = e.isParcela
+                  ? `Parcela ${e.numero_parcela}/${e.total_parcelas}`
+                  : "Avulsa";
+                const statusClass = pago
+                  ? "pago"
+                  : vencido
+                    ? "vencido"
+                    : "pendente";
+
+                return `<div class="list-item ${classeItem}" onclick="abrirModalConta('${e.transaction_id}')" style="cursor:pointer;">
+                                    <div class="item-main">
+                                        <div class="item-title" style="color:${classeCor};">${e.descricao}</div>
+                                        <div class="item-sub">${formatDate(e.vencimento)} ${e.isParcela ? `· ${parcelaInfo}` : ""}</div>
+                                    </div>
+                                    <div class="item-right">
+                                        <span class="item-badge badge-status-${statusClass}">${pago ? "✅ Pago" : vencido ? "🔴 Vencido" : "🟡 Pendente"}</span>
+                                        <div class="item-value ${isPagar ? "item-error" : "item-success"}" style="color:${classeCor};">${isPagar ? "-" : "+"}${formatCurrency(e.valor)}</div>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+          } else {
+            listaFin.innerHTML = `<div class="empty-state"><i class="ph ph-currency-circle-dollar"></i><p>Nenhuma conta no mês</p></div>`;
+          }
+
+          // ===== RH - Férias =====
+          const listaRHFerias = $("listaRHFerias");
+          if (ferias && ferias.length > 0) {
+            listaRHFerias.innerHTML = ferias
+              .slice(0, 10)
+              .map((f) => {
+                const func = f.employees;
+                const dataRetorno = getProximoDiaUtil(f.end_date);
+                return `<div class="list-item" style="cursor:default;">
+                                    <div class="item-main"><div class="item-title">${func?.full_name || "-"} 🌴</div>
+                                    <div class="item-sub">${func?.role || "-"} · Retorno: ${formatDate(dataRetorno.toISOString())}</div>
+                                    </div>
+                                    <div class="item-right"><span class="item-badge badge-status-em_costura">Em Gozo</span>
+                                    <div style="font-size:9px;color:var(--gray-dark);">${formatDate(f.start_date)} - ${formatDate(f.end_date)}</div>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+          } else {
+            listaRHFerias.innerHTML = `<div class="empty-state"><i class="ph ph-sun"></i><p>Nenhum funcionário em férias</p></div>`;
+          }
+
+          // ===== RH - Funcionários =====
+          const listaRHFunc = $("listaRHFuncionarios");
+          $("rhCount").textContent = (funcionarios || []).length;
+          if (funcionarios && funcionarios.length > 0) {
+            listaRHFunc.innerHTML = funcionarios
+              .slice(0, 15)
+              .map((f) => {
+                const emFerias = (ferias || []).some(
+                  (ff) => ff.employee_id === f.id,
+                );
+                return `<div class="list-item ${emFerias ? "item-warning" : ""}" data-id="${f.id}">
+                                    <div class="item-main"><div class="item-title">${f.full_name}${emFerias ? " 🌴" : ""}</div>
+                                    <div class="item-sub">${f.role || "-"} · ${f.contract_type === "clt" ? "CLT" : "Diarista"}</div>
+                                    </div>
+                                    <div class="item-right"><span class="item-badge ${emFerias ? "badge-status-em_costura" : "badge-status-entregue"}">${emFerias ? "De Férias" : "Ativo"}</span></div>
+                                </div>`;
+              })
+              .join("");
+
+            listaRHFunc
+              .querySelectorAll(".list-item[data-id]")
+              .forEach((el) => {
+                el.addEventListener("click", function () {
+                  const id = this.dataset.id;
+                  const func = funcionarios.find((f) => f.id == id);
+                  if (func) abrirModalFuncionario(func, ferias);
+                });
+              });
+          } else {
+            listaRHFunc.innerHTML = `<div class="empty-state"><i class="ph ph-users"></i><p>Nenhum funcionário ativo</p></div>`;
+          }
+
+          // ===== DÍVIDAS =====
+          $("divCount").textContent = (dividas || []).length;
+          const listaDiv = $("listaDividas");
+          if (dividas && dividas.length > 0) {
+            listaDiv.innerHTML = dividas
+              .slice(0, 15)
+              .map((d) => {
+                const total = d.total_amount || 0;
+                const parcelas = parcelasDividasMap[d.id] || [];
+                const pago = parcelas
+                  .filter((p) => p.paid)
+                  .reduce((s, p) => s + parseFloat(p.amount), 0);
+                const percentual =
+                  total > 0 ? Math.round((pago / total) * 100) : 0;
+                const statusClass =
+                  d.status === "quitada" ? "quitada" : "ativa";
+                return `<div class="list-item" data-id="${d.id}">
+                                    <div class="item-main"><div class="item-title">${d.creditor || "Credor"}</div>
+                                    <div class="item-sub">${d.description || "-"} · ${percentual}% pago</div>
+                                    </div>
+                                    <div class="item-right"><span class="item-badge badge-status-${statusClass}">${statusClass === "quitada" ? "✅ Quitada" : "🟡 Ativa"}</span>
+                                    <div style="font-size:9px;color:var(--gray-dark);">${formatCurrency(total - pago)} restante</div>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+
+            listaDiv.querySelectorAll(".list-item[data-id]").forEach((el) => {
+              el.addEventListener("click", function () {
+                const id = this.dataset.id;
+                const div = dividas.find((d) => d.id == id);
+                if (div) abrirModalDivida(div, parcelasDividasMap[id] || []);
+              });
+            });
+          } else {
+            listaDiv.innerHTML = `<div class="empty-state"><i class="ph ph-warning-circle"></i><p>Nenhuma dívida cadastrada</p></div>`;
+          }
+        }
+
+        // ============================================================
+        // ABRIR MODAL CONTA (FINANCEIRO)
+        // ============================================================
+        window.abrirModalConta = function (transactionId) {
+          const evento = dados.eventosFinanceiros?.find(
+            (e) => e.transaction_id === transactionId,
+          );
+          if (!evento) {
+            showFeedback("Erro", "Conta não encontrada.", "error");
+            return;
+          }
+
+          const isPagar = evento.tipo === "pagar";
+          const vencido =
+            evento.status === "pendente" &&
+            new Date(evento.vencimento) < new Date();
+          const pago = evento.status === "pago" || evento.status === "recebido";
+
+          let statusText = "";
+          let statusColor = "";
+          if (pago) {
+            statusText = "✅ Pago";
+            statusColor = "var(--success)";
+          } else if (vencido) {
+            statusText = "🔴 Vencido";
+            statusColor = "var(--error)";
+          } else {
+            statusText = "🟡 Pendente";
+            statusColor = "var(--warning)";
+          }
+
+          let parcelasHtml = "";
+          if (evento.parcelas && evento.parcelas.length > 0) {
+            parcelasHtml = `
+                        <div style="margin-top:12px;">
+                            <h4 style="font-size:0.8rem;color:var(--gray-dark);margin-bottom:8px;">Parcelas</h4>
+                            ${evento.parcelas
+                              .map(
+                                (p) => `
+                                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.8rem;">
+                                    <span style="color:var(--gray-dark);">${p.numero_parcela}ª</span>
+                                    <span style="color:${p.status === "pago" ? "var(--success)" : "var(--warning)"};">${formatDate(p.vencimento)}</span>
+                                    <span style="font-weight:500;">${formatCurrency(p.valor)}</span>
+                                    <span>${p.status === "pago" ? "✅" : "⏳"}</span>
+                                </div>
+                            `,
+                              )
+                              .join("")}
+                        </div>
+                    `;
+          }
+
+          const html = `
+                    <div style="margin-bottom:16px;">
+                        <h3 style="font-size:1.1rem;color:var(--gold-light);">${evento.descricao}</h3>
+                        <p style="color:var(--gray);font-size:0.85rem;">${evento.categoria || "Sem categoria"}</p>
+                        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
+                    </div>
+                    <div class="info-row"><span class="label">Valor</span><span class="value gold">${formatCurrency(evento.valor)}</span></div>
+                    <div class="info-row"><span class="label">Vencimento</span><span class="value">${formatDate(evento.vencimento)}</span></div>
+                    <div class="info-row"><span class="label">Tipo</span><span class="value ${isPagar ? "danger" : "success"}">${isPagar ? "A Pagar" : "A Receber"}</span></div>
+                    ${evento.payment_method ? `<div class="info-row"><span class="label">Forma de Pagamento</span><span class="value">${evento.payment_method}</span></div>` : ""}
+                    ${parcelasHtml}
+                    ${evento.parcelas && evento.parcelas.length > 0 ? `<div class="info-row"><span class="label">Total Parcelas</span><span class="value">${evento.parcelas.filter((p) => p.status === "pago").length}/${evento.parcelas.length}</span></div>` : ""}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${evento.transaction_id}</div>
+                    </div>
+                `;
+
+          openModal("Detalhes da Conta", html);
+        };
+
+        // ============================================================
+        // ABRIR MODAL FUNCIONÁRIO
+        // ============================================================
+        function abrirModalFuncionario(func, ferias) {
+          const emFerias = (ferias || []).find(
+            (f) => f.employee_id === func.id,
+          );
+          const fotoHtml = func.photo_url
+            ? `<img src="${func.photo_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">`
+            : `<div style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--pink-dark),var(--gold-dark));color:#fff;">${getInitials(func.full_name)}</div>`;
+
+          let feriasHtml =
+            '<div class="info-row"><span class="label">Férias</span><span class="value">Nenhuma férias em andamento</span></div>';
+          if (emFerias) {
+            const dataRetorno = getProximoDiaUtil(emFerias.end_date);
+            feriasHtml = `
+                                <div class="info-row"><span class="label">Férias</span><span class="value gold">🟡 Em andamento</span></div>
+                                <div class="info-row"><span class="label">Período</span><span class="value">${formatDate(emFerias.start_date)} a ${formatDate(emFerias.end_date)}</span></div>
+                                <div class="info-row"><span class="label">Retorno</span><span class="value success">${formatDate(dataRetorno.toISOString())}</span></div>
+                            `;
+          }
+
+          const html = `
+                            <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+                                ${fotoHtml}
+                                <div>
+                                    <h3 style="font-size:1.1rem;">${func.full_name}</h3>
+                                    <p style="color:var(--gold-light);font-size:0.85rem;">${func.role || "Sem função"}</p>
+                                    <p style="font-size:0.75rem;color:${func.active ? "var(--success)" : "var(--error)"};">${func.active ? "🟢 Ativo" : "🔴 Inativo"}</p>
+                                </div>
+                            </div>
+                            <div class="info-row"><span class="label">CPF</span><span class="value">${func.cpf || "-"}</span></div>
+                            <div class="info-row"><span class="label">Celular</span><span class="value">${func.phone_cell || "-"}</span></div>
+                            <div class="info-row"><span class="label">E-mail</span><span class="value">${func.email_personal || "-"}</span></div>
+                            <div class="info-row"><span class="label">Contrato</span><span class="value">${func.contract_type === "clt" ? "CLT" : "Diarista"}</span></div>
+                            <div class="info-row"><span class="label">Salário</span><span class="value gold">${func.contract_type === "clt" ? formatCurrency(func.monthly_salary) : formatCurrency(func.daily_rate) + "/dia"}</span></div>
+                            <div class="info-row"><span class="label">Admissão</span><span class="value">${formatDate(func.admission_date)}</span></div>
+                            ${feriasHtml}
+                            ${func.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${func.notes}</span></div>` : ""}
+                            <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                                <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${func.id}</div>
+                            </div>
+                        `;
+
+          openModal(func.full_name, html);
+        }
+
+        // ============================================================
+        // ABRIR MODAL DÍVIDA
+        // ============================================================
+        function abrirModalDivida(div, parcelas) {
+          const total = div.total_amount || 0;
+          const pago = parcelas
+            .filter((p) => p.paid)
+            .reduce((s, p) => s + parseFloat(p.amount), 0);
+          const percentual = total > 0 ? Math.round((pago / total) * 100) : 0;
+          const restante = total - pago;
+
+          let statusText = div.status === "quitada" ? "✅ Quitada" : "🟡 Ativa";
+          let statusColor =
+            div.status === "quitada" ? "var(--success)" : "var(--gold-light)";
+
+          const parcelasHtml =
+            parcelas.length > 0
+              ? `
+                            <div style="margin-top:12px;">
+                                <h4 style="font-size:0.8rem;color:var(--gray-dark);margin-bottom:8px;">Parcelas</h4>
+                                ${parcelas
+                                  .map(
+                                    (p) => `
+                                    <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.8rem;">
+                                        <span style="color:var(--gray-dark);">${p.installment_number}ª</span>
+                                        <span style="color:${p.paid ? "var(--success)" : "var(--warning)"};">${formatDate(p.due_date)}</span>
+                                        <span style="font-weight:500;">${formatCurrency(p.amount)}</span>
+                                        <span>${p.paid ? "✅" : "⏳"}</span>
+                                    </div>
+                                `,
+                                  )
+                                  .join("")}
+                            </div>
+                        `
+              : "";
+
+          const html = `
+                            <div style="margin-bottom:16px;">
+                                <h3 style="font-size:1.1rem;color:var(--gold-light);">${div.credor || "Credor não informado"}</h3>
+                                <p style="color:var(--gray);font-size:0.85rem;">${div.description || "Sem descrição"}</p>
+                                <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
+                            </div>
+                            <div class="info-row"><span class="label">Valor Total</span><span class="value gold">${formatCurrency(total)}</span></div>
+                            <div class="info-row"><span class="label">Valor Pago</span><span class="value success">${formatCurrency(pago)}</span></div>
+                            <div class="info-row"><span class="label">Saldo Restante</span><span class="value ${restante > 0 ? "danger" : "success"}">${formatCurrency(restante)}</span></div>
+                            <div class="info-row"><span class="label">Progresso</span><span class="value">${percentual}%</span></div>
+                            ${div.next_due_date ? `<div class="info-row"><span class="label">Próximo Vencimento</span><span class="value">${formatDate(div.next_due_date)}</span></div>` : ""}
+                            ${parcelasHtml}
+                            ${div.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${div.notes}</span></div>` : ""}
+                            <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                                <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${div.id}</div>
+                            </div>
+                        `;
+
+          openModal(div.credor || "Dívida", html);
+        }
+
+        // ============================================================
+        // SHOW FEEDBACK (FALBACK)
+        // ============================================================
+        function showFeedback(title, message, type = "info", callback = null) {
+          const colors = {
+            success: "var(--success)",
+            error: "var(--error)",
+            warning: "var(--warning)",
+            info: "var(--gold)",
+          };
+
+          const html = `
+                    <div class="modal-overlay" id="feedbackOverlay">
+                        <div class="modal-sheet" style="max-width:400px;">
+                            <div class="handle"></div>
+                            <div class="modal-header">
+                                <h2><i class="ph ph-${type === "success" ? "check-circle" : type === "error" ? "warning-circle" : "info"}"></i> ${title}</h2>
+                                <button class="btn-close" id="closeFeedback">
+                                    <i class="ph ph-x"></i> Fechar
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p style="color:var(--text-secondary);font-size:1rem;text-align:center;padding:20px 0;">${message}</p>
+                                <div style="display:flex; justify-content:center; padding-top:8px;">
+                                    <button class="btn-primary" id="feedbackOk" style="background:var(--gold);border:none;color:#fff;padding:8px 20px;border-radius:8px;font-weight:600;cursor:pointer;">OK</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+          const container = document.getElementById("modalContainer");
+          if (!container) return;
+          container.innerHTML = html;
+
+          const closeModal = () => {
+            container.innerHTML = "";
+            if (typeof callback === "function") callback();
+          };
+
+          document
+            .getElementById("closeFeedback")
+            ?.addEventListener("click", closeModal);
+          document
+            .getElementById("feedbackOk")
+            ?.addEventListener("click", closeModal);
+          document
+            .getElementById("feedbackOverlay")
+            ?.addEventListener("click", (e) => {
+              if (e.target.id === "feedbackOverlay") closeModal();
+            });
+        }
+
+        // ============================================================
+        // NAVEGAÇÃO POR ABAS
+        // ============================================================
+        const tabItems = document.querySelectorAll(".tab-item");
+        const sections = {
+          geral: ["secAlertas", "kpiGrid"],
+          producao: ["secProducao"],
+          financeiro: ["secFinanceiro"],
+          rh: ["secRH"],
+          dividas: ["secDividas"],
+        };
+
+        function mostrarAba(aba) {
+          abaAtual = aba;
+          tabItems.forEach((tab) =>
+            tab.classList.toggle("active", tab.dataset.tab === aba),
+          );
+
+          const todasSecoes = [
+            "secAlertas",
+            "kpiGrid",
+            "secProducao",
+            "secFinanceiro",
+            "secRH",
+            "secDividas",
+          ];
+          todasSecoes.forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) {
+              if (aba === "geral") {
+                el.style.display =
+                  id === "secAlertas" || id === "kpiGrid" ? "block" : "none";
+              } else {
+                const secao = sections[aba] || [];
+                el.style.display = secao.includes(id) ? "block" : "none";
+              }
+            }
+          });
+          appContent.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        tabItems.forEach((tab) => {
+          tab.addEventListener("click", function () {
+            mostrarAba(this.dataset.tab);
+          });
         });
 
+        // ============================================================
+        // SCROLL TOP
+        // ============================================================
+        appContent.addEventListener("scroll", function () {
+          scrollTopBtn.classList.toggle("visible", this.scrollTop > 200);
+        });
         scrollTopBtn.addEventListener("click", function () {
           appContent.scrollTo({ top: 0, behavior: "smooth" });
         });
 
         // ============================================================
-        // PULL-TO-REFRESH (touch)
+        // PULL-TO-REFRESH
         // ============================================================
-        let touchStartY = 0;
-        let touchMoved = false;
-
+        let touchStartY = 0,
+          touchMoved = false;
         appContent.addEventListener(
           "touchstart",
           function (e) {
@@ -1662,7 +2152,6 @@
           },
           { passive: true },
         );
-
         appContent.addEventListener(
           "touchmove",
           function (e) {
@@ -1684,16 +2173,15 @@
           },
           { passive: true },
         );
-
         appContent.addEventListener(
           "touchend",
           function (e) {
             if (touchMoved && this.scrollTop === 0) {
               pullIndicator.innerHTML =
                 '<i class="ph ph-spinner spinning"></i> Atualizando...';
-              carregarDados().then(() => {
-                pullIndicator.classList.remove("active");
-              });
+              carregarDados().then(() =>
+                pullIndicator.classList.remove("active"),
+              );
             }
             touchStartY = 0;
             touchMoved = false;
@@ -1702,103 +2190,25 @@
         );
 
         // ============================================================
-        // TAB BAR NAVEGAÇÃO
+        // REFRESH
         // ============================================================
-        const tabItems = document.querySelectorAll(".tab-item");
-        const sections = {
-          geral: ["secAlertas", "kpiGrid"],
-          producao: ["secProducao"],
-          financeiro: ["secFinanceiro"],
-          rh: ["secRH"],
-          dividas: ["secDividas"],
-        };
-
-        function mostrarAba(aba) {
-          abaAtual = aba;
-
-          // Atualiza tabs
-          tabItems.forEach((tab) => {
-            tab.classList.toggle("active", tab.dataset.tab === aba);
-          });
-
-          // Mostra/esconde seções
-          const todasSecoes = [
-            "secAlertas",
-            "kpiGrid",
-            "secProducao",
-            "secFinanceiro",
-            "secRH",
-            "secDividas",
-          ];
-          todasSecoes.forEach((id) => {
-            const el = document.getElementById(id);
-            if (el) {
-              if (aba === "geral") {
-                el.style.display =
-                  id === "secAlertas" || id === "kpiGrid" ? "block" : "none";
-              } else {
-                const secao = sections[aba] || [];
-                el.style.display = secao.includes(id) ? "block" : "none";
-              }
-            }
-          });
-
-          // Scroll para o topo
-          appContent.scrollTo({ top: 0, behavior: "smooth" });
-        }
-
-        tabItems.forEach((tab) => {
-          tab.addEventListener("click", function () {
-            const aba = this.dataset.tab;
-            mostrarAba(aba);
-          });
-        });
+        $("btnRefresh").addEventListener("click", carregarDados);
 
         // ============================================================
         // INICIALIZAÇÃO
         // ============================================================
         document.addEventListener("DOMContentLoaded", async function () {
-          console.log("🚀 DOM carregado, iniciando app...");
-
-          // Botão refresh
-          $("btnRefresh").addEventListener("click", function () {
-            carregarDados();
-          });
-
-          // Mostra apenas a aba geral inicialmente
           mostrarAba("geral");
-
-          // Testa conexão
-          const conectado = await testarConexao();
-          if (conectado) {
-            await carregarDados();
-            // Atualização automática a cada 60 segundos
-            setInterval(carregarDados, 60000);
-          } else {
-            $("alertasContainer").innerHTML = `
-                        <div class="alert-item alert-high">
-                            <i class="ph ph-warning-circle" style="color:var(--error);"></i>
-                            <span class="alert-text"><strong>Erro de conexão.</strong> Verifique sua internet.</span>
-                            <button onclick="window.carregarDados()" style="background:var(--gold);border:none;border-radius:20px;padding:4px 12px;font-weight:600;cursor:pointer;color:#000;">Tentar</button>
-                        </div>
-                    `;
-          }
+          await carregarDados();
+          setInterval(carregarDados, 60000);
         });
 
-        // ============================================================
-        // EXPORTAÇÃO (debug)
-        // ============================================================
         window.carregarDados = carregarDados;
-        window.testarConexao = testarConexao;
-        window.supabase = supabase;
         window.mostrarAba = mostrarAba;
-
+        window.abrirModalConta = window.abrirModalConta;
         console.log("✅ App do Gestor pronto!");
-        console.log("💡 Dicas:");
-        console.log("  • Puxe para baixo para atualizar");
-        console.log("  • Use a barra inferior para navegar");
         console.log(
-          "  • Digite window.carregarDados() para recarregar manualmente",
+          "💡 Dicas: Puxe para baixo para atualizar | Clique em conta, funcionário ou dívida para detalhes",
         );
       })();
     </script>
