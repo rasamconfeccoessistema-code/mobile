@@ -20,7 +20,7 @@
     <style>
       /* ============================================================
            APP MOBILE - FACÇÃO JEANS
-           Dashboard Redesign - Versão Premium
+           Dashboard Redesign - Versão Premium com Animações
            ============================================================ */
       :root {
         --pink: #e91e63;
@@ -45,7 +45,7 @@
         --radius: 20px;
         --radius-sm: 12px;
         --shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       * {
@@ -128,6 +128,10 @@
         color: var(--white);
         letter-spacing: -0.5px;
         box-shadow: 0 4px 16px rgba(233, 30, 99, 0.25);
+        transition: transform var(--transition);
+      }
+      .app-brand .logo:hover {
+        transform: scale(1.05) rotate(-5deg);
       }
 
       .app-brand .brand-text {
@@ -242,7 +246,7 @@
         transition: transform 0.3s;
       }
 
-      /* ===== CARDS - ESTILO PREMIUM ===== */
+      /* ===== CARDS - ESTILO PREMIUM COM ANIMAÇÕES ===== */
       .card-premium {
         background: var(--black-soft);
         border: 1px solid rgba(255, 255, 255, 0.05);
@@ -252,6 +256,35 @@
         position: relative;
         overflow: hidden;
         transition: var(--transition);
+        animation: cardFadeIn 0.6s ease forwards;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .card-premium:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .card-premium:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .card-premium:nth-child(3) {
+        animation-delay: 0.15s;
+      }
+      .card-premium:nth-child(4) {
+        animation-delay: 0.2s;
+      }
+      .card-premium:nth-child(5) {
+        animation-delay: 0.25s;
+      }
+      .card-premium:nth-child(6) {
+        animation-delay: 0.3s;
+      }
+
+      @keyframes cardFadeIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .card-premium::before {
@@ -260,19 +293,29 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 1px;
+        height: 2px;
         background: linear-gradient(
           90deg,
           transparent,
-          rgba(212, 160, 23, 0.2),
-          rgba(233, 30, 99, 0.2),
+          rgba(212, 160, 23, 0.3),
+          rgba(233, 30, 99, 0.3),
           transparent
         );
         opacity: 0.6;
+        animation: shimmer 3s infinite;
+      }
+
+      @keyframes shimmer {
+        0% {
+          background-position: -200% 0;
+        }
+        100% {
+          background-position: 200% 0;
+        }
       }
 
       .card-premium:active {
-        transform: scale(0.99);
+        transform: scale(0.98);
       }
 
       .card-premium .deco-line {
@@ -281,6 +324,17 @@
         border-radius: 2px;
         margin-top: 12px;
         opacity: 0.5;
+        animation: decoPulse 2s ease-in-out infinite;
+      }
+
+      @keyframes decoPulse {
+        0%,
+        100% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 0.8;
+        }
       }
 
       .card-premium .deco-line.gold {
@@ -294,6 +348,19 @@
 
       .card-premium .deco-line.green {
         background: linear-gradient(90deg, var(--success), #66bb6a, #a5d6a7);
+      }
+
+      .card-premium .deco-line.pink {
+        background: linear-gradient(
+          90deg,
+          var(--pink),
+          var(--pink-light),
+          var(--gold-light)
+        );
+      }
+
+      .card-premium .deco-line.blue {
+        background: linear-gradient(90deg, #2196f3, #42a5f5, #64b5f6);
       }
 
       .cards-grid {
@@ -314,6 +381,7 @@
         grid-template-columns: 1fr;
       }
 
+      /* ===== KPI CARD COM ANIMAÇÃO ===== */
       .kpi-card {
         background: var(--black-soft);
         border: 1px solid rgba(255, 255, 255, 0.04);
@@ -321,6 +389,37 @@
         padding: 12px 10px;
         text-align: center;
         transition: var(--transition);
+        animation: cardFadeIn 0.6s ease forwards;
+        opacity: 0;
+        transform: translateY(15px);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .kpi-card:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .kpi-card:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .kpi-card:nth-child(3) {
+        animation-delay: 0.15s;
+      }
+
+      .kpi-card::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--pink), var(--gold));
+        opacity: 0;
+        transition: opacity var(--transition);
+      }
+
+      .kpi-card:hover::after {
+        opacity: 1;
       }
 
       .kpi-card:active {
@@ -345,6 +444,7 @@
         background-clip: text;
         color: transparent;
         line-height: 1.2;
+        transition: var(--transition);
       }
 
       .kpi-card .kpi-value.danger {
@@ -374,7 +474,7 @@
         margin-top: 1px;
       }
 
-      /* ===== CARD GRANDE ===== */
+      /* ===== BIG CARD ===== */
       .big-card {
         background: var(--black-soft);
         border: 1px solid rgba(255, 255, 255, 0.04);
@@ -383,6 +483,16 @@
         position: relative;
         overflow: hidden;
         transition: var(--transition);
+        animation: cardFadeIn 0.6s ease forwards;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .big-card:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .big-card:nth-child(2) {
+        animation-delay: 0.1s;
       }
 
       .big-card:active {
@@ -395,7 +505,7 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 1px;
+        height: 2px;
         background: linear-gradient(
           90deg,
           transparent,
@@ -404,6 +514,7 @@
           transparent
         );
         opacity: 0.6;
+        animation: shimmer 3s infinite;
       }
 
       .big-card .card-label {
@@ -423,6 +534,7 @@
         background-clip: text;
         color: transparent;
         line-height: 1.2;
+        transition: var(--transition);
       }
 
       .big-card .card-value.danger {
@@ -451,6 +563,7 @@
         border-radius: 2px;
         margin-top: 12px;
         opacity: 0.5;
+        animation: decoPulse 2s ease-in-out infinite;
       }
 
       .big-card .deco-line.gold {
@@ -479,7 +592,7 @@
         background: linear-gradient(90deg, #2196f3, #42a5f5, #64b5f6);
       }
 
-      /* ===== DÍVIDAS COM GAUGE ===== */
+      /* ===== GAUGE ANIMADO ===== */
       .divida-card {
         display: flex;
         align-items: center;
@@ -515,7 +628,7 @@
         stroke: url(#gaugeGrad);
         stroke-width: 6;
         stroke-linecap: round;
-        transition: stroke-dashoffset 1.2s ease;
+        transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .divida-card .right .gauge-center {
@@ -528,6 +641,17 @@
         color: var(--gray);
         text-align: center;
         line-height: 1.1;
+        animation: gaugePulse 2s ease-in-out infinite;
+      }
+
+      @keyframes gaugePulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.6;
+        }
       }
 
       .divida-card .right .gauge-center small {
@@ -537,7 +661,7 @@
         color: var(--gray-dark);
       }
 
-      /* ===== LISTAS ===== */
+      /* ===== LISTAS COM ANIMAÇÃO ===== */
       .list-wrapper {
         background: rgba(255, 255, 255, 0.02);
         border-radius: 12px;
@@ -553,6 +677,47 @@
         gap: 10px;
         transition: var(--transition);
         cursor: pointer;
+        animation: listItemFade 0.4s ease forwards;
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+
+      .list-item:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .list-item:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .list-item:nth-child(3) {
+        animation-delay: 0.15s;
+      }
+      .list-item:nth-child(4) {
+        animation-delay: 0.2s;
+      }
+      .list-item:nth-child(5) {
+        animation-delay: 0.25s;
+      }
+      .list-item:nth-child(6) {
+        animation-delay: 0.3s;
+      }
+      .list-item:nth-child(7) {
+        animation-delay: 0.35s;
+      }
+      .list-item:nth-child(8) {
+        animation-delay: 0.4s;
+      }
+      .list-item:nth-child(9) {
+        animation-delay: 0.45s;
+      }
+      .list-item:nth-child(10) {
+        animation-delay: 0.5s;
+      }
+
+      @keyframes listItemFade {
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
       }
 
       .list-item:active {
@@ -593,6 +758,7 @@
         padding: 2px 10px;
         border-radius: 20px;
         display: inline-block;
+        transition: var(--transition);
       }
 
       .badge-status-pago {
@@ -606,7 +772,19 @@
       .badge-status-vencido {
         background: rgba(255, 82, 82, 0.2);
         color: #ff8a80;
+        animation: pulseBadge 1.5s ease-in-out infinite;
       }
+
+      @keyframes pulseBadge {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
       .badge-status-em_costura {
         background: rgba(33, 150, 243, 0.2);
         color: #64b5f6;
@@ -654,22 +832,22 @@
       /* ===== ABA ===== */
       .tab-content {
         display: none;
-        animation: fadeIn 0.3s ease;
+        animation: tabFadeIn 0.4s ease;
       }
 
-      .tab-content.active {
-        display: block;
-      }
-
-      @keyframes fadeIn {
+      @keyframes tabFadeIn {
         from {
           opacity: 0;
-          transform: translateY(8px);
+          transform: translateY(12px);
         }
         to {
           opacity: 1;
           transform: translateY(0);
         }
+      }
+
+      .tab-content.active {
+        display: block;
       }
 
       .tab-section-title {
@@ -684,6 +862,17 @@
 
       .tab-section-title i {
         font-size: 16px;
+        animation: iconPulse 2s ease-in-out infinite;
+      }
+
+      @keyframes iconPulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
       }
 
       .tab-subtitle {
@@ -699,6 +888,7 @@
         text-align: center;
         padding: 24px 16px;
         color: var(--gray-dark);
+        animation: fadeIn 0.5s ease;
       }
 
       .empty-state i {
@@ -706,7 +896,19 @@
         display: block;
         margin-bottom: 6px;
         color: var(--gray);
+        animation: emptyIconFloat 3s ease-in-out infinite;
       }
+
+      @keyframes emptyIconFloat {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+
       .empty-state p {
         font-size: 12px;
       }
@@ -760,7 +962,7 @@
         max-height: 85vh;
         display: flex;
         flex-direction: column;
-        animation: slideUp 0.3s ease;
+        animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       @keyframes slideUp {
@@ -848,7 +1050,7 @@
         color: var(--gold-light);
       }
 
-      /* Botões de ação nos lotes */
+      /* ===== BOTÕES DE AÇÃO ===== */
       .btn-action {
         padding: 4px 10px;
         border-radius: 20px;
@@ -898,9 +1100,14 @@
         align-items: center;
         gap: 6px;
         transition: var(--transition);
+        box-shadow: 0 2px 12px rgba(233, 30, 99, 0.3);
       }
       .btn-primary:active {
         transform: scale(0.95);
+      }
+      .btn-primary:hover {
+        box-shadow: 0 4px 20px rgba(233, 30, 99, 0.4);
+        transform: translateY(-1px);
       }
 
       .btn-ghost {
@@ -919,7 +1126,12 @@
       .btn-ghost:active {
         transform: scale(0.95);
       }
+      .btn-ghost:hover {
+        border-color: var(--gold-light);
+        color: var(--white);
+      }
 
+      /* ===== FORMULÁRIOS ===== */
       .form-input {
         width: 100%;
         padding: 10px 14px;
@@ -934,6 +1146,7 @@
         outline: none;
         border-color: var(--pink);
         background: rgba(0, 0, 0, 0.3);
+        box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
       }
       .form-input::placeholder {
         color: var(--gray-dark);
@@ -952,11 +1165,13 @@
         background-repeat: no-repeat;
         background-position: right 14px center;
         padding-right: 40px;
+        transition: var(--transition);
       }
       .form-select:focus {
         outline: none;
         border-color: var(--pink);
         background: rgba(0, 0, 0, 0.3);
+        box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
       }
       .form-select option {
         background: var(--black-medium);
@@ -971,6 +1186,8 @@
         font-size: 0.7rem;
         color: var(--gray);
         margin-bottom: 4px;
+        font-weight: 500;
+        letter-spacing: 0.3px;
       }
 
       /* ===== TAB BAR ===== */
@@ -1048,6 +1265,7 @@
         justify-content: center;
         padding: 0 4px;
         border: 2px solid var(--black);
+        animation: pulseBadge 1.5s ease-in-out infinite;
       }
 
       .scroll-top-btn {
@@ -1071,6 +1289,18 @@
         max-width: 500px;
         margin: 0 auto;
         right: calc(50% - 250px + 16px);
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
       }
 
       .scroll-top-btn:active {
@@ -1092,7 +1322,7 @@
         gap: 10px;
       }
 
-      /* Indicador de sessão */
+      /* ===== SESSION INDICATOR ===== */
       .session-indicator {
         display: flex;
         align-items: center;
@@ -1106,10 +1336,12 @@
         max-width: 120px;
         overflow: hidden;
         text-overflow: ellipsis;
+        transition: var(--transition);
       }
       .session-indicator.online {
         color: var(--success);
         border: 1px solid rgba(76, 175, 80, 0.2);
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.05);
       }
       .session-indicator.offline {
         color: var(--gray-dark);
@@ -1125,6 +1357,146 @@
         text-overflow: ellipsis;
       }
 
+      /* ===== ALERTAS ===== */
+      .alert-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        font-size: 11px;
+        animation: alertFade 0.4s ease forwards;
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+
+      .alert-item:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .alert-item:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .alert-item:nth-child(3) {
+        animation-delay: 0.15s;
+      }
+      .alert-item:nth-child(4) {
+        animation-delay: 0.2s;
+      }
+      .alert-item:nth-child(5) {
+        animation-delay: 0.25s;
+      }
+
+      @keyframes alertFade {
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .alert-tag {
+        font-size: 7px;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 20px;
+        flex-shrink: 0;
+        letter-spacing: 0.5px;
+      }
+
+      .tag-high {
+        background: rgba(255, 82, 82, 0.15);
+        color: var(--error);
+      }
+      .tag-medium {
+        background: rgba(255, 193, 7, 0.15);
+        color: var(--warning);
+      }
+      .tag-low {
+        background: rgba(66, 165, 245, 0.15);
+        color: var(--info);
+      }
+
+      /* ===== SPARKLINE BAR ===== */
+      .bar-chart {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .bar-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .bar-label {
+        font-size: 10px;
+        color: var(--gray);
+        width: 56px;
+        flex-shrink: 0;
+        text-align: right;
+      }
+
+      .bar-track {
+        flex: 1;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .bar-fill.receita {
+        background: linear-gradient(90deg, var(--success), #66bb6a);
+      }
+
+      .bar-fill.despesa {
+        background: linear-gradient(90deg, var(--error), #ff8a80);
+      }
+
+      .bar-value {
+        font-size: 10px;
+        font-weight: 600;
+        width: 80px;
+        flex-shrink: 0;
+        text-align: right;
+      }
+
+      .bar-value.positive {
+        color: var(--success);
+      }
+      .bar-value.negative {
+        color: var(--error);
+      }
+
+      /* Status colors para os lotes */
+      .status-recebido {
+        color: var(--gray);
+      }
+      .status-em_costura {
+        color: #2196f3;
+      }
+      .status-costurado {
+        color: #4caf50;
+      }
+      .status-entregue {
+        color: var(--gold-light);
+      }
+      .status-cancelado {
+        color: var(--error);
+      }
+      .status-parcialmente_entregue {
+        color: #ff9800;
+      }
+
+      /* ===== RESPONSIVIDADE ===== */
       @media (max-width: 420px) {
         .cards-grid-3 {
           grid-template-columns: 1fr 1fr 1fr;
@@ -1246,26 +1618,6 @@
       .flex-col {
         display: flex;
         flex-direction: column;
-      }
-
-      /* Status colors para os lotes */
-      .status-recebido {
-        color: var(--gray);
-      }
-      .status-em_costura {
-        color: #2196f3;
-      }
-      .status-costurado {
-        color: #4caf50;
-      }
-      .status-entregue {
-        color: var(--gold-light);
-      }
-      .status-cancelado {
-        color: var(--error);
-      }
-      .status-parcialmente_entregue {
-        color: #ff9800;
       }
     </style>
   </head>
@@ -1520,7 +1872,12 @@
                             #66bb6a
                           );
                           width: 0%;
-                          transition: width 1s ease;
+                          transition: width 1.2s cubic-bezier(
+                            0.4,
+                            0,
+                            0.2,
+                            1
+                          );
                         "
                       ></div>
                     </div>
@@ -1576,7 +1933,12 @@
                             #ff8a80
                           );
                           width: 0%;
-                          transition: width 1s ease;
+                          transition: width 1.2s cubic-bezier(
+                            0.4,
+                            0,
+                            0.2,
+                            1
+                          );
                         "
                       ></div>
                     </div>
@@ -1644,7 +2006,7 @@
             </button>
           </div>
 
-          <!-- Cards de resumo -->
+          <!-- Cards de resumo com animação -->
           <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
             <div class="kpi-card">
               <div class="kpi-label">Em Costura</div>
@@ -1655,6 +2017,20 @@
               <div class="kpi-label">Costurados</div>
               <div class="kpi-value success" id="prodCosturados">-</div>
               <div class="kpi-detail">aguardando revisão</div>
+            </div>
+          </div>
+
+          <!-- Cards adicionais: Atrasados e Entregues Hoje -->
+          <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
+            <div class="kpi-card">
+              <div class="kpi-label">⚠️ Atrasados</div>
+              <div class="kpi-value danger" id="prodAtrasados">-</div>
+              <div class="kpi-detail">prazo vencido</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">✅ Entregues Hoje</div>
+              <div class="kpi-value success" id="prodEntreguesHoje">-</div>
+              <div class="kpi-detail">lotes enviados</div>
             </div>
           </div>
 
@@ -1674,13 +2050,14 @@
         </div>
 
         <!-- ============================================================
-            ABA: FINANCEIRO - MODO LEITURA
+            ABA: FINANCEIRO - MODO LEITURA COM VISUAL PREMIUM
             ============================================================ -->
         <div class="tab-content" id="tab-financeiro">
           <div class="tab-section-title">
             <i class="ph ph-currency-circle-dollar"></i> Contas do Mês
           </div>
 
+          <!-- Cards de resumo com animação -->
           <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
             <div class="kpi-card">
               <div class="kpi-label">A Pagar</div>
@@ -1694,6 +2071,21 @@
             </div>
           </div>
 
+          <!-- Cards adicionais: Saldo e Vencidas -->
+          <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
+            <div class="kpi-card">
+              <div class="kpi-label">Saldo do Mês</div>
+              <div class="kpi-value" id="finSaldoMes">R$ --</div>
+              <div class="kpi-detail">receitas - despesas</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Contas Vencidas</div>
+              <div class="kpi-value danger" id="finContasVencidas">-</div>
+              <div class="kpi-detail">pendentes vencidas</div>
+            </div>
+          </div>
+
+          <!-- Lista de lançamentos -->
           <div class="big-card" style="padding: 14px 16px">
             <div
               style="
@@ -1706,6 +2098,7 @@
               "
             >
               <i class="ph ph-list"></i> Lançamentos
+              <span style="margin-left: auto; font-size: 9px; color: var(--gray-dark);" id="totalLancamentos">0 contas</span>
             </div>
             <div id="listaFinanceiro">
               <div class="loading-state">
@@ -1717,13 +2110,42 @@
         </div>
 
         <!-- ============================================================
-            ABA: RH - MODO LEITURA
+            ABA: RH - MODO LEITURA COM VISUAL PREMIUM
             ============================================================ -->
         <div class="tab-content" id="tab-rh">
           <div class="tab-section-title">
             <i class="ph ph-users-three"></i> Recursos Humanos
           </div>
 
+          <!-- Cards de resumo -->
+          <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
+            <div class="kpi-card">
+              <div class="kpi-label">Funcionários Ativos</div>
+              <div class="kpi-value" id="rhTotalFuncionarios">-</div>
+              <div class="kpi-detail">cadastrados</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Em Férias</div>
+              <div class="kpi-value warning" id="rhEmFerias">-</div>
+              <div class="kpi-detail">funcionários</div>
+            </div>
+          </div>
+
+          <!-- Cards adicionais: Presentes Hoje e Ausentes -->
+          <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
+            <div class="kpi-card">
+              <div class="kpi-label">✅ Presentes Hoje</div>
+              <div class="kpi-value success" id="rhPresentesHoje">-</div>
+              <div class="kpi-detail">com ponto registrado</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">❌ Ausentes Hoje</div>
+              <div class="kpi-value danger" id="rhAusentesHoje">-</div>
+              <div class="kpi-detail">sem ponto</div>
+            </div>
+          </div>
+
+          <!-- Férias em andamento -->
           <div class="big-card" style="padding: 14px 16px; margin-bottom: 12px">
             <div
               style="
@@ -1736,6 +2158,7 @@
               "
             >
               <i class="ph ph-sun"></i> Férias em andamento
+              <span style="margin-left: auto; font-size: 9px; color: var(--gray-dark);" id="totalFerias">0 registros</span>
             </div>
             <div id="listaRHFerias">
               <div class="loading-state">
@@ -1745,6 +2168,7 @@
             </div>
           </div>
 
+          <!-- Funcionários ativos -->
           <div class="big-card" style="padding: 14px 16px">
             <div
               style="
@@ -1757,6 +2181,7 @@
               "
             >
               <i class="ph ph-users"></i> Funcionários ativos
+              <span style="margin-left: auto; font-size: 9px; color: var(--gray-dark);" id="totalFuncionariosRH">0 funcionários</span>
             </div>
             <div id="listaRHFuncionarios">
               <div class="loading-state">
@@ -1768,16 +2193,17 @@
         </div>
 
         <!-- ============================================================
-            ABA: DÍVIDAS - MODO LEITURA
+            ABA: DÍVIDAS - MODO LEITURA COM VISUAL PREMIUM
             ============================================================ -->
         <div class="tab-content" id="tab-dividas">
           <div class="tab-section-title">
             <i class="ph ph-warning-circle"></i> Dívidas
           </div>
 
+          <!-- Cards de resumo -->
           <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
             <div class="kpi-card">
-              <div class="kpi-label">Total</div>
+              <div class="kpi-label">Total Original</div>
               <div class="kpi-value danger" id="divTotalGeral">R$ --</div>
               <div class="kpi-detail">valor original</div>
             </div>
@@ -1788,6 +2214,21 @@
             </div>
           </div>
 
+          <!-- Cards adicionais: Dívidas Ativas e Quitadas -->
+          <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
+            <div class="kpi-card">
+              <div class="kpi-label">🟡 Dívidas Ativas</div>
+              <div class="kpi-value warning" id="divAtivas">-</div>
+              <div class="kpi-detail">em aberto</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">✅ Dívidas Quitadas</div>
+              <div class="kpi-value success" id="divQuitadas">-</div>
+              <div class="kpi-detail">concluídas</div>
+            </div>
+          </div>
+
+          <!-- Lista de dívidas -->
           <div class="big-card" style="padding: 14px 16px">
             <div
               style="
@@ -1800,6 +2241,7 @@
               "
             >
               <i class="ph ph-list"></i> Dívidas cadastradas
+              <span style="margin-left: auto; font-size: 9px; color: var(--gray-dark);" id="totalDividas">0 registros</span>
             </div>
             <div id="listaDividas">
               <div class="loading-state">
@@ -1867,7 +2309,7 @@
       (function () {
         "use strict";
 
-        console.log("🚀 App do Gestor - Redesign completo com autenticação");
+        console.log("🚀 App do Gestor - Redesign Premium completo");
 
         // ============================================================
         // SUPABASE
@@ -2892,6 +3334,23 @@
           document.getElementById('prodEmCostura').textContent = emCostura;
           document.getElementById('prodCosturados').textContent = costurados;
 
+          // Calcular atrasados e entregues hoje
+          const hoje = new Date();
+          const atrasados = osAtivas.filter(o => {
+            if (!o.expected_delivery) return false;
+            const prazo = new Date(o.expected_delivery);
+            return prazo < hoje && !['entregue', 'cancelado'].includes(o.status);
+          }).length;
+
+          const entreguesHoje = osAtivas.filter(o => {
+            if (!o.updated_at) return false;
+            const dataAtualizacao = new Date(o.updated_at);
+            return o.status === 'entregue' && dataAtualizacao.toDateString() === hoje.toDateString();
+          }).length;
+
+          document.getElementById('prodAtrasados').textContent = atrasados;
+          document.getElementById('prodEntreguesHoje').textContent = entreguesHoje;
+
           const container = document.getElementById('listaProducao');
           document.getElementById('totalLotes').textContent = (osAtivas || []).length + ' lotes';
 
@@ -2938,6 +3397,9 @@
                 } else {
                   botoes = `<span style="font-size: 0.6rem; color: var(--gray);">${formatStatus(os.status)}</span>`;
                 }
+
+                // Barra de progresso visual
+                const progresso = os.total_quantity > 0 ? Math.round((os.total_quantity / os.total_quantity) * 100) : 0;
 
                 return `
                   <div class="list-item ${atrasado ? 'item-vencido' : ''}" style="display: flex; flex-direction: column; align-items: stretch; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.03); gap: 8px;">
@@ -3066,7 +3528,7 @@
                   `<div class="alert-item" style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:11px;">
                             <i class="ph ${a.icone}" style="color:${a.prioridade === "high" ? "var(--error)" : a.prioridade === "medium" ? "var(--warning)" : "var(--info)"};font-size:14px;flex-shrink:0;"></i>
                             <span style="flex:1;color:var(--gray);">${a.texto}</span>
-                            <span class="alert-tag tag-${a.prioridade}" style="font-size:7px;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0;letter-spacing:0.5px;background:${a.prioridade === "high" ? "rgba(255,82,82,0.15)" : a.prioridade === "medium" ? "rgba(255,193,7,0.15)" : "rgba(66,165,245,0.15)"};color:${a.prioridade === "high" ? "var(--error)" : a.prioridade === "medium" ? "var(--warning)" : "var(--info)"};">${a.tag}</span>
+                            <span class="alert-tag ${a.prioridade === "high" ? 'tag-high' : a.prioridade === "medium" ? 'tag-medium' : 'tag-low'}">${a.tag}</span>
                         </div>`,
               )
               .join("");
@@ -3105,7 +3567,28 @@
           document.getElementById("finTotalReceber").textContent =
             formatCurrency(totalReceber);
 
+          // Calcular saldo do mês e contas vencidas
+          let saldoMes = 0;
+          let contasVencidas = 0;
+          const hoje = new Date();
+
+          for (const e of eventosFinanceiros) {
+            if (e.tipo === 'receber') {
+              saldoMes += e.valor;
+            } else {
+              saldoMes -= e.valor;
+            }
+            if (e.status === 'pendente' && new Date(e.vencimento) < hoje) {
+              contasVencidas++;
+            }
+          }
+
+          document.getElementById("finSaldoMes").textContent = formatCurrency(saldoMes);
+          document.getElementById("finContasVencidas").textContent = contasVencidas;
+
           const container = document.getElementById("listaFinanceiro");
+          document.getElementById("totalLancamentos").textContent = (eventosFinanceiros || []).length + ' contas';
+
           if (eventosFinanceiros && eventosFinanceiros.length > 0) {
             container.innerHTML = eventosFinanceiros
               .slice(0, 15)
@@ -3160,7 +3643,40 @@
         function renderizarRH(dados) {
           const { funcionarios, ferias } = dados;
 
+          const totalFuncionarios = funcionarios?.length || 0;
+          const emFerias = ferias?.length || 0;
+
+          // Calcular presentes e ausentes hoje
+          const hoje = todayISO();
+          let presentesHoje = 0;
+          let ausentesHoje = 0;
+
+          document.getElementById('rhTotalFuncionarios').textContent = totalFuncionarios;
+          document.getElementById('rhEmFerias').textContent = emFerias;
+
+          // Buscar pontos de hoje para calcular presença
+          (async () => {
+            try {
+              const { data: pontosHoje } = await supabase
+                .from('time_tracking')
+                .select('employee_id')
+                .gte('check_in', hoje)
+                .lte('check_in', hoje + 'T23:59:59');
+
+              const idsComPonto = new Set(pontosHoje?.map(p => p.employee_id) || []);
+              presentesHoje = idsComPonto.size;
+              ausentesHoje = totalFuncionarios - presentesHoje - emFerias;
+
+              document.getElementById('rhPresentesHoje').textContent = Math.max(0, presentesHoje);
+              document.getElementById('rhAusentesHoje').textContent = Math.max(0, ausentesHoje);
+            } catch (e) {
+              console.error('Erro ao buscar pontos:', e);
+            }
+          })();
+
           const containerFerias = document.getElementById("listaRHFerias");
+          document.getElementById("totalFerias").textContent = (ferias || []).length + ' registros';
+
           if (ferias && ferias.length > 0) {
             containerFerias.innerHTML = ferias
               .slice(0, 10)
@@ -3184,20 +3700,22 @@
           }
 
           const containerFunc = document.getElementById("listaRHFuncionarios");
+          document.getElementById("totalFuncionariosRH").textContent = (funcionarios || []).length + ' funcionários';
+
           if (funcionarios && funcionarios.length > 0) {
             containerFunc.innerHTML = funcionarios
               .slice(0, 15)
               .map((f) => {
-                const emFerias = (ferias || []).some(
+                const emFeriasCheck = (ferias || []).some(
                   (ff) => ff.employee_id === f.id,
                 );
-                return `<div class="list-item ${emFerias ? "item-warning" : ""}" data-id="${f.id}" style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);gap:10px;transition:var(--transition);cursor:pointer;">
+                return `<div class="list-item ${emFeriasCheck ? "item-warning" : ""}" data-id="${f.id}" style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);gap:10px;transition:var(--transition);cursor:pointer;">
                                     <div class="item-main" style="flex:1;min-width:0;">
-                                        <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${emFerias ? "color:var(--warning);" : ""}">${f.full_name}${emFerias ? " 🌴" : ""}</div>
+                                        <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${emFeriasCheck ? "color:var(--warning);" : ""}">${f.full_name}${emFeriasCheck ? " 🌴" : ""}</div>
                                         <div class="item-sub" style="font-size:10px;color:var(--gray-dark);margin-top:1px;">${f.role || "-"} · ${f.contract_type === "clt" ? "CLT" : "Diarista"}</div>
                                     </div>
                                     <div class="item-right" style="text-align:right;flex-shrink:0;">
-                                        <span class="item-badge ${emFerias ? "badge-status-em_costura" : "badge-status-entregue"}" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">${emFerias ? "De Férias" : "Ativo"}</span>
+                                        <span class="item-badge ${emFeriasCheck ? "badge-status-em_costura" : "badge-status-entregue"}" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">${emFeriasCheck ? "De Férias" : "Ativo"}</span>
                                     </div>
                                 </div>`;
               })
@@ -3228,7 +3746,15 @@
           document.getElementById("divSaldoDevedor").textContent =
             formatCurrency(saldoDevedor);
 
+          const ativas = (dividas || []).filter(d => d.status !== 'quitada').length;
+          const quitadas = (dividas || []).filter(d => d.status === 'quitada').length;
+
+          document.getElementById("divAtivas").textContent = ativas;
+          document.getElementById("divQuitadas").textContent = quitadas;
+
           const container = document.getElementById("listaDividas");
+          document.getElementById("totalDividas").textContent = (dividas || []).length + ' registros';
+
           if (dividas && dividas.length > 0) {
             container.innerHTML = dividas
               .slice(0, 15)
@@ -3285,7 +3811,7 @@
               .from("service_orders")
               .select(`
                 id, order_number, product_description,
-                total_quantity, unit_price, status, expected_delivery, received_date, notes,
+                total_quantity, unit_price, status, expected_delivery, received_date, notes, updated_at,
                 customers(company_name, trade_name)
               `)
               .order("created_at", { ascending: false });
