@@ -2179,7 +2179,7 @@
         </div>
 
         <!-- ============================================================
-            ABA: DÍVIDAS - MODO LEITURA COM VISUAL PREMIUM
+            ABA: DÍVIDAS - MODO LEITURA COM VISUAL PREMIUM (CORRIGIDA)
             ============================================================ -->
         <div class="tab-content" id="tab-dividas">
           <div class="tab-section-title">
@@ -2214,7 +2214,7 @@
             </div>
           </div>
 
-          <!-- Lista de dívidas -->
+          <!-- Lista de dívidas - CORRIGIDA PARA EXIBIR O CREDOR -->
           <div class="big-card" style="padding: 14px 16px">
             <div
               style="
@@ -2295,7 +2295,7 @@
       (function () {
         "use strict";
 
-        console.log("🚀 App do Gestor - Redesign Premium completo (RH sem ponto)");
+        console.log("🚀 App do Gestor - Redesign Premium completo (RH sem ponto, Dívidas corrigida)");
 
         // ============================================================
         // SUPABASE
@@ -3279,7 +3279,7 @@
         }
 
         // ============================================================
-        // ABRIR MODAL DÍVIDA (MODO LEITURA)
+        // ABRIR MODAL DÍVIDA (MODO LEITURA - CORRIGIDO)
         // ============================================================
         function abrirModalDivida(div) {
           const total = div.total_amount || 0;
@@ -3694,7 +3694,7 @@
         }
 
         // ============================================================
-        // RENDERIZAR - ABA DÍVIDAS (MODO LEITURA)
+        // RENDERIZAR - ABA DÍVIDAS (MODO LEITURA - CORRIGIDO)
         // ============================================================
         function renderizarDividas(dados) {
           const { dividas, totalDividas, saldoDevedor } = dados;
@@ -3721,15 +3721,20 @@
                 const pago = d.paid_amount || 0;
                 const percentual =
                   total > 0 ? Math.round((pago / total) * 100) : 0;
-                const statusClass =
-                  d.status === "quitada" ? "quitada" : "ativa";
+
+                // CORRIGIDO: Agora exibe corretamente o credor
+                const credor = d.credor || d.creditor || "Credor não informado";
+                const descricao = d.description || d.notes || "-";
+                const statusClass = d.status === "quitada" ? "quitada" : "ativa";
+                const statusLabel = d.status === "quitada" ? "✅ Quitada" : "🟡 Ativa";
+
                 return `<div class="list-item" data-id="${d.id}" style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);gap:10px;transition:var(--transition);cursor:pointer;">
                                     <div class="item-main" style="flex:1;min-width:0;">
-                                        <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.credor || "Credor"}</div>
-                                        <div class="item-sub" style="font-size:10px;color:var(--gray-dark);margin-top:1px;">${d.description || "-"} · ${percentual}% pago</div>
+                                        <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${d.status === 'quitada' ? 'var(--success)' : 'var(--gold-light)'};">${credor}</div>
+                                        <div class="item-sub" style="font-size:10px;color:var(--gray-dark);margin-top:1px;">${descricao} · ${percentual}% pago</div>
                                     </div>
                                     <div class="item-right" style="text-align:right;flex-shrink:0;">
-                                        <span class="item-badge badge-status-${statusClass}" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">${statusClass === "quitada" ? "✅ Quitada" : "🟡 Ativa"}</span>
+                                        <span class="item-badge badge-status-${statusClass}" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">${statusLabel}</span>
                                         <div style="font-size:9px;color:var(--gray-dark);">${formatCurrency(total - pago)} restante</div>
                                     </div>
                                 </div>`;
@@ -4104,7 +4109,6 @@
         window.cancelarLote = window.cancelarLote;
         window.excluirLote = window.excluirLote;
         window.editarLote = window.editarLote;
-
       })();
     </script>
   </body>
