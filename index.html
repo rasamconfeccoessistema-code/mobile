@@ -242,7 +242,7 @@
         transition: transform 0.3s;
       }
 
-      /* ===== CARDS ===== */
+      /* ===== CARDS - ESTILO PREMIUM ===== */
       .card-premium {
         background: var(--black-soft);
         border: 1px solid rgba(255, 255, 255, 0.05);
@@ -374,6 +374,7 @@
         margin-top: 1px;
       }
 
+      /* ===== CARD GRANDE ===== */
       .big-card {
         background: var(--black-soft);
         border: 1px solid rgba(255, 255, 255, 0.04);
@@ -444,6 +445,41 @@
         margin-top: 2px;
       }
 
+      .big-card .deco-line {
+        width: 100%;
+        height: 2px;
+        border-radius: 2px;
+        margin-top: 12px;
+        opacity: 0.5;
+      }
+
+      .big-card .deco-line.gold {
+        background: linear-gradient(
+          90deg,
+          var(--pink),
+          var(--orange),
+          var(--gold-light)
+        );
+      }
+
+      .big-card .deco-line.green {
+        background: linear-gradient(90deg, var(--success), #66bb6a, #a5d6a7);
+      }
+
+      .big-card .deco-line.pink {
+        background: linear-gradient(
+          90deg,
+          var(--pink),
+          var(--pink-light),
+          var(--gold-light)
+        );
+      }
+
+      .big-card .deco-line.blue {
+        background: linear-gradient(90deg, #2196f3, #42a5f5, #64b5f6);
+      }
+
+      /* ===== DÍVIDAS COM GAUGE ===== */
       .divida-card {
         display: flex;
         align-items: center;
@@ -499,207 +535,6 @@
         font-size: 7px;
         font-weight: 400;
         color: var(--gray-dark);
-      }
-
-      .alert-card {
-        background: var(--black-soft);
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        border-radius: var(--radius);
-        padding: 14px 16px;
-        transition: var(--transition);
-      }
-
-      .alert-card .alert-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-      }
-
-      .alert-card .alert-header .title {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--gold-light);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .alert-card .alert-header .badge {
-        font-size: 10px;
-        font-weight: 700;
-        color: var(--white);
-        background: rgba(255, 82, 82, 0.2);
-        padding: 2px 10px;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 82, 82, 0.2);
-      }
-
-      .alert-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 6px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        font-size: 11px;
-      }
-
-      .alert-item:last-child {
-        border-bottom: none;
-      }
-
-      .alert-item i {
-        font-size: 14px;
-        flex-shrink: 0;
-      }
-
-      .alert-item .alert-text {
-        flex: 1;
-        color: var(--gray);
-      }
-
-      .alert-item .alert-tag {
-        font-size: 7px;
-        text-transform: uppercase;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 20px;
-        flex-shrink: 0;
-        letter-spacing: 0.5px;
-      }
-
-      .alert-tag.tag-high {
-        background: rgba(255, 82, 82, 0.15);
-        color: var(--error);
-      }
-      .alert-tag.tag-medium {
-        background: rgba(255, 193, 7, 0.15);
-        color: var(--warning);
-      }
-      .alert-tag.tag-low {
-        background: rgba(66, 165, 245, 0.15);
-        color: var(--info);
-      }
-
-      .resumo-card {
-        background: var(--black-soft);
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        border-radius: var(--radius);
-        padding: 14px 16px;
-        transition: var(--transition);
-      }
-
-      .resumo-card .resumo-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-      }
-
-      .resumo-card .resumo-header .title {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--gold-light);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .resumo-card .resumo-header .periodo {
-        font-size: 8px;
-        color: var(--gray-dark);
-      }
-
-      .bar-chart {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-bottom: 10px;
-      }
-
-      .bar-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .bar-row .bar-label {
-        font-size: 10px;
-        color: var(--gray);
-        width: 56px;
-        flex-shrink: 0;
-        text-align: right;
-      }
-
-      .bar-row .bar-track {
-        flex: 1;
-        height: 8px;
-        background: rgba(255, 255, 255, 0.04);
-        border-radius: 4px;
-        overflow: hidden;
-        position: relative;
-      }
-
-      .bar-row .bar-track .bar-fill {
-        height: 100%;
-        border-radius: 4px;
-        transition: width 1s ease;
-      }
-
-      .bar-row .bar-track .bar-fill.receita {
-        background: linear-gradient(90deg, var(--success), #66bb6a);
-      }
-
-      .bar-row .bar-track .bar-fill.despesa {
-        background: linear-gradient(90deg, var(--error), #ff8a80);
-      }
-
-      .bar-row .bar-value {
-        font-size: 10px;
-        font-weight: 600;
-        width: 80px;
-        flex-shrink: 0;
-        text-align: right;
-      }
-
-      .bar-row .bar-value.positive {
-        color: var(--success);
-      }
-      .bar-row .bar-value.negative {
-        color: var(--error);
-      }
-
-      .resumo-card .saldo-final {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: 10px;
-        border-top: 1px solid rgba(255, 255, 255, 0.04);
-        margin-top: 4px;
-      }
-
-      .resumo-card .saldo-final .label {
-        font-size: 10px;
-        color: var(--gray-dark);
-        font-weight: 500;
-      }
-
-      .resumo-card .saldo-final .value {
-        font-size: 18px;
-        font-weight: 800;
-        color: var(--error);
-      }
-
-      .dashboard-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .dashboard-row-2col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
       }
 
       /* ===== LISTAS ===== */
@@ -816,7 +651,7 @@
         color: var(--success);
       }
 
-      /* ===== ABAS ===== */
+      /* ===== ABA ===== */
       .tab-content {
         display: none;
         animation: fadeIn 0.3s ease;
@@ -1013,6 +848,131 @@
         color: var(--gold-light);
       }
 
+      /* Botões de ação nos lotes */
+      .btn-action {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+      }
+      .btn-action:active {
+        transform: scale(0.95);
+      }
+      .btn-action-primary {
+        background: #2196f3;
+        color: white;
+      }
+      .btn-action-success {
+        background: #4caf50;
+        color: white;
+      }
+      .btn-action-danger {
+        background: rgba(255, 82, 82, 0.2);
+        color: var(--error);
+      }
+      .btn-action-warning {
+        background: rgba(255, 193, 7, 0.2);
+        color: var(--warning);
+      }
+      .btn-action-ghost {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--gray);
+      }
+
+      .btn-primary {
+        background: linear-gradient(95deg, var(--pink-dark), var(--pink));
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: var(--transition);
+      }
+      .btn-primary:active {
+        transform: scale(0.95);
+      }
+
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: var(--gray);
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: var(--transition);
+      }
+      .btn-ghost:active {
+        transform: scale(0.95);
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: white;
+        font-size: 0.9rem;
+        transition: var(--transition);
+      }
+      .form-input:focus {
+        outline: none;
+        border-color: var(--pink);
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .form-input::placeholder {
+        color: var(--gray-dark);
+      }
+
+      .form-select {
+        width: 100%;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: white;
+        font-size: 0.9rem;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23f0c75e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        padding-right: 40px;
+      }
+      .form-select:focus {
+        outline: none;
+        border-color: var(--pink);
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .form-select option {
+        background: var(--black-medium);
+        color: white;
+      }
+
+      .form-group {
+        margin-bottom: 12px;
+      }
+      .form-group label {
+        display: block;
+        font-size: 0.7rem;
+        color: var(--gray);
+        margin-bottom: 4px;
+      }
+
       /* ===== TAB BAR ===== */
       .tab-bar {
         position: fixed;
@@ -1120,6 +1080,51 @@
         display: flex;
       }
 
+      .dashboard-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .dashboard-row-2col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      /* Indicador de sessão */
+      .session-indicator {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.55rem;
+        color: var(--gray-dark);
+        background: rgba(255, 255, 255, 0.05);
+        padding: 4px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .session-indicator.online {
+        color: var(--success);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+      }
+      .session-indicator.offline {
+        color: var(--gray-dark);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .session-indicator i {
+        font-size: 8px;
+        flex-shrink: 0;
+      }
+      .session-indicator span {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
       @media (max-width: 420px) {
         .cards-grid-3 {
           grid-template-columns: 1fr 1fr 1fr;
@@ -1141,14 +1146,6 @@
         .divida-card .right {
           width: 60px;
           height: 60px;
-        }
-        .bar-row .bar-label {
-          width: 44px;
-          font-size: 9px;
-        }
-        .bar-row .bar-value {
-          width: 64px;
-          font-size: 9px;
         }
         .tab-item {
           padding: 4px 6px;
@@ -1178,15 +1175,16 @@
           padding: 12px 14px;
           border-radius: 16px;
         }
-        .alert-item {
-          font-size: 10px;
-          padding: 4px 0;
-        }
         .list-item {
           padding: 8px 12px;
         }
         .list-item .item-title {
           font-size: 12px;
+        }
+        .session-indicator {
+          font-size: 0.5rem;
+          padding: 2px 8px;
+          max-width: 80px;
         }
       }
 
@@ -1199,6 +1197,9 @@
         }
         .big-card .card-value {
           font-size: 19px;
+        }
+        .session-indicator {
+          display: none;
         }
       }
 
@@ -1246,6 +1247,26 @@
         display: flex;
         flex-direction: column;
       }
+
+      /* Status colors para os lotes */
+      .status-recebido {
+        color: var(--gray);
+      }
+      .status-em_costura {
+        color: #2196f3;
+      }
+      .status-costurado {
+        color: #4caf50;
+      }
+      .status-entregue {
+        color: var(--gold-light);
+      }
+      .status-cancelado {
+        color: var(--error);
+      }
+      .status-parcialmente_entregue {
+        color: #ff9800;
+      }
     </style>
   </head>
   <body>
@@ -1262,7 +1283,7 @@
           <div class="logo">FJ</div>
           <div class="brand-text">
             <h1>Facção Jeans</h1>
-            <small>Visão do Gestor · Modo Leitura</small>
+            <small>Visão do Gestor</small>
           </div>
         </div>
         <div class="header-actions">
@@ -1270,6 +1291,13 @@
             <div class="hora" id="headerHora">--:--</div>
             <div id="headerData">--/--</div>
           </div>
+
+          <!-- INDICADOR DE SESSÃO -->
+          <div class="session-indicator offline" id="sessionIndicator">
+            <i class="ph ph-circle" id="sessionStatusIcon"></i>
+            <span id="sessionStatusText">Offline</span>
+          </div>
+
           <button class="btn-refresh" id="btnRefresh" aria-label="Atualizar">
             <i class="ph ph-arrows-clockwise" id="refreshIcon"></i>
           </button>
@@ -1283,23 +1311,23 @@
         </div>
 
         <!-- ============================================================
-            ABA: GERAL (DASHBOARD)
+            ABA: GERAL (DASHBOARD) - MODO LEITURA
             ============================================================ -->
         <div class="tab-content active" id="tab-geral">
           <div class="dashboard-grid">
             <!-- LINHA 1: 3 cards pequenos -->
             <div class="cards-grid cards-grid-3">
-              <div class="kpi-card" data-tab="producao">
+              <div class="kpi-card">
                 <div class="kpi-label">Em Produção</div>
                 <div class="kpi-value" id="kpiEmProducao">-</div>
                 <div class="kpi-detail">OS ativas no mês</div>
               </div>
-              <div class="kpi-card" data-tab="financeiro">
+              <div class="kpi-card">
                 <div class="kpi-label">Contas Vencidas</div>
                 <div class="kpi-value danger" id="kpiContasVencidas">-</div>
                 <div class="kpi-detail">do mês atual</div>
               </div>
-              <div class="kpi-card" data-tab="rh">
+              <div class="kpi-card">
                 <div class="kpi-label">Em Férias</div>
                 <div class="kpi-value warning" id="kpiFerias">-</div>
                 <div class="kpi-detail">funcionários</div>
@@ -1367,10 +1395,40 @@
 
             <!-- LINHA 4: Alertas + Resumo Financeiro -->
             <div class="dashboard-row-2col">
-              <div class="alert-card">
-                <div class="alert-header">
-                  <div class="title"><i class="ph ph-bell"></i> Alertas</div>
-                  <span class="badge" id="alertasCount">0</span>
+              <div class="big-card" style="padding: 14px 16px">
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 12px;
+                      font-weight: 600;
+                      color: var(--gold-light);
+                      display: flex;
+                      align-items: center;
+                      gap: 6px;
+                    "
+                  >
+                    <i class="ph ph-bell"></i> Alertas
+                  </div>
+                  <span
+                    style="
+                      font-size: 10px;
+                      font-weight: 700;
+                      color: var(--white);
+                      background: rgba(255, 82, 82, 0.2);
+                      padding: 2px 10px;
+                      border-radius: 20px;
+                      border: 1px solid rgba(255, 82, 82, 0.2);
+                    "
+                    id="alertasCount"
+                    >0</span
+                  >
                 </div>
                 <div id="alertasContainer">
                   <div
@@ -1387,45 +1445,186 @@
                 </div>
               </div>
 
-              <div class="resumo-card">
-                <div class="resumo-header">
-                  <div class="title">
+              <div class="big-card" style="padding: 14px 16px">
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 12px;
+                      font-weight: 600;
+                      color: var(--gold-light);
+                      display: flex;
+                      align-items: center;
+                      gap: 6px;
+                    "
+                  >
                     <i class="ph ph-currency-circle-dollar"></i> Resumo
                     Financeiro
                   </div>
-                  <span class="periodo" id="resumoPeriodo">Mês atual</span>
+                  <span
+                    style="font-size: 8px; color: var(--gray-dark)"
+                    id="resumoPeriodo"
+                    >Mês atual</span
+                  >
                 </div>
-                <div class="bar-chart">
-                  <div class="bar-row">
-                    <span class="bar-label">Receitas</span>
-                    <div class="bar-track">
+                <div
+                  class="bar-chart"
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <div
+                    class="bar-row"
+                    style="display: flex; align-items: center; gap: 10px"
+                  >
+                    <span
+                      class="bar-label"
+                      style="
+                        font-size: 10px;
+                        color: var(--gray);
+                        width: 56px;
+                        flex-shrink: 0;
+                        text-align: right;
+                      "
+                      >Receitas</span
+                    >
+                    <div
+                      class="bar-track"
+                      style="
+                        flex: 1;
+                        height: 8px;
+                        background: rgba(255, 255, 255, 0.04);
+                        border-radius: 4px;
+                        overflow: hidden;
+                        position: relative;
+                      "
+                    >
                       <div
                         class="bar-fill receita"
                         id="barReceita"
-                        style="width: 0%"
+                        style="
+                          height: 100%;
+                          border-radius: 4px;
+                          background: linear-gradient(
+                            90deg,
+                            var(--success),
+                            #66bb6a
+                          );
+                          width: 0%;
+                          transition: width 1s ease;
+                        "
                       ></div>
                     </div>
-                    <span class="bar-value positive" id="valorReceita"
+                    <span
+                      class="bar-value positive"
+                      style="
+                        font-size: 10px;
+                        font-weight: 600;
+                        width: 80px;
+                        flex-shrink: 0;
+                        text-align: right;
+                        color: var(--success);
+                      "
+                      id="valorReceita"
                       >R$ 0</span
                     >
                   </div>
-                  <div class="bar-row">
-                    <span class="bar-label">Despesas</span>
-                    <div class="bar-track">
+                  <div
+                    class="bar-row"
+                    style="display: flex; align-items: center; gap: 10px"
+                  >
+                    <span
+                      class="bar-label"
+                      style="
+                        font-size: 10px;
+                        color: var(--gray);
+                        width: 56px;
+                        flex-shrink: 0;
+                        text-align: right;
+                      "
+                      >Despesas</span
+                    >
+                    <div
+                      class="bar-track"
+                      style="
+                        flex: 1;
+                        height: 8px;
+                        background: rgba(255, 255, 255, 0.04);
+                        border-radius: 4px;
+                        overflow: hidden;
+                        position: relative;
+                      "
+                    >
                       <div
                         class="bar-fill despesa"
                         id="barDespesa"
-                        style="width: 0%"
+                        style="
+                          height: 100%;
+                          border-radius: 4px;
+                          background: linear-gradient(
+                            90deg,
+                            var(--error),
+                            #ff8a80
+                          );
+                          width: 0%;
+                          transition: width 1s ease;
+                        "
                       ></div>
                     </div>
-                    <span class="bar-value negative" id="valorDespesa"
+                    <span
+                      class="bar-value negative"
+                      style="
+                        font-size: 10px;
+                        font-weight: 600;
+                        width: 80px;
+                        flex-shrink: 0;
+                        text-align: right;
+                        color: var(--error);
+                      "
+                      id="valorDespesa"
                       >R$ 0</span
                     >
                   </div>
                 </div>
-                <div class="saldo-final">
-                  <span class="label">Saldo do mês</span>
-                  <span class="value" id="saldoFinal">R$ 0,00</span>
+                <div
+                  class="saldo-final"
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding-top: 10px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.04);
+                    margin-top: 4px;
+                  "
+                >
+                  <span
+                    class="label"
+                    style="
+                      font-size: 10px;
+                      color: var(--gray-dark);
+                      font-weight: 500;
+                    "
+                    >Saldo do mês</span
+                  >
+                  <span
+                    class="value"
+                    style="
+                      font-size: 18px;
+                      font-weight: 800;
+                      color: var(--error);
+                    "
+                    id="saldoFinal"
+                    >R$ 0,00</span
+                  >
                 </div>
               </div>
             </div>
@@ -1433,17 +1632,20 @@
         </div>
 
         <!-- ============================================================
-            ABA: PRODUÇÃO
+            ABA: PRODUÇÃO (COM CRUD COMPLETO E AUTENTICAÇÃO)
             ============================================================ -->
         <div class="tab-content" id="tab-producao">
-          <div class="tab-section-title">
-            <i class="ph ph-factory"></i> Produção do Mês
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div class="tab-section-title" style="margin-bottom: 0;">
+              <i class="ph ph-factory"></i> Produção
+            </div>
+            <button class="btn-primary" id="btnNovoLote" style="padding: 8px 16px; font-size: 0.8rem;">
+              <i class="ph ph-plus-circle"></i> Novo Lote
+            </button>
           </div>
-          <div
-            id="producaoCards"
-            class="cards-grid cards-grid-2"
-            style="margin-bottom: 12px"
-          >
+
+          <!-- Cards de resumo -->
+          <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
             <div class="kpi-card">
               <div class="kpi-label">Em Costura</div>
               <div class="kpi-value" id="prodEmCostura">-</div>
@@ -1455,26 +1657,31 @@
               <div class="kpi-detail">aguardando revisão</div>
             </div>
           </div>
-          <div id="listaProducao">
-            <div class="loading-state">
-              <i class="ph ph-spinner spinning"></i>
-              <p>Carregando produção...</p>
+
+          <!-- Lista de lotes com ações -->
+          <div class="big-card" style="padding: 14px 16px">
+            <div style="font-size: 11px; color: var(--gray); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+              <i class="ph ph-list"></i> Meus Lotes
+              <span style="margin-left: auto; font-size: 9px; color: var(--gray-dark);" id="totalLotes">0 lotes</span>
+            </div>
+            <div id="listaProducao">
+              <div class="loading-state">
+                <i class="ph ph-spinner spinning"></i>
+                <p>Carregando lotes...</p>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- ============================================================
-            ABA: FINANCEIRO
+            ABA: FINANCEIRO - MODO LEITURA
             ============================================================ -->
         <div class="tab-content" id="tab-financeiro">
           <div class="tab-section-title">
             <i class="ph ph-currency-circle-dollar"></i> Contas do Mês
           </div>
-          <div
-            id="financeiroCards"
-            class="cards-grid cards-grid-2"
-            style="margin-bottom: 12px"
-          >
+
+          <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
             <div class="kpi-card">
               <div class="kpi-label">A Pagar</div>
               <div class="kpi-value danger" id="finTotalPagar">R$ --</div>
@@ -1486,55 +1693,89 @@
               <div class="kpi-detail">pendentes</div>
             </div>
           </div>
-          <div id="listaFinanceiro">
-            <div class="loading-state">
-              <i class="ph ph-spinner spinning"></i>
-              <p>Carregando contas...</p>
+
+          <div class="big-card" style="padding: 14px 16px">
+            <div
+              style="
+                font-size: 11px;
+                color: var(--gray);
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <i class="ph ph-list"></i> Lançamentos
+            </div>
+            <div id="listaFinanceiro">
+              <div class="loading-state">
+                <i class="ph ph-spinner spinning"></i>
+                <p>Carregando contas...</p>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- ============================================================
-            ABA: RH
+            ABA: RH - MODO LEITURA
             ============================================================ -->
         <div class="tab-content" id="tab-rh">
           <div class="tab-section-title">
             <i class="ph ph-users-three"></i> Recursos Humanos
           </div>
 
-          <div class="tab-subtitle">
-            <i class="ph ph-sun"></i> Férias em andamento
-          </div>
-          <div id="listaRHFerias">
-            <div class="loading-state">
-              <i class="ph ph-spinner spinning"></i>
-              <p>Carregando férias...</p>
+          <div class="big-card" style="padding: 14px 16px; margin-bottom: 12px">
+            <div
+              style="
+                font-size: 11px;
+                color: var(--gray);
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <i class="ph ph-sun"></i> Férias em andamento
+            </div>
+            <div id="listaRHFerias">
+              <div class="loading-state">
+                <i class="ph ph-spinner spinning"></i>
+                <p>Carregando férias...</p>
+              </div>
             </div>
           </div>
 
-          <div class="tab-subtitle" style="margin-top: 14px">
-            <i class="ph ph-users"></i> Funcionários ativos
-          </div>
-          <div id="listaRHFuncionarios">
-            <div class="loading-state">
-              <i class="ph ph-spinner spinning"></i>
-              <p>Carregando funcionários...</p>
+          <div class="big-card" style="padding: 14px 16px">
+            <div
+              style="
+                font-size: 11px;
+                color: var(--gray);
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <i class="ph ph-users"></i> Funcionários ativos
+            </div>
+            <div id="listaRHFuncionarios">
+              <div class="loading-state">
+                <i class="ph ph-spinner spinning"></i>
+                <p>Carregando funcionários...</p>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- ============================================================
-            ABA: DÍVIDAS
+            ABA: DÍVIDAS - MODO LEITURA
             ============================================================ -->
         <div class="tab-content" id="tab-dividas">
           <div class="tab-section-title">
             <i class="ph ph-warning-circle"></i> Dívidas
           </div>
-          <div
-            id="dividasCards"
-            class="cards-grid cards-grid-2"
-            style="margin-bottom: 12px"
-          >
+
+          <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
             <div class="kpi-card">
               <div class="kpi-label">Total</div>
               <div class="kpi-value danger" id="divTotalGeral">R$ --</div>
@@ -1546,10 +1787,25 @@
               <div class="kpi-detail">restante</div>
             </div>
           </div>
-          <div id="listaDividas">
-            <div class="loading-state">
-              <i class="ph ph-spinner spinning"></i>
-              <p>Carregando dívidas...</p>
+
+          <div class="big-card" style="padding: 14px 16px">
+            <div
+              style="
+                font-size: 11px;
+                color: var(--gray);
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <i class="ph ph-list"></i> Dívidas cadastradas
+            </div>
+            <div id="listaDividas">
+              <div class="loading-state">
+                <i class="ph ph-spinner spinning"></i>
+                <p>Carregando dívidas...</p>
+              </div>
             </div>
           </div>
         </div>
@@ -1576,16 +1832,12 @@
         <button class="tab-item" data-tab="producao">
           <i class="ph ph-factory"></i>
           <span>Produção</span>
-          <span class="tab-badge" id="tabBadgeProd" style="display: none"
-            >0</span
-          >
+          <span class="tab-badge" id="tabBadgeProd" style="display: none">0</span>
         </button>
         <button class="tab-item" data-tab="financeiro">
           <i class="ph ph-currency-circle-dollar"></i>
           <span>Financeiro</span>
-          <span class="tab-badge" id="tabBadgeFin" style="display: none"
-            >0</span
-          >
+          <span class="tab-badge" id="tabBadgeFin" style="display: none">0</span>
         </button>
         <button class="tab-item" data-tab="rh">
           <i class="ph ph-users-three"></i>
@@ -1595,9 +1847,7 @@
         <button class="tab-item" data-tab="dividas">
           <i class="ph ph-warning-circle"></i>
           <span>Dívidas</span>
-          <span class="tab-badge" id="tabBadgeDiv" style="display: none"
-            >0</span
-          >
+          <span class="tab-badge" id="tabBadgeDiv" style="display: none">0</span>
         </button>
       </nav>
 
@@ -1611,15 +1861,13 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SCRIPT PRINCIPAL - TODOS OS DADOS DO SUPABASE, SEM MOCK -->
+    <!-- SCRIPT PRINCIPAL -->
     <!-- ============================================================ -->
     <script>
       (function () {
         "use strict";
 
-        console.log(
-          "🚀 App do Gestor - Redesign com abas funcionais (SEM MOCK)",
-        );
+        console.log("🚀 App do Gestor - Redesign completo com autenticação");
 
         // ============================================================
         // SUPABASE
@@ -1658,7 +1906,247 @@
         const supabase = window.__supabaseClient;
 
         // ============================================================
-        // AUXILIARES (MESMOS DO DESKTOP)
+        // SISTEMA DE AUTENTICAÇÃO COM CACHE DE 5 MINUTOS
+        // ============================================================
+
+        const SESSION_DURATION = 5 * 60 * 1000; // 5 minutos em milissegundos
+
+        let usuarioAutenticado = null;
+        let sessionTimeout = null;
+
+        // ==== CARREGAR SESSÃO DO CACHE ====
+        function carregarSessao() {
+          try {
+            const dados = localStorage.getItem('gestor_session');
+            if (dados) {
+              const session = JSON.parse(dados);
+              const agora = Date.now();
+
+              // Verifica se a sessão ainda é válida (dentro dos 5 minutos)
+              if (session.timestamp && (agora - session.timestamp) < SESSION_DURATION) {
+                usuarioAutenticado = session.usuario;
+                console.log(`✅ Sessão ativa para: ${usuarioAutenticado.email}`);
+                atualizarIndicadorSessao();
+                return true;
+              } else {
+                // Sessão expirada
+                localStorage.removeItem('gestor_session');
+                console.log('⏰ Sessão expirada');
+                usuarioAutenticado = null;
+                atualizarIndicadorSessao();
+                return false;
+              }
+            }
+            return false;
+          } catch (e) {
+            console.error('Erro ao carregar sessão:', e);
+            return false;
+          }
+        }
+
+        // ==== SALVAR SESSÃO NO CACHE ====
+        function salvarSessao(usuario) {
+          const session = {
+            usuario: usuario,
+            timestamp: Date.now()
+          };
+          localStorage.setItem('gestor_session', JSON.stringify(session));
+          usuarioAutenticado = usuario;
+
+          // Configura timeout para expirar automaticamente
+          if (sessionTimeout) {
+            clearTimeout(sessionTimeout);
+          }
+          sessionTimeout = setTimeout(() => {
+            console.log('⏰ Sessão expirada automaticamente');
+            localStorage.removeItem('gestor_session');
+            usuarioAutenticado = null;
+            atualizarIndicadorSessao();
+            showFeedback('Sessão expirada', 'Sua sessão expirou após 5 minutos. Faça login novamente para ações que escrevem no banco.', 'info');
+          }, SESSION_DURATION);
+
+          console.log(`💾 Sessão salva para: ${usuario.email} (expira em 5 minutos)`);
+          atualizarIndicadorSessao();
+        }
+
+        // ==== LIMPAR SESSÃO (LOGOUT) ====
+        function limparSessao() {
+          localStorage.removeItem('gestor_session');
+          usuarioAutenticado = null;
+          if (sessionTimeout) {
+            clearTimeout(sessionTimeout);
+            sessionTimeout = null;
+          }
+          console.log('🔒 Sessão encerrada');
+          atualizarIndicadorSessao();
+        }
+
+        // ==== FAZER LOGIN COM SUPABASE AUTH ====
+        async function fazerLogin(email, senha) {
+          try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+              email: email,
+              password: senha
+            });
+
+            if (error) {
+              throw new Error(error.message);
+            }
+
+            if (data && data.user) {
+              // Salva a sessão
+              salvarSessao({
+                id: data.user.id,
+                email: data.user.email,
+                nome: data.user.user_metadata?.full_name || data.user.email
+              });
+
+              return { success: true, usuario: data.user };
+            }
+
+            return { success: false, error: 'Usuário não encontrado' };
+
+          } catch (error) {
+            console.error('Erro no login:', error);
+            return { success: false, error: error.message };
+          }
+        }
+
+        // ==== VERIFICAR SE O USUÁRIO ESTÁ AUTENTICADO ====
+        function isAutenticado() {
+          // Recarrega a sessão se necessário
+          if (!usuarioAutenticado) {
+            carregarSessao();
+          }
+          return !!usuarioAutenticado;
+        }
+
+        // ==== OBTER USUÁRIO ATUAL ====
+        function getUsuarioAtual() {
+          if (!usuarioAutenticado) {
+            carregarSessao();
+          }
+          return usuarioAutenticado;
+        }
+
+        // ==== ATUALIZAR INDICADOR DE SESSÃO ====
+        function atualizarIndicadorSessao() {
+          const indicator = document.getElementById('sessionIndicator');
+          const icon = document.getElementById('sessionStatusIcon');
+          const text = document.getElementById('sessionStatusText');
+
+          if (isAutenticado() && usuarioAutenticado) {
+            indicator.className = 'session-indicator online';
+            icon.style.color = 'var(--success)';
+            const nomeExibicao = usuarioAutenticado.nome || usuarioAutenticado.email;
+            text.textContent = nomeExibicao.length > 15 ? nomeExibicao.substring(0, 14) + '…' : nomeExibicao;
+          } else {
+            indicator.className = 'session-indicator offline';
+            icon.style.color = 'var(--gray-dark)';
+            text.textContent = 'Offline';
+          }
+        }
+
+        // ==== MODAL DE LOGIN (APENAS PARA AÇÕES QUE ESCREVEM) ====
+        function abrirModalLogin(acao) {
+          return new Promise((resolve) => {
+            // Se já está autenticado, executa imediatamente
+            if (isAutenticado()) {
+              resolve({ success: true, usuario: usuarioAutenticado });
+              return;
+            }
+
+            const html = `
+              <div style="display: grid; gap: 16px; padding: 8px 0;">
+                <div style="text-align: center; margin-bottom: 8px;">
+                  <div style="width: 56px; height: 56px; background: linear-gradient(135deg, var(--pink-dark), var(--gold-dark)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 8px;">
+                    <i class="ph ph-lock-simple" style="color: white;"></i>
+                  </div>
+                  <h3 style="color: var(--gold-light); margin: 0; font-size: 1.1rem;">Confirmar Ação</h3>
+                  <p style="color: var(--gray); font-size: 0.85rem; margin-top: 4px;">
+                    Digite suas credenciais para <strong>${acao}</strong>
+                  </p>
+                  <p style="color: var(--gray-dark); font-size: 0.7rem; margin-top: 2px;">
+                    <i class="ph ph-info"></i> Sessão válida por 5 minutos
+                  </p>
+                </div>
+
+                <div id="loginModalStatus" style="color: var(--error); font-size: 0.8rem; text-align: center; min-height: 20px;"></div>
+
+                <div class="form-group">
+                  <label style="color: var(--gray); font-size: 0.7rem;">📧 Email</label>
+                  <input id="modalLoginEmail" type="email" class="form-input" placeholder="seu@email.com" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                </div>
+
+                <div class="form-group">
+                  <label style="color: var(--gray); font-size: 0.7rem;">🔑 Senha</label>
+                  <input id="modalLoginSenha" type="password" class="form-input" placeholder="••••••••" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                </div>
+
+                <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);">
+                  <button class="btn-ghost" id="cancelarLoginModal" style="padding: 8px 16px;">Cancelar</button>
+                  <button class="btn-primary" id="confirmarLoginModal" style="padding: 8px 20px;">
+                    <i class="ph ph-check-circle"></i> Confirmar
+                  </button>
+                </div>
+              </div>
+            `;
+
+            // Abre o modal
+            openModal('🔐 Autenticação Necessária', html);
+
+            // Evento de cancelar
+            document.getElementById('cancelarLoginModal')?.addEventListener('click', () => {
+              document.getElementById('modalContainer').innerHTML = '';
+              resolve({ success: false, error: 'Ação cancelada pelo usuário' });
+            });
+
+            // Evento de confirmar
+            document.getElementById('confirmarLoginModal')?.addEventListener('click', async function() {
+              const email = document.getElementById('modalLoginEmail').value.trim();
+              const senha = document.getElementById('modalLoginSenha').value.trim();
+              const statusEl = document.getElementById('loginModalStatus');
+
+              if (!email || !senha) {
+                statusEl.textContent = '❌ Preencha email e senha';
+                return;
+              }
+
+              statusEl.textContent = '⏳ Verificando...';
+              statusEl.style.color = 'var(--gold-light)';
+              this.disabled = true;
+
+              const result = await fazerLogin(email, senha);
+
+              if (result.success) {
+                statusEl.textContent = `✅ Bem-vindo, ${result.usuario.user_metadata?.full_name || email}!`;
+                statusEl.style.color = 'var(--success)';
+
+                document.getElementById('modalContainer').innerHTML = '';
+                resolve({ success: true, usuario: usuarioAutenticado });
+              } else {
+                statusEl.textContent = `❌ ${result.error || 'Erro ao fazer login'}`;
+                statusEl.style.color = 'var(--error)';
+                this.disabled = false;
+              }
+            });
+
+            // Permitir Enter nos campos
+            document.getElementById('modalLoginEmail')?.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') {
+                document.getElementById('modalLoginSenha')?.focus();
+              }
+            });
+            document.getElementById('modalLoginSenha')?.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') {
+                document.getElementById('confirmarLoginModal')?.click();
+              }
+            });
+          });
+        }
+
+        // ============================================================
+        // AUXILIARES
         // ============================================================
         function todayISO() {
           return new Date().toISOString().split("T")[0];
@@ -1682,6 +2170,19 @@
           }).format(v);
         }
 
+        function formatStatus(s) {
+          const map = {
+            recebido: "Recebido",
+            em_costura: "Em Costura",
+            costurado: "Costurado",
+            em_revisao: "Em Revisão",
+            entregue: "Entregue",
+            cancelado: "Cancelado",
+            parcialmente_entregue: "Parcialmente Entregue",
+          };
+          return map[s] || s || "-";
+        }
+
         function getInitials(name) {
           if (!name) return "?";
           const parts = name.trim().split(" ");
@@ -1693,13 +2194,6 @@
           return new Date().toLocaleTimeString("pt-BR", {
             hour: "2-digit",
             minute: "2-digit",
-          });
-        }
-
-        function formatDateShort() {
-          return new Date().toLocaleDateString("pt-BR", {
-            day: "2-digit",
-            month: "2-digit",
           });
         }
 
@@ -1724,31 +2218,13 @@
           return d;
         }
 
-        function formatStatus(s) {
-          const map = {
-            recebido: "Recebido",
-            em_costura: "Em Costura",
-            costurado: "Costurado",
-            em_revisao: "Em Revisão",
-            entregue: "Entregue",
-            cancelado: "Cancelado",
-            parcialmente_entregue: "Parcial",
-          };
-          return map[s] || s || "-";
-        }
-
         function getStatusClass(s) {
           return "badge-status-" + s;
         }
 
-        function debounce(fn, delay) {
-          let timer;
-          return function (...args) {
-            clearTimeout(timer);
-            timer = setTimeout(() => fn.apply(this, args), delay);
-          };
-        }
-
+        // ============================================================
+        // MODAL FUNCTIONS
+        // ============================================================
         function openModal(title, html) {
           const container = document.getElementById("modalContainer");
           container.innerHTML = `
@@ -1819,23 +2295,7 @@
         }
 
         // ============================================================
-        // VARIÁVEIS GLOBAIS
-        // ============================================================
-        let abaAtual = "geral";
-        let dados = {};
-        let carregando = false;
-
-        // ============================================================
-        // ELEMENTOS
-        // ============================================================
-        const $ = (id) => document.getElementById(id);
-        const appContent = $("appContent");
-        const refreshIcon = $("refreshIcon");
-        const pullIndicator = $("pullIndicator");
-        const scrollTopBtn = $("scrollTopBtn");
-
-        // ============================================================
-        // FUNÇÃO DE EVENTOS (MESMA LÓGICA DO financeiro.js DESKTOP)
+        // GERAR EVENTOS FINANCEIROS
         // ============================================================
         function gerarEventosFinanceiros(transacoes) {
           const eventos = [];
@@ -1893,7 +2353,919 @@
         }
 
         // ============================================================
-        // CARREGAR DADOS (TODOS DO SUPABASE, SEM MOCK)
+        // VARIÁVEIS GLOBAIS
+        // ============================================================
+        let abaAtual = "geral";
+        let dados = {};
+        let carregando = false;
+
+        // ============================================================
+        // ELEMENTOS
+        // ============================================================
+        const $ = (id) => document.getElementById(id);
+        const appContent = $("appContent");
+        const refreshIcon = $("refreshIcon");
+        const pullIndicator = $("pullIndicator");
+        const scrollTopBtn = $("scrollTopBtn");
+
+        // ============================================================
+        // CRUD DE LOTES (APENAS NA ABA PRODUÇÃO) COM AUTENTICAÇÃO
+        // ============================================================
+
+        // 1. NOVO LOTE
+        document.getElementById('btnNovoLote')?.addEventListener('click', function() {
+          const html = `
+            <div style="display: grid; gap: 12px;">
+              <div class="form-group">
+                <label>Cliente *</label>
+                <input id="novoLoteCliente" class="form-input" placeholder="Nome do cliente">
+              </div>
+              <div class="form-group">
+                <label>Produto *</label>
+                <input id="novoLoteProduto" class="form-input" placeholder="Descrição do produto">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                  <label>Quantidade *</label>
+                  <input id="novoLoteQtd" type="number" class="form-input" placeholder="Ex: 500">
+                </div>
+                <div class="form-group">
+                  <label>Valor Unitário *</label>
+                  <input id="novoLotePreco" type="number" step="0.01" class="form-input" placeholder="Ex: 15.00">
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                  <label>Data Recebimento</label>
+                  <input id="novoLoteRecebimento" type="date" class="form-input" value="${todayISO()}">
+                </div>
+                <div class="form-group">
+                  <label>Prazo Entrega</label>
+                  <input id="novoLotePrazo" type="date" class="form-input">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Observações</label>
+                <textarea id="novoLoteObs" class="form-input" rows="2" placeholder="Informações adicionais..."></textarea>
+              </div>
+              <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);">
+                <button class="btn-ghost" id="cancelarNovoLote" style="padding: 8px 16px;">Cancelar</button>
+                <button class="btn-primary" id="salvarNovoLote" style="padding: 8px 20px;">Salvar Lote</button>
+              </div>
+            </div>
+          `;
+
+          openModal('Novo Lote', html);
+
+          document.getElementById('cancelarNovoLote')?.addEventListener('click', () => {
+            document.getElementById('modalContainer').innerHTML = '';
+          });
+
+          document.getElementById('salvarNovoLote')?.addEventListener('click', async function() {
+            const cliente = document.getElementById('novoLoteCliente').value.trim();
+            const produto = document.getElementById('novoLoteProduto').value.trim();
+            const qtd = parseInt(document.getElementById('novoLoteQtd').value);
+            const preco = parseFloat(document.getElementById('novoLotePreco').value);
+            const recebimento = document.getElementById('novoLoteRecebimento').value;
+            const prazo = document.getElementById('novoLotePrazo').value;
+            const obs = document.getElementById('novoLoteObs').value.trim() || null;
+
+            if (!cliente || !produto || !qtd || !preco || !recebimento || !prazo) {
+              showFeedback('Erro', 'Preencha todos os campos obrigatórios.', 'error');
+              return;
+            }
+
+            // 🔒 Pede autenticação antes de salvar
+            const loginResult = await abrirModalLogin('cadastrar novo lote');
+
+            if (!loginResult.success) {
+              showFeedback('Ação cancelada', 'Você precisa estar autenticado para esta ação.', 'warning');
+              return;
+            }
+
+            // Se chegou aqui, está autenticado! Executa a ação
+            try {
+              // Verifica se o cliente existe ou cria um novo
+              let clienteId = null;
+              const { data: clientes } = await supabase
+                .from('customers')
+                .select('id')
+                .ilike('company_name', `%${cliente}%`)
+                .limit(1);
+
+              if (clientes && clientes.length > 0) {
+                clienteId = clientes[0].id;
+              } else {
+                // Cria cliente rapidamente
+                const { data: novoCliente } = await supabase
+                  .from('customers')
+                  .insert({ company_name: cliente, trade_name: cliente, active: true })
+                  .select('id')
+                  .single();
+                if (novoCliente) clienteId = novoCliente.id;
+              }
+
+              if (!clienteId) {
+                showFeedback('Erro', 'Não foi possível identificar o cliente.', 'error');
+                return;
+              }
+
+              const orderNumber = 'OS-' + Date.now();
+              const total = qtd * preco;
+
+              const { data: novaOS, error } = await supabase
+                .from('service_orders')
+                .insert({
+                  customer_id: clienteId,
+                  product_description: produto,
+                  total_quantity: qtd,
+                  unit_price: preco,
+                  received_date: recebimento,
+                  expected_delivery: prazo,
+                  status: 'recebido',
+                  notes: obs,
+                  order_number: orderNumber,
+                  total: total
+                })
+                .select('id')
+                .single();
+
+              if (error) throw error;
+
+              // Cria item único para a OS
+              await supabase
+                .from('service_order_items')
+                .insert({
+                  service_order_id: novaOS.id,
+                  size: 'Único',
+                  quantity: qtd,
+                  sewn_quantity: 0,
+                  delivered_quantity: 0
+                });
+
+              document.getElementById('modalContainer').innerHTML = '';
+              showFeedback('Sucesso', `Lote ${orderNumber} criado por ${loginResult.usuario.email}!`, 'success');
+              carregarDados();
+
+            } catch (error) {
+              console.error('Erro ao criar lote:', error);
+              showFeedback('Erro', 'Falha ao criar lote: ' + error.message, 'error');
+            }
+          });
+        });
+
+        // ==== INICIAR COSTURA ====
+        window.iniciarCosturaLote = async function(id, orderNumber) {
+          // 🔒 Pede autenticação
+          const loginResult = await abrirModalLogin('iniciar costura');
+
+          if (!loginResult.success) {
+            showFeedback('Ação cancelada', 'Você precisa estar autenticado.', 'warning');
+            return;
+          }
+
+          try {
+            const { error } = await supabase
+              .from('service_orders')
+              .update({
+                status: 'em_costura',
+                started_date: new Date().toISOString()
+              })
+              .eq('id', id);
+
+            if (error) throw error;
+
+            showFeedback('Sucesso', `Lote ${orderNumber} em costura! (por ${loginResult.usuario.email})`, 'success');
+            carregarDados();
+          } catch (error) {
+            console.error('Erro ao iniciar costura:', error);
+            showFeedback('Erro', 'Falha ao iniciar costura.', 'error');
+          }
+        };
+
+        // ==== FINALIZAR COSTURA ====
+        window.finalizarCosturaLote = async function(id, orderNumber) {
+          // 🔒 Pede autenticação
+          const loginResult = await abrirModalLogin('finalizar costura');
+
+          if (!loginResult.success) {
+            showFeedback('Ação cancelada', 'Você precisa estar autenticado.', 'warning');
+            return;
+          }
+
+          try {
+            const { error } = await supabase
+              .from('service_orders')
+              .update({ status: 'costurado' })
+              .eq('id', id);
+
+            if (error) throw error;
+
+            showFeedback('Sucesso', `Lote ${orderNumber} finalizado! (por ${loginResult.usuario.email})`, 'success');
+            carregarDados();
+          } catch (error) {
+            console.error('Erro ao finalizar costura:', error);
+            showFeedback('Erro', 'Falha ao finalizar costura.', 'error');
+          }
+        };
+
+        // ==== CANCELAR LOTE ====
+        window.cancelarLote = async function(id, orderNumber) {
+          if (!confirm(`Cancelar o lote ${orderNumber}?`)) return;
+
+          // 🔒 Pede autenticação
+          const loginResult = await abrirModalLogin('cancelar lote');
+
+          if (!loginResult.success) {
+            showFeedback('Ação cancelada', 'Você precisa estar autenticado.', 'warning');
+            return;
+          }
+
+          try {
+            const { error } = await supabase
+              .from('service_orders')
+              .update({ status: 'cancelado' })
+              .eq('id', id);
+
+            if (error) throw error;
+
+            showFeedback('Sucesso', `Lote ${orderNumber} cancelado.`, 'success');
+            carregarDados();
+          } catch (error) {
+            console.error('Erro ao cancelar lote:', error);
+            showFeedback('Erro', 'Falha ao cancelar lote.', 'error');
+          }
+        };
+
+        // ==== EXCLUIR LOTE ====
+        window.excluirLote = async function(id, orderNumber) {
+          if (!confirm(`Excluir permanentemente o lote ${orderNumber}? Esta ação não pode ser desfeita.`)) return;
+
+          // 🔒 Pede autenticação (ação mais crítica, pede confirmação extra)
+          const loginResult = await abrirModalLogin('excluir lote permanentemente');
+
+          if (!loginResult.success) {
+            showFeedback('Ação cancelada', 'Você precisa estar autenticado.', 'warning');
+            return;
+          }
+
+          // Confirmação extra para exclusão
+          if (!confirm(`⚠️ Confirme novamente: Excluir ${orderNumber} permanentemente?`)) return;
+
+          try {
+            // Remove itens, registros de costura e envios primeiro
+            await supabase.from('service_order_items').delete().eq('service_order_id', id);
+            await supabase.from('sewing_records').delete().eq('service_order_item.service_order_id', id);
+            await supabase.from('shipments').delete().eq('service_order_id', id);
+
+            const { error } = await supabase
+              .from('service_orders')
+              .delete()
+              .eq('id', id);
+
+            if (error) throw error;
+
+            showFeedback('Sucesso', `Lote ${orderNumber} excluído por ${loginResult.usuario.email}.`, 'success');
+            carregarDados();
+          } catch (error) {
+            console.error('Erro ao excluir lote:', error);
+            showFeedback('Erro', 'Falha ao excluir lote.', 'error');
+          }
+        };
+
+        // ==== EDITAR LOTE ====
+        window.editarLote = async function(id) {
+          // Busca dados atuais
+          const { data: lote, error: fetchError } = await supabase
+            .from('service_orders')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+          if (fetchError || !lote) {
+            showFeedback('Erro', 'Lote não encontrado.', 'error');
+            return;
+          }
+
+          // 🔒 Pede autenticação
+          const loginResult = await abrirModalLogin('editar lote');
+
+          if (!loginResult.success) {
+            showFeedback('Ação cancelada', 'Você precisa estar autenticado.', 'warning');
+            return;
+          }
+
+          const html = `
+            <div style="display: grid; gap: 12px;">
+              <h4 style="color: var(--gold-light);">Editar Lote ${lote.order_number}</h4>
+              <div class="form-group">
+                <label>Produto</label>
+                <input id="editLoteProduto" class="form-input" value="${lote.product_description || ''}">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                  <label>Quantidade</label>
+                  <input id="editLoteQtd" type="number" class="form-input" value="${lote.total_quantity}">
+                </div>
+                <div class="form-group">
+                  <label>Valor Unitário</label>
+                  <input id="editLotePreco" type="number" step="0.01" class="form-input" value="${lote.unit_price}">
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                  <label>Prazo Entrega</label>
+                  <input id="editLotePrazo" type="date" class="form-input" value="${lote.expected_delivery}">
+                </div>
+                <div class="form-group">
+                  <label>Status</label>
+                  <select id="editLoteStatus" class="form-select">
+                    <option value="recebido" ${lote.status === 'recebido' ? 'selected' : ''}>Recebido</option>
+                    <option value="em_costura" ${lote.status === 'em_costura' ? 'selected' : ''}>Em Costura</option>
+                    <option value="costurado" ${lote.status === 'costurado' ? 'selected' : ''}>Costurado</option>
+                    <option value="entregue" ${lote.status === 'entregue' ? 'selected' : ''}>Entregue</option>
+                    <option value="cancelado" ${lote.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Observações</label>
+                <textarea id="editLoteObs" class="form-input" rows="2">${lote.notes || ''}</textarea>
+              </div>
+              <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);">
+                <button class="btn-ghost" id="cancelarEditLote" style="padding: 8px 16px;">Cancelar</button>
+                <button class="btn-primary" id="salvarEditLote" style="padding: 8px 20px;">Salvar</button>
+              </div>
+            </div>
+          `;
+
+          openModal('Editar Lote', html);
+
+          document.getElementById('cancelarEditLote')?.addEventListener('click', () => {
+            document.getElementById('modalContainer').innerHTML = '';
+          });
+
+          document.getElementById('salvarEditLote')?.addEventListener('click', async function() {
+            const produto = document.getElementById('editLoteProduto').value.trim();
+            const qtd = parseInt(document.getElementById('editLoteQtd').value);
+            const preco = parseFloat(document.getElementById('editLotePreco').value);
+            const prazo = document.getElementById('editLotePrazo').value;
+            const status = document.getElementById('editLoteStatus').value;
+            const obs = document.getElementById('editLoteObs').value.trim() || null;
+
+            if (!produto || !qtd || !preco || !prazo) {
+              showFeedback('Erro', 'Preencha todos os campos obrigatórios.', 'error');
+              return;
+            }
+
+            const total = qtd * preco;
+
+            try {
+              const { error } = await supabase
+                .from('service_orders')
+                .update({
+                  product_description: produto,
+                  total_quantity: qtd,
+                  unit_price: preco,
+                  expected_delivery: prazo,
+                  status: status,
+                  notes: obs,
+                  total: total
+                })
+                .eq('id', id);
+
+              if (error) throw error;
+
+              document.getElementById('modalContainer').innerHTML = '';
+              showFeedback('Sucesso', `Lote ${lote.order_number} atualizado por ${loginResult.usuario.email}!`, 'success');
+              carregarDados();
+            } catch (error) {
+              console.error('Erro ao editar lote:', error);
+              showFeedback('Erro', 'Falha ao editar lote: ' + error.message, 'error');
+            }
+          });
+        };
+
+        // ============================================================
+        // ABRIR MODAL CONTA (FINANCEIRO - MODO LEITURA)
+        // ============================================================
+        window.abrirModalConta = function (id) {
+          const evento = dados.eventosFinanceiros?.find((e) => e.id === id);
+          if (!evento) {
+            showFeedback('Erro', 'Conta não encontrada.', 'error');
+            return;
+          }
+
+          const isPagar = evento.tipo === 'pagar';
+          const vencido =
+            evento.status === 'pendente' &&
+            new Date(evento.vencimento) < new Date();
+          const pago = evento.status === 'pago' || evento.status === 'recebido';
+
+          let statusText = '';
+          let statusColor = '';
+          if (pago) {
+            statusText = '✅ Pago';
+            statusColor = 'var(--success)';
+          } else if (vencido) {
+            statusText = '🔴 Vencido';
+            statusColor = 'var(--error)';
+          } else {
+            statusText = '🟡 Pendente';
+            statusColor = 'var(--warning)';
+          }
+
+          let parcelasHtml = '';
+          if (evento.isParcela && evento.parcela_original) {
+            parcelasHtml = `
+                        <div class="info-row"><span class="label">Parcela</span><span class="value">${evento.numero_parcela}/${evento.total_parcelas}</span></div>
+                        ${evento.interest_paid ? `<div class="info-row"><span class="label">Juros pagos</span><span class="value">${formatCurrency(evento.interest_paid)}</span></div>` : ""}
+                        ${evento.late_fee_paid ? `<div class="info-row"><span class="label">Multa paga</span><span class="value">${formatCurrency(evento.late_fee_paid)}</span></div>` : ""}
+                    `;
+          }
+
+          const html = `
+                    <div style="margin-bottom:16px;">
+                        <h3 style="font-size:1.1rem;color:var(--gold-light);">${evento.descricao}</h3>
+                        <p style="color:var(--gray);font-size:0.85rem;">${evento.categoria || "Sem categoria"}</p>
+                        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
+                    </div>
+                    <div class="info-row"><span class="label">Valor</span><span class="value gold">${formatCurrency(evento.valor)}</span></div>
+                    <div class="info-row"><span class="label">Vencimento</span><span class="value">${formatDate(evento.vencimento)}</span></div>
+                    <div class="info-row"><span class="label">Tipo</span><span class="value ${isPagar ? 'danger' : 'success'}">${isPagar ? 'A Pagar' : 'A Receber'}</span></div>
+                    ${evento.payment_method ? `<div class="info-row"><span class="label">Forma de Pagamento</span><span class="value">${evento.payment_method}</span></div>` : ""}
+                    ${parcelasHtml}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${evento.id}</div>
+                    </div>
+                `;
+
+          openModal('Detalhes da Conta', html);
+        };
+
+        // ============================================================
+        // ABRIR MODAL FUNCIONÁRIO (RH - MODO LEITURA)
+        // ============================================================
+        function abrirModalFuncionario(func, ferias) {
+          const emFerias = (ferias || []).find(
+            (f) => f.employee_id === func.id,
+          );
+          const fotoHtml = func.photo_url
+            ? `<img src="${func.photo_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">`
+            : `<div style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--pink-dark),var(--gold-dark));color:#fff;">${getInitials(func.full_name)}</div>`;
+
+          let feriasHtml =
+            '<div class="info-row"><span class="label">Férias</span><span class="value">Nenhuma férias em andamento</span></div>';
+          if (emFerias) {
+            const dataRetorno = getProximoDiaUtil(emFerias.end_date);
+            feriasHtml = `
+                        <div class="info-row"><span class="label">Férias</span><span class="value gold">🟡 Em andamento</span></div>
+                        <div class="info-row"><span class="label">Período</span><span class="value">${formatDate(emFerias.start_date)} a ${formatDate(emFerias.end_date)}</span></div>
+                        <div class="info-row"><span class="label">Retorno</span><span class="value success">${formatDate(dataRetorno.toISOString())}</span></div>
+                    `;
+          }
+
+          const html = `
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+                        ${fotoHtml}
+                        <div>
+                            <h3 style="font-size:1.1rem;">${func.full_name}</h3>
+                            <p style="color:var(--gold-light);font-size:0.85rem;">${func.role || "Sem função"}</p>
+                            <p style="font-size:0.75rem;color:${func.active ? 'var(--success)' : 'var(--error)'};">${func.active ? '🟢 Ativo' : '🔴 Inativo'}</p>
+                        </div>
+                    </div>
+                    <div class="info-row"><span class="label">CPF</span><span class="value">${func.cpf || "-"}</span></div>
+                    <div class="info-row"><span class="label">Celular</span><span class="value">${func.phone_cell || "-"}</span></div>
+                    <div class="info-row"><span class="label">E-mail</span><span class="value">${func.email_personal || "-"}</span></div>
+                    <div class="info-row"><span class="label">Contrato</span><span class="value">${func.contract_type === "clt" ? "CLT" : "Diarista"}</span></div>
+                    <div class="info-row"><span class="label">Salário</span><span class="value gold">${func.contract_type === "clt" ? formatCurrency(func.monthly_salary) : formatCurrency(func.daily_rate) + "/dia"}</span></div>
+                    <div class="info-row"><span class="label">Admissão</span><span class="value">${formatDate(func.admission_date)}</span></div>
+                    ${feriasHtml}
+                    ${func.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${func.notes}</span></div>` : ""}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${func.id}</div>
+                    </div>
+                `;
+
+          openModal(func.full_name, html);
+        }
+
+        // ============================================================
+        // ABRIR MODAL DÍVIDA (MODO LEITURA)
+        // ============================================================
+        function abrirModalDivida(div) {
+          const total = div.total_amount || 0;
+          const pago = div.paid_amount || 0;
+          const percentual = total > 0 ? Math.round((pago / total) * 100) : 0;
+          const restante = total - pago;
+
+          let statusText = div.status === 'quitada' ? '✅ Quitada' : '🟡 Ativa';
+          let statusColor =
+            div.status === 'quitada' ? 'var(--success)' : 'var(--gold-light)';
+
+          const html = `
+                    <div style="margin-bottom:16px;">
+                        <h3 style="font-size:1.1rem;color:var(--gold-light);">${div.credor || "Credor não informado"}</h3>
+                        <p style="color:var(--gray);font-size:0.85rem;">${div.description || "Sem descrição"}</p>
+                        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
+                    </div>
+                    <div class="info-row"><span class="label">Valor Total</span><span class="value gold">${formatCurrency(total)}</span></div>
+                    <div class="info-row"><span class="label">Valor Pago</span><span class="value success">${formatCurrency(pago)}</span></div>
+                    <div class="info-row"><span class="label">Saldo Restante</span><span class="value ${restante > 0 ? 'danger' : 'success'}">${formatCurrency(restante)}</span></div>
+                    <div class="info-row"><span class="label">Progresso</span><span class="value">${percentual}%</span></div>
+                    ${div.next_due_date ? `<div class="info-row"><span class="label">Próximo Vencimento</span><span class="value">${formatDate(div.next_due_date)}</span></div>` : ""}
+                    ${div.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${div.notes}</span></div>` : ""}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${div.id}</div>
+                    </div>
+                `;
+
+          openModal(div.credor || 'Dívida', html);
+        }
+
+        // ============================================================
+        // RENDERIZAR LISTA DE LOTES COM AÇÕES
+        // ============================================================
+        function renderizarProducao(dados) {
+          const { osAtivas, emCostura, costurados } = dados;
+
+          document.getElementById('prodEmCostura').textContent = emCostura;
+          document.getElementById('prodCosturados').textContent = costurados;
+
+          const container = document.getElementById('listaProducao');
+          document.getElementById('totalLotes').textContent = (osAtivas || []).length + ' lotes';
+
+          if (osAtivas && osAtivas.length > 0) {
+            container.innerHTML = osAtivas
+              .sort((a, b) => new Date(a.expected_delivery) - new Date(b.expected_delivery))
+              .map((os) => {
+                const cliente = os.customers?.trade_name || os.customers?.company_name || '-';
+                const atrasado = new Date(os.expected_delivery) < new Date();
+                const statusIcons = {
+                  'recebido': 'ph-inbox',
+                  'em_costura': 'ph-sewing-needle',
+                  'costurado': 'ph-check-circle',
+                  'entregue': 'ph-truck',
+                  'cancelado': 'ph-x-circle',
+                  'parcialmente_entregue': 'ph-package'
+                };
+
+                // Ações disponíveis por status
+                let botoes = '';
+                if (os.status === 'recebido') {
+                  botoes = `
+                    <button class="btn-action btn-action-primary" onclick="iniciarCosturaLote('${os.id}', '${os.order_number}')"><i class="ph ph-play"></i> Iniciar</button>
+                    <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')"><i class="ph ph-pencil-simple"></i></button>
+                    <button class="btn-action btn-action-danger" onclick="excluirLote('${os.id}', '${os.order_number}')"><i class="ph ph-trash"></i></button>
+                  `;
+                } else if (os.status === 'em_costura') {
+                  botoes = `
+                    <button class="btn-action btn-action-success" onclick="finalizarCosturaLote('${os.id}', '${os.order_number}')"><i class="ph ph-check-circle"></i> Finalizar</button>
+                    <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')"><i class="ph ph-pencil-simple"></i></button>
+                    <button class="btn-action btn-action-warning" onclick="cancelarLote('${os.id}', '${os.order_number}')"><i class="ph ph-x-circle"></i></button>
+                  `;
+                } else if (os.status === 'costurado') {
+                  botoes = `
+                    <span style="font-size: 0.6rem; color: var(--success);"><i class="ph ph-check-circle"></i> Concluído</span>
+                    <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')"><i class="ph ph-pencil-simple"></i></button>
+                    <button class="btn-action btn-action-warning" onclick="cancelarLote('${os.id}', '${os.order_number}')"><i class="ph ph-x-circle"></i></button>
+                  `;
+                } else if (os.status === 'cancelado') {
+                  botoes = `
+                    <span style="font-size: 0.6rem; color: var(--error);"><i class="ph ph-x-circle"></i> Cancelado</span>
+                    <button class="btn-action btn-action-danger" onclick="excluirLote('${os.id}', '${os.order_number}')"><i class="ph ph-trash"></i></button>
+                  `;
+                } else {
+                  botoes = `<span style="font-size: 0.6rem; color: var(--gray);">${formatStatus(os.status)}</span>`;
+                }
+
+                return `
+                  <div class="list-item ${atrasado ? 'item-vencido' : ''}" style="display: flex; flex-direction: column; align-items: stretch; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.03); gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <div style="flex: 1; min-width: 0;">
+                        <div class="item-title" style="font-size: 14px; font-weight: 600; color: ${atrasado ? 'var(--error)' : 'var(--white)'};">
+                          ${os.order_number}
+                          <span style="font-size: 0.6rem; color: var(--gray); margin-left: 6px;">
+                            <i class="ph ${statusIcons[os.status] || 'ph-circle'}"></i>
+                            ${formatStatus(os.status)}
+                          </span>
+                        </div>
+                        <div class="item-sub" style="font-size: 11px; color: var(--gray-dark); margin-top: 2px;">
+                          ${cliente} · ${os.total_quantity || 0} peças · R$ ${(os.unit_price || 0).toFixed(2)}/un
+                          ${os.expected_delivery ? ` · Entrega: ${formatDate(os.expected_delivery)}` : ''}
+                          ${atrasado ? ' ⚠️ Atrasado' : ''}
+                        </div>
+                        ${os.notes ? `<div style="font-size: 10px; color: var(--gray); margin-top: 2px;">📝 ${os.notes}</div>` : ''}
+                      </div>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
+                      ${botoes}
+                    </div>
+                  </div>
+                `;
+              })
+              .join('');
+          } else {
+            container.innerHTML = `
+              <div class="empty-state" style="text-align: center; padding: 30px 16px; color: var(--gray-dark);">
+                <i class="ph ph-factory" style="font-size: 32px; display: block; margin-bottom: 8px; color: var(--gray);"></i>
+                <p style="font-size: 13px;">Nenhum lote cadastrado</p>
+                <p style="font-size: 11px; color: var(--gray);">Clique em "Novo Lote" para começar</p>
+              </div>
+            `;
+          }
+        }
+
+        // ============================================================
+        // RENDERIZAR - ABA GERAL (DASHBOARD)
+        // ============================================================
+        function renderizarGeral(dados) {
+          const {
+            osAtivas,
+            eventosFinanceiros,
+            totalReceitas,
+            totalDespesas,
+            contasVencidas,
+            ferias,
+            dividas,
+            saldoDevedor,
+            mesRange,
+          } = dados;
+
+          const saldo = totalReceitas - totalDespesas;
+
+          const agora = new Date();
+          $("statusTime").textContent = formatTime();
+          $("statusDate").textContent = agora.toLocaleDateString("pt-BR");
+          $("headerHora").textContent = formatTime();
+          $("headerData").textContent = agora.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+
+          $("kpiEmProducao").textContent = (osAtivas || []).length;
+          $("kpiContasVencidas").textContent = contasVencidas;
+          $("kpiFerias").textContent = (ferias || []).length;
+          $("kpiSaldoMes").textContent = formatCurrency(saldo);
+          $("kpiEntregasMes").textContent =
+            osAtivas.filter((o) => o.status === "entregue").length || 0;
+          $("kpiDividasAtivas").textContent = formatCurrency(saldoDevedor);
+
+          const maxDivida = Math.max(saldoDevedor, 1000);
+          const pct = Math.min(
+            Math.round((saldoDevedor / maxDivida) * 100),
+            100,
+          );
+          const circumference = 188.5;
+          const offset = circumference - (pct / 100) * circumference;
+          const gaugeFill = document.getElementById("gaugeFill");
+          gaugeFill.style.strokeDashoffset = offset;
+          document.getElementById("gaugePercent").textContent = pct + "%";
+
+          const alertas = [];
+          if (contasVencidas > 0)
+            alertas.push({
+              prioridade: "high",
+              icone: "ph-currency-circle-dollar",
+              texto: `${contasVencidas} conta(s) vencida(s) no mês`,
+              tag: "urgente",
+            });
+          const divAtivas = (dividas || []).filter(
+            (d) => d.status !== "quitada",
+          ).length;
+          if (divAtivas > 0)
+            alertas.push({
+              prioridade: "medium",
+              icone: "ph-warning",
+              texto: `${divAtivas} dívida(s) ativa(s) em aberto`,
+              tag: "atenção",
+            });
+          if ((ferias || []).length > 0)
+            alertas.push({
+              prioridade: "medium",
+              icone: "ph-sun",
+              texto: `${ferias.length} funcionário(s) em férias`,
+              tag: "atenção",
+            });
+          if ((osAtivas || []).length === 0)
+            alertas.push({
+              prioridade: "low",
+              icone: "ph-factory",
+              texto: "Nenhuma OS em produção no mês",
+              tag: "info",
+            });
+
+          $("alertasCount").textContent = alertas.length;
+          const container = $("alertasContainer");
+          if (alertas.length === 0) {
+            container.innerHTML = `<div class="alert-item" style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:11px;">
+                            <i class="ph ph-check-circle" style="color:var(--success);font-size:14px;flex-shrink:0;"></i>
+                            <span style="flex:1;color:var(--gray);">Tudo em dia! ✅</span>
+                        </div>`;
+          } else {
+            container.innerHTML = alertas
+              .map(
+                (a) =>
+                  `<div class="alert-item" style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:11px;">
+                            <i class="ph ${a.icone}" style="color:${a.prioridade === "high" ? "var(--error)" : a.prioridade === "medium" ? "var(--warning)" : "var(--info)"};font-size:14px;flex-shrink:0;"></i>
+                            <span style="flex:1;color:var(--gray);">${a.texto}</span>
+                            <span class="alert-tag tag-${a.prioridade}" style="font-size:7px;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0;letter-spacing:0.5px;background:${a.prioridade === "high" ? "rgba(255,82,82,0.15)" : a.prioridade === "medium" ? "rgba(255,193,7,0.15)" : "rgba(66,165,245,0.15)"};color:${a.prioridade === "high" ? "var(--error)" : a.prioridade === "medium" ? "var(--warning)" : "var(--info)"};">${a.tag}</span>
+                        </div>`,
+              )
+              .join("");
+          }
+
+          const maxValor = Math.max(totalReceitas, totalDespesas, 1);
+          const pctReceita = Math.round((totalReceitas / maxValor) * 100);
+          const pctDespesa = Math.round((totalDespesas / maxValor) * 100);
+
+          document.getElementById("barReceita").style.width =
+            Math.min(pctReceita, 100) + "%";
+          document.getElementById("barDespesa").style.width =
+            Math.min(pctDespesa, 100) + "%";
+          document.getElementById("valorReceita").textContent =
+            formatCurrency(totalReceitas);
+          document.getElementById("valorDespesa").textContent =
+            formatCurrency(totalDespesas);
+          document.getElementById("saldoFinal").textContent =
+            formatCurrency(saldo);
+
+          const mesNome = new Date().toLocaleDateString("pt-BR", {
+            month: "long",
+            year: "numeric",
+          });
+          document.getElementById("resumoPeriodo").textContent = mesNome;
+        }
+
+        // ============================================================
+        // RENDERIZAR - ABA FINANCEIRO (MODO LEITURA)
+        // ============================================================
+        function renderizarFinanceiro(dados) {
+          const { eventosFinanceiros, totalPagar, totalReceber } = dados;
+
+          document.getElementById("finTotalPagar").textContent =
+            formatCurrency(totalPagar);
+          document.getElementById("finTotalReceber").textContent =
+            formatCurrency(totalReceber);
+
+          const container = document.getElementById("listaFinanceiro");
+          if (eventosFinanceiros && eventosFinanceiros.length > 0) {
+            container.innerHTML = eventosFinanceiros
+              .slice(0, 15)
+              .map((e) => {
+                const isPagar = e.tipo === "pagar";
+                const vencido =
+                  e.status === "pendente" &&
+                  new Date(e.vencimento) < new Date();
+                const pago = e.status === "pago" || e.status === "recebido";
+
+                let classeItem = "";
+                let cor = "";
+                if (pago) {
+                  classeItem = "item-pago";
+                  cor = "var(--success)";
+                } else if (vencido) {
+                  classeItem = "item-vencido";
+                  cor = "var(--error)";
+                } else {
+                  cor = "var(--white)";
+                }
+
+                const statusClass = pago
+                  ? "pago"
+                  : vencido
+                    ? "vencido"
+                    : "pendente";
+                const parcelaInfo = e.isParcela
+                  ? `Parcela ${e.numero_parcela}/${e.total_parcelas}`
+                  : "Avulsa";
+
+                return `<div class="list-item ${classeItem}" onclick="abrirModalConta('${e.id}')" style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);gap:10px;transition:var(--transition);cursor:pointer;${pago ? "border-left:3px solid var(--success);background:rgba(76,175,80,0.05);" : ""}${vencido ? "border-left:3px solid var(--error);background:rgba(255,82,82,0.05);" : ""}">
+                                    <div class="item-main" style="flex:1;min-width:0;">
+                                        <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${cor};">${e.descricao}</div>
+                                        <div class="item-sub" style="font-size:10px;color:var(--gray-dark);margin-top:1px;">${formatDate(e.vencimento)} ${e.isParcela ? `· ${parcelaInfo}` : ""}</div>
+                                    </div>
+                                    <div class="item-right" style="text-align:right;flex-shrink:0;">
+                                        <span class="item-badge badge-status-${statusClass}" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">${pago ? "✅ Pago" : vencido ? "🔴 Vencido" : "🟡 Pendente"}</span>
+                                        <div class="item-value ${isPagar ? "item-error" : "item-success"}" style="font-size:14px;font-weight:700;color:${cor};">${isPagar ? "-" : "+"}${formatCurrency(e.valor)}</div>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+          } else {
+            container.innerHTML = `<div class="empty-state" style="text-align:center;padding:24px 16px;color:var(--gray-dark);"><i class="ph ph-currency-circle-dollar" style="font-size:28px;display:block;margin-bottom:6px;color:var(--gray);"></i><p style="font-size:12px;">Nenhuma conta no mês</p></div>`;
+          }
+        }
+
+        // ============================================================
+        // RENDERIZAR - ABA RH (MODO LEITURA)
+        // ============================================================
+        function renderizarRH(dados) {
+          const { funcionarios, ferias } = dados;
+
+          const containerFerias = document.getElementById("listaRHFerias");
+          if (ferias && ferias.length > 0) {
+            containerFerias.innerHTML = ferias
+              .slice(0, 10)
+              .map((f) => {
+                const func = f.employees;
+                const dataRetorno = getProximoDiaUtil(f.end_date);
+                return `<div class="list-item" style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);gap:10px;transition:var(--transition);cursor:default;">
+                                    <div class="item-main" style="flex:1;min-width:0;">
+                                        <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${func?.full_name || "-"} 🌴</div>
+                                        <div class="item-sub" style="font-size:10px;color:var(--gray-dark);margin-top:1px;">${func?.role || "-"} · Retorno: ${formatDate(dataRetorno.toISOString())}</div>
+                                    </div>
+                                    <div class="item-right" style="text-align:right;flex-shrink:0;">
+                                        <span class="item-badge badge-status-em_costura" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">Em Gozo</span>
+                                        <div style="font-size:9px;color:var(--gray-dark);">${formatDate(f.start_date)} - ${formatDate(f.end_date)}</div>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+          } else {
+            containerFerias.innerHTML = `<div class="empty-state" style="text-align:center;padding:24px 16px;color:var(--gray-dark);"><i class="ph ph-sun" style="font-size:28px;display:block;margin-bottom:6px;color:var(--gray);"></i><p style="font-size:12px;">Nenhum funcionário em férias</p></div>`;
+          }
+
+          const containerFunc = document.getElementById("listaRHFuncionarios");
+          if (funcionarios && funcionarios.length > 0) {
+            containerFunc.innerHTML = funcionarios
+              .slice(0, 15)
+              .map((f) => {
+                const emFerias = (ferias || []).some(
+                  (ff) => ff.employee_id === f.id,
+                );
+                return `<div class="list-item ${emFerias ? "item-warning" : ""}" data-id="${f.id}" style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);gap:10px;transition:var(--transition);cursor:pointer;">
+                                    <div class="item-main" style="flex:1;min-width:0;">
+                                        <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${emFerias ? "color:var(--warning);" : ""}">${f.full_name}${emFerias ? " 🌴" : ""}</div>
+                                        <div class="item-sub" style="font-size:10px;color:var(--gray-dark);margin-top:1px;">${f.role || "-"} · ${f.contract_type === "clt" ? "CLT" : "Diarista"}</div>
+                                    </div>
+                                    <div class="item-right" style="text-align:right;flex-shrink:0;">
+                                        <span class="item-badge ${emFerias ? "badge-status-em_costura" : "badge-status-entregue"}" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">${emFerias ? "De Férias" : "Ativo"}</span>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+
+            containerFunc
+              .querySelectorAll(".list-item[data-id]")
+              .forEach((el) => {
+                el.addEventListener("click", function () {
+                  const id = this.dataset.id;
+                  const func = funcionarios.find((f) => f.id == id);
+                  if (func) abrirModalFuncionario(func, ferias);
+                });
+              });
+          } else {
+            containerFunc.innerHTML = `<div class="empty-state" style="text-align:center;padding:24px 16px;color:var(--gray-dark);"><i class="ph ph-users" style="font-size:28px;display:block;margin-bottom:6px;color:var(--gray);"></i><p style="font-size:12px;">Nenhum funcionário ativo</p></div>`;
+          }
+        }
+
+        // ============================================================
+        // RENDERIZAR - ABA DÍVIDAS (MODO LEITURA)
+        // ============================================================
+        function renderizarDividas(dados) {
+          const { dividas, totalDividas, saldoDevedor } = dados;
+
+          document.getElementById("divTotalGeral").textContent =
+            formatCurrency(totalDividas);
+          document.getElementById("divSaldoDevedor").textContent =
+            formatCurrency(saldoDevedor);
+
+          const container = document.getElementById("listaDividas");
+          if (dividas && dividas.length > 0) {
+            container.innerHTML = dividas
+              .slice(0, 15)
+              .map((d) => {
+                const total = d.total_amount || 0;
+                const pago = d.paid_amount || 0;
+                const percentual =
+                  total > 0 ? Math.round((pago / total) * 100) : 0;
+                const statusClass =
+                  d.status === "quitada" ? "quitada" : "ativa";
+                return `<div class="list-item" data-id="${d.id}" style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);gap:10px;transition:var(--transition);cursor:pointer;">
+                                    <div class="item-main" style="flex:1;min-width:0;">
+                                        <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.credor || "Credor"}</div>
+                                        <div class="item-sub" style="font-size:10px;color:var(--gray-dark);margin-top:1px;">${d.description || "-"} · ${percentual}% pago</div>
+                                    </div>
+                                    <div class="item-right" style="text-align:right;flex-shrink:0;">
+                                        <span class="item-badge badge-status-${statusClass}" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">${statusClass === "quitada" ? "✅ Quitada" : "🟡 Ativa"}</span>
+                                        <div style="font-size:9px;color:var(--gray-dark);">${formatCurrency(total - pago)} restante</div>
+                                    </div>
+                                </div>`;
+              })
+              .join("");
+
+            container.querySelectorAll(".list-item[data-id]").forEach((el) => {
+              el.addEventListener("click", function () {
+                const id = this.dataset.id;
+                const div = dividas.find((d) => d.id == id);
+                if (div) abrirModalDivida(div);
+              });
+            });
+          } else {
+            container.innerHTML = `<div class="empty-state" style="text-align:center;padding:24px 16px;color:var(--gray-dark);"><i class="ph ph-warning-circle" style="font-size:28px;display:block;margin-bottom:6px;color:var(--gray);"></i><p style="font-size:12px;">Nenhuma dívida cadastrada</p></div>`;
+          }
+        }
+
+        // ============================================================
+        // CARREGAR DADOS (TODOS DO SUPABASE)
         // ============================================================
         async function carregarDados() {
           console.log("🔄 Carregando dados do Supabase...");
@@ -1907,47 +3279,36 @@
             console.log(`📅 Mês atual: ${mesRange.mes}/${mesRange.ano}`);
 
             // ============================================================
-            // 1. PRODUÇÃO - OS do mês (mesma lógica do desktop)
+            // 1. TODAS AS ORDENS DE SERVIÇO (para produção)
             // ============================================================
             let queryOS = supabase
               .from("service_orders")
-              .select(
-                `
-                            id, order_number, product_description,
-                            total_quantity, status, expected_delivery, received_date,
-                            customers(company_name, trade_name)
-                        `,
-              )
-              .gte("received_date", mesRange.inicio)
-              .lte("received_date", mesRange.fim + "T23:59:59")
-              .not("status", "in", '("entregue","cancelado")')
-              .order("expected_delivery", { ascending: true });
+              .select(`
+                id, order_number, product_description,
+                total_quantity, unit_price, status, expected_delivery, received_date, notes,
+                customers(company_name, trade_name)
+              `)
+              .order("created_at", { ascending: false });
 
-            const { data: osAtivas, error: errOs } = await queryOS;
+            const { data: todasOS, error: errOs } = await queryOS;
             if (errOs) console.error("❌ Erro OS:", errOs);
 
-            // Contagem por status (mesma do producao.js)
-            const emCostura = (osAtivas || []).filter(
-              (o) => o.status === "em_costura",
-            ).length;
-            const costurados = (osAtivas || []).filter(
-              (o) => o.status === "costurado",
-            ).length;
+            // Filtra ativas para os cards
+            const osAtivas = (todasOS || []).filter(o => !['entregue', 'cancelado'].includes(o.status));
+            const emCostura = osAtivas.filter(o => o.status === 'em_costura').length;
+            const costurados = osAtivas.filter(o => o.status === 'costurado').length;
 
             // ============================================================
-            // 2. FINANCEIRO - MESMA LÓGICA DO financeiro.js DESKTOP
+            // 2. FINANCEIRO
             // ============================================================
-            // Buscar transações avulsas do mês
             let queryAvulsas = supabase
               .from("financial_transactions")
-              .select(
-                `
-                            id, description, amount, due_date, date, status, type,
-                            payment_method, account_id, category_id,
-                            installments, total_installments, entry_amount, notes,
-                            chart_of_accounts(id, code, name, type)
-                        `,
-              )
+              .select(`
+                id, description, amount, due_date, date, status, type,
+                payment_method, account_id, category_id,
+                installments, total_installments, entry_amount, notes,
+                chart_of_accounts(id, code, name, type)
+              `)
               .or("installments.is.null,installments.eq.false")
               .gte("due_date", mesRange.inicio)
               .lte("due_date", mesRange.fim)
@@ -1956,11 +3317,10 @@
             const { data: avulsas, error: errAvulsas } = await queryAvulsas;
             if (errAvulsas) console.error("❌ Erro avulsas:", errAvulsas);
 
-            // Buscar parcelas do período
             const { data: parcelasPeriodo, error: errParc } = await supabase
               .from("financial_installments")
               .select(
-                "transaction_id, id, numero_parcela, valor, vencimento, status, payment_date, interest_paid, late_fee_paid",
+                "transaction_id, id, numero_parcela, valor, vencimento, status, payment_date, interest_paid, late_fee_paid"
               )
               .gte("vencimento", mesRange.inicio)
               .lte("vencimento", mesRange.fim)
@@ -1969,37 +3329,29 @@
 
             const idsTransacoes = [
               ...new Set(
-                parcelasPeriodo
-                  ?.map((p) => p.transaction_id)
-                  .filter((id) => id) || [],
+                parcelasPeriodo?.map((p) => p.transaction_id).filter((id) => id) || []
               ),
             ];
 
-            // Buscar transações parceladas
             let transacoesParceladas = [];
             if (idsTransacoes.length > 0) {
               let queryParceladas = supabase
                 .from("financial_transactions")
-                .select(
-                  `
-                                id, description, amount, due_date, date, status, type,
-                                payment_method, account_id, category_id,
-                                installments, total_installments, entry_amount, notes,
-                                chart_of_accounts(id, code, name, type)
-                            `,
-                )
+                .select(`
+                  id, description, amount, due_date, date, status, type,
+                  payment_method, account_id, category_id,
+                  installments, total_installments, entry_amount, notes,
+                  chart_of_accounts(id, code, name, type)
+                `)
                 .in("id", idsTransacoes)
                 .eq("installments", true)
                 .neq("status", "cancelado");
 
-              const { data: parceladas, error: errParceladas } =
-                await queryParceladas;
-              if (errParceladas)
-                console.error("❌ Erro parceladas:", errParceladas);
+              const { data: parceladas, error: errParceladas } = await queryParceladas;
+              if (errParceladas) console.error("❌ Erro parceladas:", errParceladas);
               transacoesParceladas = parceladas || [];
             }
 
-            // Combinar transações com parcelas
             const transacoesComParcelas = [];
 
             for (const t of avulsas || []) {
@@ -2018,12 +3370,10 @@
               });
             }
 
-            // Gerar eventos (mesma função do desktop)
             const eventosFinanceiros = gerarEventosFinanceiros(
-              transacoesComParcelas,
+              transacoesComParcelas
             );
 
-            // Calcular totais (mesmo do desktop)
             let totalReceitas = 0,
               totalDespesas = 0;
             let totalPagar = 0,
@@ -2052,7 +3402,7 @@
             }
 
             // ============================================================
-            // 3. RH (mesmo do desktop)
+            // 3. RH
             // ============================================================
             const { data: funcionarios, error: errFunc } = await supabase
               .from("employees")
@@ -2064,7 +3414,7 @@
             const { data: ferias, error: errFer } = await supabase
               .from("employee_vacations")
               .select(
-                "*, employees(full_name, role, photo_url, phone_cell, email_personal)",
+                "*, employees(full_name, role, photo_url, phone_cell, email_personal)"
               )
               .eq("status", "agendada")
               .lte("start_date", hoje)
@@ -2073,7 +3423,7 @@
             if (errFer) console.error("❌ Erro férias:", errFer);
 
             // ============================================================
-            // 4. DÍVIDAS (mesmo do desktop)
+            // 4. DÍVIDAS
             // ============================================================
             const { data: dividas, error: errDiv } = await supabase
               .from("debts")
@@ -2132,7 +3482,7 @@
             $("tabBadgeRH").style.display =
               (ferias || []).length > 0 ? "flex" : "none";
             const divAtivas = (dividas || []).filter(
-              (d) => d.status !== "quitada",
+              (d) => d.status !== "quitada"
             ).length;
             $("tabBadgeDiv").textContent = divAtivas;
             $("tabBadgeDiv").style.display = divAtivas > 0 ? "flex" : "none";
@@ -2143,473 +3493,13 @@
             showFeedback(
               "Erro",
               "Falha ao carregar dados do Supabase.",
-              "error",
+              "error"
             );
           } finally {
             carregando = false;
             refreshIcon.className = "ph ph-arrows-clockwise";
             pullIndicator.classList.remove("active");
           }
-        }
-
-        // ============================================================
-        // RENDERIZAR - ABA GERAL (DASHBOARD)
-        // ============================================================
-        function renderizarGeral(dados) {
-          const {
-            osAtivas,
-            eventosFinanceiros,
-            totalReceitas,
-            totalDespesas,
-            contasVencidas,
-            ferias,
-            dividas,
-            saldoDevedor,
-            mesRange,
-          } = dados;
-
-          const saldo = totalReceitas - totalDespesas;
-
-          // Status
-          const agora = new Date();
-          $("statusTime").textContent = formatTime();
-          $("statusDate").textContent = agora.toLocaleDateString("pt-BR");
-          $("headerHora").textContent = formatTime();
-          $("headerData").textContent = formatDateShort();
-
-          // KPIs
-          $("kpiEmProducao").textContent = (osAtivas || []).length;
-          $("kpiContasVencidas").textContent = contasVencidas;
-          $("kpiFerias").textContent = (ferias || []).length;
-          $("kpiSaldoMes").textContent = formatCurrency(saldo);
-          $("kpiEntregasMes").textContent =
-            osAtivas.filter((o) => o.status === "entregue").length || 0;
-          $("kpiDividasAtivas").textContent = formatCurrency(saldoDevedor);
-
-          // Gauge - baseado no saldo devedor real
-          const maxDivida = Math.max(saldoDevedor, 1000);
-          const pct = Math.min(
-            Math.round((saldoDevedor / maxDivida) * 100),
-            100,
-          );
-          const circumference = 188.5;
-          const offset = circumference - (pct / 100) * circumference;
-          const gaugeFill = document.getElementById("gaugeFill");
-          gaugeFill.style.strokeDashoffset = offset;
-          document.getElementById("gaugePercent").textContent = pct + "%";
-
-          // Alertas - baseados nos dados reais
-          const alertas = [];
-          if (contasVencidas > 0)
-            alertas.push({
-              prioridade: "high",
-              icone: "ph-currency-circle-dollar",
-              texto: `${contasVencidas} conta(s) vencida(s) no mês`,
-              tag: "urgente",
-            });
-          const divAtivas = (dividas || []).filter(
-            (d) => d.status !== "quitada",
-          ).length;
-          if (divAtivas > 0)
-            alertas.push({
-              prioridade: "medium",
-              icone: "ph-warning",
-              texto: `${divAtivas} dívida(s) ativa(s) em aberto`,
-              tag: "atenção",
-            });
-          if ((ferias || []).length > 0)
-            alertas.push({
-              prioridade: "medium",
-              icone: "ph-sun",
-              texto: `${ferias.length} funcionário(s) em férias`,
-              tag: "atenção",
-            });
-          if ((osAtivas || []).length === 0)
-            alertas.push({
-              prioridade: "low",
-              icone: "ph-factory",
-              texto: "Nenhuma OS em produção no mês",
-              tag: "info",
-            });
-
-          $("alertasCount").textContent = alertas.length;
-          const container = $("alertasContainer");
-          if (alertas.length === 0) {
-            container.innerHTML = `<div class="alert-item"><i class="ph ph-check-circle" style="color:var(--success);"></i><span class="alert-text">Tudo em dia! ✅</span></div>`;
-          } else {
-            container.innerHTML = alertas
-              .map(
-                (a) =>
-                  `<div class="alert-item"><i class="ph ${a.icone}" style="color:${a.prioridade === "high" ? "var(--error)" : a.prioridade === "medium" ? "var(--warning)" : "var(--info)"};"></i><span class="alert-text">${a.texto}</span><span class="alert-tag tag-${a.prioridade}">${a.tag}</span></div>`,
-              )
-              .join("");
-          }
-
-          // Resumo Financeiro - barras baseadas nos valores reais
-          const maxValor = Math.max(totalReceitas, totalDespesas, 1);
-          const pctReceita = Math.round((totalReceitas / maxValor) * 100);
-          const pctDespesa = Math.round((totalDespesas / maxValor) * 100);
-
-          document.getElementById("barReceita").style.width =
-            Math.min(pctReceita, 100) + "%";
-          document.getElementById("barDespesa").style.width =
-            Math.min(pctDespesa, 100) + "%";
-          document.getElementById("valorReceita").textContent =
-            formatCurrency(totalReceitas);
-          document.getElementById("valorDespesa").textContent =
-            formatCurrency(totalDespesas);
-          document.getElementById("saldoFinal").textContent =
-            formatCurrency(saldo);
-
-          const mesNome = new Date().toLocaleDateString("pt-BR", {
-            month: "long",
-            year: "numeric",
-          });
-          document.getElementById("resumoPeriodo").textContent = mesNome;
-        }
-
-        // ============================================================
-        // RENDERIZAR - ABA PRODUÇÃO
-        // ============================================================
-        function renderizarProducao(dados) {
-          const { osAtivas, emCostura, costurados } = dados;
-
-          document.getElementById("prodEmCostura").textContent = emCostura;
-          document.getElementById("prodCosturados").textContent = costurados;
-
-          const container = document.getElementById("listaProducao");
-          if (osAtivas && osAtivas.length > 0) {
-            container.innerHTML = osAtivas
-              .slice(0, 15)
-              .map((os) => {
-                const cliente =
-                  os.customers?.trade_name || os.customers?.company_name || "-";
-                const atrasado = new Date(os.expected_delivery) < new Date();
-                return `<div class="list-item ${atrasado ? "item-vencido" : ""}">
-                                    <div class="item-main">
-                                        <div class="item-title">${os.order_number}</div>
-                                        <div class="item-sub">${cliente} · ${os.total_quantity || 0} peças</div>
-                                    </div>
-                                    <div class="item-right">
-                                        <span class="item-badge ${getStatusClass(os.status)}">${formatStatus(os.status)}</span>
-                                        <div style="font-size:9px;color:${atrasado ? "var(--error)" : "var(--gray-dark)"};">${formatDate(os.expected_delivery)}${atrasado ? " ⚠️" : ""}</div>
-                                    </div>
-                                </div>`;
-              })
-              .join("");
-          } else {
-            container.innerHTML = `<div class="empty-state"><i class="ph ph-factory"></i><p>Nenhuma OS em produção no mês</p></div>`;
-          }
-        }
-
-        // ============================================================
-        // RENDERIZAR - ABA FINANCEIRO
-        // ============================================================
-        function renderizarFinanceiro(dados) {
-          const { eventosFinanceiros, totalPagar, totalReceber } = dados;
-
-          document.getElementById("finTotalPagar").textContent =
-            formatCurrency(totalPagar);
-          document.getElementById("finTotalReceber").textContent =
-            formatCurrency(totalReceber);
-
-          const container = document.getElementById("listaFinanceiro");
-          if (eventosFinanceiros && eventosFinanceiros.length > 0) {
-            container.innerHTML = eventosFinanceiros
-              .slice(0, 15)
-              .map((e) => {
-                const isPagar = e.tipo === "pagar";
-                const vencido =
-                  e.status === "pendente" &&
-                  new Date(e.vencimento) < new Date();
-                const pago = e.status === "pago" || e.status === "recebido";
-
-                let classeItem = "";
-                let cor = "";
-                if (pago) {
-                  classeItem = "item-pago";
-                  cor = "var(--success)";
-                } else if (vencido) {
-                  classeItem = "item-vencido";
-                  cor = "var(--error)";
-                } else {
-                  cor = "var(--white)";
-                }
-
-                const statusClass = pago
-                  ? "pago"
-                  : vencido
-                    ? "vencido"
-                    : "pendente";
-                const parcelaInfo = e.isParcela
-                  ? `Parcela ${e.numero_parcela}/${e.total_parcelas}`
-                  : "Avulsa";
-
-                return `<div class="list-item ${classeItem}" onclick="abrirModalConta('${e.id}')" style="cursor:pointer;">
-                                    <div class="item-main">
-                                        <div class="item-title" style="color:${cor};">${e.descricao}</div>
-                                        <div class="item-sub">${formatDate(e.vencimento)} ${e.isParcela ? `· ${parcelaInfo}` : ""}</div>
-                                    </div>
-                                    <div class="item-right">
-                                        <span class="item-badge badge-status-${statusClass}">${pago ? "✅ Pago" : vencido ? "🔴 Vencido" : "🟡 Pendente"}</span>
-                                        <div class="item-value ${isPagar ? "item-error" : "item-success"}" style="color:${cor};">${isPagar ? "-" : "+"}${formatCurrency(e.valor)}</div>
-                                    </div>
-                                </div>`;
-              })
-              .join("");
-          } else {
-            container.innerHTML = `<div class="empty-state"><i class="ph ph-currency-circle-dollar"></i><p>Nenhuma conta no mês</p></div>`;
-          }
-        }
-
-        // ============================================================
-        // RENDERIZAR - ABA RH
-        // ============================================================
-        function renderizarRH(dados) {
-          const { funcionarios, ferias } = dados;
-
-          // Férias
-          const containerFerias = document.getElementById("listaRHFerias");
-          if (ferias && ferias.length > 0) {
-            containerFerias.innerHTML = ferias
-              .slice(0, 10)
-              .map((f) => {
-                const func = f.employees;
-                const dataRetorno = getProximoDiaUtil(f.end_date);
-                return `<div class="list-item" style="cursor:default;">
-                                    <div class="item-main">
-                                        <div class="item-title">${func?.full_name || "-"} 🌴</div>
-                                        <div class="item-sub">${func?.role || "-"} · Retorno: ${formatDate(dataRetorno.toISOString())}</div>
-                                    </div>
-                                    <div class="item-right">
-                                        <span class="item-badge badge-status-em_costura">Em Gozo</span>
-                                        <div style="font-size:9px;color:var(--gray-dark);">${formatDate(f.start_date)} - ${formatDate(f.end_date)}</div>
-                                    </div>
-                                </div>`;
-              })
-              .join("");
-          } else {
-            containerFerias.innerHTML = `<div class="empty-state"><i class="ph ph-sun"></i><p>Nenhum funcionário em férias</p></div>`;
-          }
-
-          // Funcionários ativos
-          const containerFunc = document.getElementById("listaRHFuncionarios");
-          if (funcionarios && funcionarios.length > 0) {
-            containerFunc.innerHTML = funcionarios
-              .slice(0, 15)
-              .map((f) => {
-                const emFerias = (ferias || []).some(
-                  (ff) => ff.employee_id === f.id,
-                );
-                return `<div class="list-item ${emFerias ? "item-warning" : ""}" data-id="${f.id}">
-                                    <div class="item-main">
-                                        <div class="item-title">${f.full_name}${emFerias ? " 🌴" : ""}</div>
-                                        <div class="item-sub">${f.role || "-"} · ${f.contract_type === "clt" ? "CLT" : "Diarista"}</div>
-                                    </div>
-                                    <div class="item-right">
-                                        <span class="item-badge ${emFerias ? "badge-status-em_costura" : "badge-status-entregue"}">${emFerias ? "De Férias" : "Ativo"}</span>
-                                    </div>
-                                </div>`;
-              })
-              .join("");
-
-            containerFunc
-              .querySelectorAll(".list-item[data-id]")
-              .forEach((el) => {
-                el.addEventListener("click", function () {
-                  const id = this.dataset.id;
-                  const func = funcionarios.find((f) => f.id == id);
-                  if (func) abrirModalFuncionario(func, ferias);
-                });
-              });
-          } else {
-            containerFunc.innerHTML = `<div class="empty-state"><i class="ph ph-users"></i><p>Nenhum funcionário ativo</p></div>`;
-          }
-        }
-
-        // ============================================================
-        // RENDERIZAR - ABA DÍVIDAS
-        // ============================================================
-        function renderizarDividas(dados) {
-          const { dividas, totalDividas, saldoDevedor } = dados;
-
-          document.getElementById("divTotalGeral").textContent =
-            formatCurrency(totalDividas);
-          document.getElementById("divSaldoDevedor").textContent =
-            formatCurrency(saldoDevedor);
-
-          const container = document.getElementById("listaDividas");
-          if (dividas && dividas.length > 0) {
-            container.innerHTML = dividas
-              .slice(0, 15)
-              .map((d) => {
-                const total = d.total_amount || 0;
-                const pago = d.paid_amount || 0;
-                const percentual =
-                  total > 0 ? Math.round((pago / total) * 100) : 0;
-                const statusClass =
-                  d.status === "quitada" ? "quitada" : "ativa";
-                return `<div class="list-item" data-id="${d.id}">
-                                    <div class="item-main">
-                                        <div class="item-title">${d.creditor || "Credor"}</div>
-                                        <div class="item-sub">${d.description || "-"} · ${percentual}% pago</div>
-                                    </div>
-                                    <div class="item-right">
-                                        <span class="item-badge badge-status-${statusClass}">${statusClass === "quitada" ? "✅ Quitada" : "🟡 Ativa"}</span>
-                                        <div style="font-size:9px;color:var(--gray-dark);">${formatCurrency(total - pago)} restante</div>
-                                    </div>
-                                </div>`;
-              })
-              .join("");
-
-            container.querySelectorAll(".list-item[data-id]").forEach((el) => {
-              el.addEventListener("click", function () {
-                const id = this.dataset.id;
-                const div = dividas.find((d) => d.id == id);
-                if (div) abrirModalDivida(div);
-              });
-            });
-          } else {
-            container.innerHTML = `<div class="empty-state"><i class="ph ph-warning-circle"></i><p>Nenhuma dívida cadastrada</p></div>`;
-          }
-        }
-
-        // ============================================================
-        // ABRIR MODAL CONTA (FINANCEIRO)
-        // ============================================================
-        window.abrirModalConta = function (id) {
-          const evento = dados.eventosFinanceiros?.find((e) => e.id === id);
-          if (!evento) {
-            showFeedback("Erro", "Conta não encontrada.", "error");
-            return;
-          }
-
-          const isPagar = evento.tipo === "pagar";
-          const vencido =
-            evento.status === "pendente" &&
-            new Date(evento.vencimento) < new Date();
-          const pago = evento.status === "pago" || evento.status === "recebido";
-
-          let statusText = "";
-          let statusColor = "";
-          if (pago) {
-            statusText = "✅ Pago";
-            statusColor = "var(--success)";
-          } else if (vencido) {
-            statusText = "🔴 Vencido";
-            statusColor = "var(--error)";
-          } else {
-            statusText = "🟡 Pendente";
-            statusColor = "var(--warning)";
-          }
-
-          let parcelasHtml = "";
-          if (evento.isParcela && evento.parcela_original) {
-            // Mostra detalhes da parcela
-            parcelasHtml = `
-                        <div class="info-row"><span class="label">Parcela</span><span class="value">${evento.numero_parcela}/${evento.total_parcelas}</span></div>
-                        ${evento.interest_paid ? `<div class="info-row"><span class="label">Juros pagos</span><span class="value">${formatCurrency(evento.interest_paid)}</span></div>` : ""}
-                        ${evento.late_fee_paid ? `<div class="info-row"><span class="label">Multa paga</span><span class="value">${formatCurrency(evento.late_fee_paid)}</span></div>` : ""}
-                    `;
-          }
-
-          const html = `
-                    <div style="margin-bottom:16px;">
-                        <h3 style="font-size:1.1rem;color:var(--gold-light);">${evento.descricao}</h3>
-                        <p style="color:var(--gray);font-size:0.85rem;">${evento.categoria || "Sem categoria"}</p>
-                        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
-                    </div>
-                    <div class="info-row"><span class="label">Valor</span><span class="value gold">${formatCurrency(evento.valor)}</span></div>
-                    <div class="info-row"><span class="label">Vencimento</span><span class="value">${formatDate(evento.vencimento)}</span></div>
-                    <div class="info-row"><span class="label">Tipo</span><span class="value ${isPagar ? "danger" : "success"}">${isPagar ? "A Pagar" : "A Receber"}</span></div>
-                    ${evento.payment_method ? `<div class="info-row"><span class="label">Forma de Pagamento</span><span class="value">${evento.payment_method}</span></div>` : ""}
-                    ${parcelasHtml}
-                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${evento.id}</div>
-                    </div>
-                `;
-
-          openModal("Detalhes da Conta", html);
-        };
-
-        // ============================================================
-        // ABRIR MODAL FUNCIONÁRIO
-        // ============================================================
-        function abrirModalFuncionario(func, ferias) {
-          const emFerias = (ferias || []).find(
-            (f) => f.employee_id === func.id,
-          );
-          const fotoHtml = func.photo_url
-            ? `<img src="${func.photo_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">`
-            : `<div style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--pink-dark),var(--gold-dark));color:#fff;">${getInitials(func.full_name)}</div>`;
-
-          let feriasHtml =
-            '<div class="info-row"><span class="label">Férias</span><span class="value">Nenhuma férias em andamento</span></div>';
-          if (emFerias) {
-            const dataRetorno = getProximoDiaUtil(emFerias.end_date);
-            feriasHtml = `
-                        <div class="info-row"><span class="label">Férias</span><span class="value gold">🟡 Em andamento</span></div>
-                        <div class="info-row"><span class="label">Período</span><span class="value">${formatDate(emFerias.start_date)} a ${formatDate(emFerias.end_date)}</span></div>
-                        <div class="info-row"><span class="label">Retorno</span><span class="value success">${formatDate(dataRetorno.toISOString())}</span></div>
-                    `;
-          }
-
-          const html = `
-                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);">
-                        ${fotoHtml}
-                        <div>
-                            <h3 style="font-size:1.1rem;">${func.full_name}</h3>
-                            <p style="color:var(--gold-light);font-size:0.85rem;">${func.role || "Sem função"}</p>
-                            <p style="font-size:0.75rem;color:${func.active ? "var(--success)" : "var(--error)"};">${func.active ? "🟢 Ativo" : "🔴 Inativo"}</p>
-                        </div>
-                    </div>
-                    <div class="info-row"><span class="label">CPF</span><span class="value">${func.cpf || "-"}</span></div>
-                    <div class="info-row"><span class="label">Celular</span><span class="value">${func.phone_cell || "-"}</span></div>
-                    <div class="info-row"><span class="label">E-mail</span><span class="value">${func.email_personal || "-"}</span></div>
-                    <div class="info-row"><span class="label">Contrato</span><span class="value">${func.contract_type === "clt" ? "CLT" : "Diarista"}</span></div>
-                    <div class="info-row"><span class="label">Salário</span><span class="value gold">${func.contract_type === "clt" ? formatCurrency(func.monthly_salary) : formatCurrency(func.daily_rate) + "/dia"}</span></div>
-                    <div class="info-row"><span class="label">Admissão</span><span class="value">${formatDate(func.admission_date)}</span></div>
-                    ${feriasHtml}
-                    ${func.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${func.notes}</span></div>` : ""}
-                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${func.id}</div>
-                    </div>
-                `;
-
-          openModal(func.full_name, html);
-        }
-
-        // ============================================================
-        // ABRIR MODAL DÍVIDA
-        // ============================================================
-        function abrirModalDivida(div) {
-          const total = div.total_amount || 0;
-          const pago = div.paid_amount || 0;
-          const percentual = total > 0 ? Math.round((pago / total) * 100) : 0;
-          const restante = total - pago;
-
-          let statusText = div.status === "quitada" ? "✅ Quitada" : "🟡 Ativa";
-          let statusColor =
-            div.status === "quitada" ? "var(--success)" : "var(--gold-light)";
-
-          const html = `
-                    <div style="margin-bottom:16px;">
-                        <h3 style="font-size:1.1rem;color:var(--gold-light);">${div.credor || "Credor não informado"}</h3>
-                        <p style="color:var(--gray);font-size:0.85rem;">${div.description || "Sem descrição"}</p>
-                        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
-                    </div>
-                    <div class="info-row"><span class="label">Valor Total</span><span class="value gold">${formatCurrency(total)}</span></div>
-                    <div class="info-row"><span class="label">Valor Pago</span><span class="value success">${formatCurrency(pago)}</span></div>
-                    <div class="info-row"><span class="label">Saldo Restante</span><span class="value ${restante > 0 ? "danger" : "success"}">${formatCurrency(restante)}</span></div>
-                    <div class="info-row"><span class="label">Progresso</span><span class="value">${percentual}%</span></div>
-                    ${div.next_due_date ? `<div class="info-row"><span class="label">Próximo Vencimento</span><span class="value">${formatDate(div.next_due_date)}</span></div>` : ""}
-                    ${div.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${div.notes}</span></div>` : ""}
-                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${div.id}</div>
-                    </div>
-                `;
-
-          openModal(div.credor || "Dívida", html);
         }
 
         // ============================================================
@@ -2667,7 +3557,7 @@
               touchMoved = false;
             }
           },
-          { passive: true },
+          { passive: true }
         );
         appContent.addEventListener(
           "touchmove",
@@ -2688,7 +3578,7 @@
               }
             }
           },
-          { passive: true },
+          { passive: true }
         );
         appContent.addEventListener(
           "touchend",
@@ -2697,13 +3587,13 @@
               pullIndicator.innerHTML =
                 '<i class="ph ph-spinner spinning"></i> Atualizando...';
               carregarDados().then(() =>
-                pullIndicator.classList.remove("active"),
+                pullIndicator.classList.remove("active")
               );
             }
             touchStartY = 0;
             touchMoved = false;
           },
-          { passive: true },
+          { passive: true }
         );
 
         // ============================================================
@@ -2715,6 +3605,8 @@
         // INICIALIZAÇÃO
         // ============================================================
         document.addEventListener("DOMContentLoaded", async function () {
+          // Tenta carregar sessão existente
+          carregarSessao();
           mostrarAba("geral");
           await carregarDados();
           setInterval(carregarDados, 60000);
@@ -2723,10 +3615,11 @@
         window.carregarDados = carregarDados;
         window.mostrarAba = mostrarAba;
         window.abrirModalConta = window.abrirModalConta;
-        console.log(
-          "✅ App do Gestor - Redesign com abas funcionais (SEM MOCK) pronto!",
-        );
-        console.log("💡 Todos os dados vêm diretamente do Supabase");
+        window.iniciarCosturaLote = window.iniciarCosturaLote;
+        window.finalizarCosturaLote = window.finalizarCosturaLote;
+        window.cancelarLote = window.cancelarLote;
+        window.excluirLote = window.excluirLote;
+        window.editarLote = window.editarLote;
       })();
     </script>
   </body>
