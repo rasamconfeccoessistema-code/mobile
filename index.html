@@ -2110,7 +2110,7 @@
         </div>
 
         <!-- ============================================================
-            ABA: RH - MODO LEITURA COM VISUAL PREMIUM
+            ABA: RH - MODO LEITURA COM VISUAL PREMIUM (SEM PONTO)
             ============================================================ -->
         <div class="tab-content" id="tab-rh">
           <div class="tab-section-title">
@@ -2128,20 +2128,6 @@
               <div class="kpi-label">Em Férias</div>
               <div class="kpi-value warning" id="rhEmFerias">-</div>
               <div class="kpi-detail">funcionários</div>
-            </div>
-          </div>
-
-          <!-- Cards adicionais: Presentes Hoje e Ausentes -->
-          <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
-            <div class="kpi-card">
-              <div class="kpi-label">✅ Presentes Hoje</div>
-              <div class="kpi-value success" id="rhPresentesHoje">-</div>
-              <div class="kpi-detail">com ponto registrado</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">❌ Ausentes Hoje</div>
-              <div class="kpi-value danger" id="rhAusentesHoje">-</div>
-              <div class="kpi-detail">sem ponto</div>
             </div>
           </div>
 
@@ -2309,7 +2295,7 @@
       (function () {
         "use strict";
 
-        console.log("🚀 App do Gestor - Redesign Premium completo");
+        console.log("🚀 App do Gestor - Redesign Premium completo (RH sem ponto)");
 
         // ============================================================
         // SUPABASE
@@ -3398,9 +3384,6 @@
                   botoes = `<span style="font-size: 0.6rem; color: var(--gray);">${formatStatus(os.status)}</span>`;
                 }
 
-                // Barra de progresso visual
-                const progresso = os.total_quantity > 0 ? Math.round((os.total_quantity / os.total_quantity) * 100) : 0;
-
                 return `
                   <div class="list-item ${atrasado ? 'item-vencido' : ''}" style="display: flex; flex-direction: column; align-items: stretch; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.03); gap: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -3638,7 +3621,7 @@
         }
 
         // ============================================================
-        // RENDERIZAR - ABA RH (MODO LEITURA)
+        // RENDERIZAR - ABA RH (MODO LEITURA - SEM PONTO)
         // ============================================================
         function renderizarRH(dados) {
           const { funcionarios, ferias } = dados;
@@ -3646,33 +3629,8 @@
           const totalFuncionarios = funcionarios?.length || 0;
           const emFerias = ferias?.length || 0;
 
-          // Calcular presentes e ausentes hoje
-          const hoje = todayISO();
-          let presentesHoje = 0;
-          let ausentesHoje = 0;
-
           document.getElementById('rhTotalFuncionarios').textContent = totalFuncionarios;
           document.getElementById('rhEmFerias').textContent = emFerias;
-
-          // Buscar pontos de hoje para calcular presença
-          (async () => {
-            try {
-              const { data: pontosHoje } = await supabase
-                .from('time_tracking')
-                .select('employee_id')
-                .gte('check_in', hoje)
-                .lte('check_in', hoje + 'T23:59:59');
-
-              const idsComPonto = new Set(pontosHoje?.map(p => p.employee_id) || []);
-              presentesHoje = idsComPonto.size;
-              ausentesHoje = totalFuncionarios - presentesHoje - emFerias;
-
-              document.getElementById('rhPresentesHoje').textContent = Math.max(0, presentesHoje);
-              document.getElementById('rhAusentesHoje').textContent = Math.max(0, ausentesHoje);
-            } catch (e) {
-              console.error('Erro ao buscar pontos:', e);
-            }
-          })();
 
           const containerFerias = document.getElementById("listaRHFerias");
           document.getElementById("totalFerias").textContent = (ferias || []).length + ' registros';
@@ -4146,6 +4104,7 @@
         window.cancelarLote = window.cancelarLote;
         window.excluirLote = window.excluirLote;
         window.editarLote = window.editarLote;
+
       })();
     </script>
   </body>
