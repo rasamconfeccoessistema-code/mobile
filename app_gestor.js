@@ -1,13 +1,13 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // JavaScript completo para o aplicativo do gestor
-// VERSÃO 2.3 - CORREÇÃO: account_id OBRIGATÓRIO
+// VERSÃO 2.7 - MELHORIAS VISUAIS V4 (MENU COMPLETO, CLIENTE NO EDIT)
 // ============================================================
 
 (function () {
   "use strict";
 
-  console.log("🚀 App do Gestor - Versão 2.3 com correção");
+  console.log("🚀 App do Gestor - Versão 2.7 com melhorias visuais V4");
 
   // ============================================================
   // SUPABASE
@@ -693,8 +693,8 @@
         date: new Date().toISOString().split("T")[0],
         due_date: dueDateStr,
         status: "pendente",
-        account_id: categoriaId, // ← CAMPO OBRIGATÓRIO
-        category_id: categoriaId, // ← CAMPO OPCIONAL
+        account_id: categoriaId,
+        category_id: categoriaId,
         service_order_id: osId,
         notes: `Gerado do lote. Cliente: ${clienteNome}`,
       });
@@ -1485,21 +1485,20 @@
             });
 
             // ============================================================
-            // ✅ CORREÇÃO: CRIAR CONTA A RECEBER COM account_id OBRIGATÓRIO
+            // ✅ CRIAÇÃO DE CONTA A RECEBER COM account_id OBRIGATÓRIO
             // ============================================================
             const descricaoConta = `Lote ${orderNumber} - ${produto}`;
             await criarContaReceber(
               novaOS.id,
               total,
               descricaoConta,
-              prazo, // ← DATA DE ENTREGA como vencimento
+              prazo,
               cliente,
               "recebido",
             );
 
             document.getElementById("modalContainer").innerHTML = "";
 
-            // Melhoria #10: Feedback visual com animação
             showFeedback(
               "Sucesso",
               `Lote ${orderNumber} criado com referência ${referencia}!<br>💰 Conta a receber gerada com vencimento em ${formatDate(prazo)}.`,
@@ -1794,11 +1793,11 @@
     }
   };
 
-  // ==== EDITAR LOTE ====
+  // ==== EDITAR LOTE (COM CLIENTE CORRETO) ====
   window.editarLote = async function (id) {
     const { data: lote, error: fetchError } = await supabase
       .from("service_orders")
-      .select("*")
+      .select("*, customers(company_name, trade_name)")
       .eq("id", id)
       .single();
 
@@ -1818,12 +1817,20 @@
       return;
     }
 
+    // ============================================================
+    // ✅ NOME DO CLIENTE
+    // ============================================================
+    const nomeCliente =
+      lote.customers?.trade_name ||
+      lote.customers?.company_name ||
+      "Cliente não informado";
+
     const html = `
       <div style="display: grid; gap: 10px;">
         <h4 style="color: var(--gold-light); font-size:0.9rem;">Editar Lote ${lote.order_number}</h4>
         <div class="form-group">
           <label>Cliente</label>
-          <input id="editCliente" class="form-input" value="${lote.customers?.trade_name || lote.customers?.company_name || ""}" readonly style="opacity:0.7; background:rgba(255,255,255,0.02);">
+          <input id="editCliente" class="form-input" value="${nomeCliente}" readonly style="opacity:0.7; background:rgba(255,255,255,0.02);">
         </div>
         <div class="form-group">
           <label>Produto</label>
@@ -2020,7 +2027,100 @@
   };
 
   // ============================================================
-  // RENDERIZAR LISTA DE LOTES
+  // FUNÇÃO PARA ALTERNAR MENU DE AÇÕES (GLOBAL)
+  // ============================================================
+  window.toggleMenu = function (menuId) {
+    const menu = document.getElementById(menuId);
+    if (!menu) return;
+
+    // Fecha outros menus
+    document.querySelectorAll(".dropdown-actions-menu").forEach((m) => {
+      if (m.id !== menuId) {
+        m.style.display = "none";
+      }
+    });
+
+    // Alterna o menu atual
+    const isOpen = menu.style.display === "block";
+    menu.style.display = isOpen ? "none" : "block";
+  };
+
+  // ============================================================
+  // FUNÇÕES ADICIONAIS (Enviar Revisão, Voltar Costura)
+  // ============================================================
+
+  // Enviar para Revisão
+  window.enviarRevisao = async function (id, orderNumber) {
+    if (!confirm(`Enviar o lote ${orderNumber} para revisão?`)) return;
+
+    const loginResult = await abrirModalLogin("enviar para revisão");
+
+    if (!loginResult.success) {
+      showFeedback(
+        "Ação cancelada",
+        "Você precisa estar autenticado.",
+        "warning",
+      );
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("service_orders")
+        .update({ status: "em_revisao" })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      showFeedback(
+        "Sucesso",
+        `🔍 Lote ${orderNumber} enviado para revisão.`,
+        "success",
+        () => carregarDados(),
+      );
+    } catch (error) {
+      console.error("Erro ao enviar para revisão:", error);
+      showFeedback("Erro", "Falha ao enviar para revisão.", "error");
+    }
+  };
+
+  // Voltar para Costura
+  window.voltarCostura = async function (id, orderNumber) {
+    if (!confirm(`Retornar o lote ${orderNumber} para costura?`)) return;
+
+    const loginResult = await abrirModalLogin("voltar para costura");
+
+    if (!loginResult.success) {
+      showFeedback(
+        "Ação cancelada",
+        "Você precisa estar autenticado.",
+        "warning",
+      );
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("service_orders")
+        .update({ status: "em_costura" })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      showFeedback(
+        "Sucesso",
+        `🔄 Lote ${orderNumber} voltou para costura.`,
+        "success",
+        () => carregarDados(),
+      );
+    } catch (error) {
+      console.error("Erro ao voltar para costura:", error);
+      showFeedback("Erro", "Falha ao voltar para costura.", "error");
+    }
+  };
+
+  // ============================================================
+  // RENDERIZAR LISTA DE LOTES (COM MENU DE AÇÕES COMPLETO)
   // ============================================================
   function renderizarProducao(dados) {
     const { osAtivas, emCostura, costurados } = dados;
@@ -2077,6 +2177,13 @@
           const statusColor = getStatusColor(os.status);
           const statusIcon = getStatusIcon(os.status);
 
+          // ============================================================
+          // ✅ REFERÊNCIA DO PRODUTO COMO TÍTULO PRINCIPAL COM "Ref:"
+          // ============================================================
+          const referencia =
+            os.product_reference || os.order_number || "Sem referência";
+          const orderNumber = os.order_number || "";
+
           const prog = dados.progressoMap?.[os.id] || {
             total: os.total_quantity,
             costurado: 0,
@@ -2090,7 +2197,7 @@
             prog.total > 0 ? Math.round((prog.entregue / prog.total) * 100) : 0;
 
           const progressoHtml = `
-            <div style="font-size:0.65rem; color:var(--gray); margin-top:3px;">
+            <div style="font-size:0.65rem; color:var(--gray); margin-top:4px;">
               <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
                 <span>🧵 Costurado: ${prog.costurado}/${prog.total}</span>
                 <span>📦 Entregue: ${prog.entregue}/${prog.total}</span>
@@ -2110,144 +2217,233 @@
 
           const valorTotal = os.total_quantity * os.unit_price;
 
-          let botoes = "";
+          // ============================================================
+          // ✅ BOTÕES PRINCIPAIS (visíveis)
+          // ============================================================
+          let botoesPrincipais = "";
+
           if (os.status === "recebido") {
-            botoes = `
-              <button class="btn-action btn-action-primary" onclick="iniciarCosturaLote('${os.id}', '${os.order_number}')" style="padding:6px 14px;">
-                <i class="ph ph-play"></i> Iniciar Costura
-              </button>
-              <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')" style="padding:6px 14px;">
-                <i class="ph ph-pencil-simple"></i>
-              </button>
-              <button class="btn-action btn-action-ghost" onclick="visualizarLote('${os.id}')" style="padding:6px 14px;">
-                <i class="ph ph-eye"></i>
-              </button>
-              <button class="btn-action btn-action-danger" onclick="excluirLote('${os.id}', '${os.order_number}')" style="padding:6px 14px;">
-                <i class="ph ph-trash"></i>
+            botoesPrincipais = `
+              <button class="btn-action btn-action-primary" onclick="event.stopPropagation(); iniciarCosturaLote('${os.id}', '${os.order_number}')" style="padding:6px 14px; font-size:0.65rem;">
+                <i class="ph ph-play"></i> Iniciar
               </button>
             `;
           } else if (os.status === "em_costura") {
             const pctText =
               percentCosturado > 0 ? ` (${percentCosturado}%)` : "";
-            botoes = `
-              <button class="btn-action btn-action-ghost" onclick="registrarCosturaParcial('${os.id}')" style="padding:6px 14px;">
+            botoesPrincipais = `
+              <button class="btn-action btn-action-ghost" onclick="event.stopPropagation(); registrarCosturaParcial('${os.id}')" style="padding:6px 14px; font-size:0.65rem;">
                 <i class="ph ph-thread"></i> Registrar
               </button>
-              <button class="btn-action btn-action-success" onclick="finalizarCosturaLote('${os.id}', '${os.order_number}')" style="padding:6px 14px;">
+              <button class="btn-action btn-action-success" onclick="event.stopPropagation(); finalizarCosturaLote('${os.id}', '${os.order_number}')" style="padding:6px 14px; font-size:0.65rem;">
                 <i class="ph ph-check-circle"></i> Finalizar${pctText}
-              </button>
-              <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')" style="padding:6px 14px;">
-                <i class="ph ph-pencil-simple"></i>
-              </button>
-              <button class="btn-action btn-action-ghost" onclick="visualizarLote('${os.id}')" style="padding:6px 14px;">
-                <i class="ph ph-eye"></i>
-              </button>
-              <button class="btn-action btn-action-warning" onclick="cancelarLote('${os.id}', '${os.order_number}')" style="padding:6px 14px;">
-                <i class="ph ph-x-circle"></i>
               </button>
             `;
           } else if (os.status === "costurado") {
-            botoes = `
-              <button class="btn-action btn-action-success" onclick="marcarEntregue('${os.id}', '${os.order_number}')" style="padding:6px 14px;">
+            botoesPrincipais = `
+              <button class="btn-action btn-action-success" onclick="event.stopPropagation(); marcarEntregue('${os.id}', '${os.order_number}')" style="padding:6px 14px; font-size:0.65rem;">
                 <i class="ph ph-truck"></i> Entregar
-              </button>
-              <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')" style="padding:6px 14px;">
-                <i class="ph ph-pencil-simple"></i>
-              </button>
-              <button class="btn-action btn-action-ghost" onclick="visualizarLote('${os.id}')" style="padding:6px 14px;">
-                <i class="ph ph-eye"></i>
-              </button>
-              <button class="btn-action btn-action-warning" onclick="cancelarLote('${os.id}', '${os.order_number}')" style="padding:6px 14px;">
-                <i class="ph ph-x-circle"></i>
               </button>
             `;
           } else if (os.status === "entregue") {
             if (paymentStatus === "pendente") {
               const totalPendente = valorTotal;
-              botoes = `
-                <button class="btn-action btn-action-payment" onclick="marcarPago('${os.id}', '${os.order_number}')" style="padding:6px 14px; background:rgba(76,175,80,0.2); color:#a5d6a7; border:1px solid rgba(76,175,80,0.3);">
+              botoesPrincipais = `
+                <button class="btn-action btn-action-payment" onclick="event.stopPropagation(); marcarPago('${os.id}', '${os.order_number}')" style="padding:6px 14px; font-size:0.65rem; background:rgba(76,175,80,0.2); color:#a5d6a7; border:1px solid rgba(76,175,80,0.3);">
                   <i class="ph ph-currency-dollar"></i> Receber R$ ${formatCurrency(totalPendente)}
-                </button>
-                <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')" style="padding:6px 14px;">
-                  <i class="ph ph-pencil-simple"></i>
-                </button>
-                <button class="btn-action btn-action-ghost" onclick="visualizarLote('${os.id}')" style="padding:6px 14px;">
-                  <i class="ph ph-eye"></i>
                 </button>
               `;
             } else {
-              botoes = `
+              botoesPrincipais = `
                 <span style="font-size:0.65rem; color:var(--success); padding:4px 12px; background:rgba(76,175,80,0.1); border-radius:20px;">
                   <i class="ph ph-check-circle"></i> Recebido
                 </span>
-                <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')" style="padding:6px 14px;">
-                  <i class="ph ph-pencil-simple"></i>
-                </button>
-                <button class="btn-action btn-action-ghost" onclick="visualizarLote('${os.id}')" style="padding:6px 14px;">
-                  <i class="ph ph-eye"></i>
-                </button>
               `;
             }
           } else if (os.status === "cancelado") {
-            botoes = `
+            botoesPrincipais = `
               <span style="font-size:0.65rem; color:var(--error); padding:4px 12px; background:rgba(255,82,82,0.1); border-radius:20px;">
                 <i class="ph ph-x-circle"></i> Cancelado
               </span>
-              <button class="btn-action btn-action-ghost" onclick="visualizarLote('${os.id}')" style="padding:6px 14px;">
-                <i class="ph ph-eye"></i>
-              </button>
-              <button class="btn-action btn-action-danger" onclick="excluirLote('${os.id}', '${os.order_number}')" style="padding:6px 14px;">
-                <i class="ph ph-trash"></i>
-              </button>
             `;
           } else {
-            botoes = `<span style="font-size:0.65rem; color:var(--gray);">${formatStatus(os.status)}</span>`;
+            botoesPrincipais = `<span style="font-size:0.65rem; color:var(--gray);">${formatStatus(os.status)}</span>`;
           }
 
-          const referencia = os.product_reference
-            ? ` · Ref: ${os.product_reference}`
-            : "";
+          // ============================================================
+          // ✅ MENU DE AÇÕES COMPLETO (como no desktop)
+          // ============================================================
+          let menuItems = "";
 
+          // Visualizar (sempre)
+          menuItems += `
+            <a href="#" class="action-item action-view" onclick="event.stopPropagation(); visualizarLote('${os.id}')" style="padding:6px 12px; font-size:0.7rem;">
+              <i class="ph ph-eye"></i> Visualizar
+            </a>
+          `;
+
+          // Editar (sempre)
+          menuItems += `
+            <a href="#" class="action-item action-edit" onclick="event.stopPropagation(); editarLote('${os.id}')" style="padding:6px 12px; font-size:0.7rem;">
+              <i class="ph ph-pencil-simple"></i> Editar
+            </a>
+          `;
+
+          // Ações específicas por status
+          if (os.status === "recebido") {
+            menuItems += `
+              <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
+              <a href="#" class="action-item action-start" onclick="event.stopPropagation(); iniciarCosturaLote('${os.id}', '${os.order_number}')" style="padding:6px 12px; font-size:0.7rem;">
+                <i class="ph ph-play"></i> Iniciar Costura
+              </a>
+            `;
+          } else if (os.status === "em_costura") {
+            menuItems += `
+              <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
+              <a href="#" class="action-item action-register" onclick="event.stopPropagation(); registrarCosturaParcial('${os.id}')" style="padding:6px 12px; font-size:0.7rem;">
+                <i class="ph ph-thread"></i> Registrar Costura
+              </a>
+              <a href="#" class="action-item action-finish" onclick="event.stopPropagation(); finalizarCosturaLote('${os.id}', '${os.order_number}')" style="padding:6px 12px; font-size:0.7rem;">
+                <i class="ph ph-check-circle"></i> Finalizar Costura
+              </a>
+            `;
+          } else if (os.status === "costurado") {
+            menuItems += `
+              <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
+              <a href="#" class="action-item action-deliver" onclick="event.stopPropagation(); marcarEntregue('${os.id}', '${os.order_number}')" style="padding:6px 12px; font-size:0.7rem;">
+                <i class="ph ph-truck"></i> Marcar como Entregue
+              </a>
+              <a href="#" class="action-item action-review" onclick="event.stopPropagation(); enviarRevisao('${os.id}', '${os.order_number}')" style="padding:6px 12px; font-size:0.7rem;">
+                <i class="ph ph-warning-circle"></i> Enviar para Revisão
+              </a>
+              <a href="#" class="action-item action-back" onclick="event.stopPropagation(); voltarCostura('${os.id}', '${os.order_number}')" style="padding:6px 12px; font-size:0.7rem;">
+                <i class="ph ph-arrow-u-up-left"></i> Voltar para Costura
+              </a>
+            `;
+          } else if (os.status === "em_revisao") {
+            menuItems += `
+              <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
+              <a href="#" class="action-item action-back" onclick="event.stopPropagation(); voltarCostura('${os.id}', '${os.order_number}')" style="padding:6px 12px; font-size:0.7rem;">
+                <i class="ph ph-arrow-u-up-left"></i> Voltar para Costura
+              </a>
+            `;
+          } else if (os.status === "entregue") {
+            if (paymentStatus === "pendente") {
+              menuItems += `
+                <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
+                <a href="#" class="action-item action-finish" onclick="event.stopPropagation(); marcarPago('${os.id}', '${os.order_number}')" style="padding:6px 12px; font-size:0.7rem;">
+                  <i class="ph ph-currency-dollar"></i> Marcar como Pago
+                </a>
+              `;
+            }
+          }
+
+          // Cancelar (sempre, exceto se já cancelado)
+          if (os.status !== "cancelado") {
+            menuItems += `
+              <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
+              <a href="#" class="action-item action-cancel" onclick="event.stopPropagation(); cancelarLote('${os.id}', '${os.order_number}')" style="padding:6px 12px; font-size:0.7rem;">
+                <i class="ph ph-x-circle"></i> Cancelar Lote
+              </a>
+            `;
+          }
+
+          // Excluir (sempre)
+          menuItems += `
+            <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
+            <a href="#" class="action-item action-delete" onclick="event.stopPropagation(); excluirLote('${os.id}', '${os.order_number}')" style="padding:6px 12px; font-size:0.7rem;">
+              <i class="ph ph-trash"></i> Excluir
+            </a>
+          `;
+
+          const menuId = `menu-prod-${os.id}`;
           const borderColor = atrasado ? "#ff5252" : statusColor;
           const bgColor = atrasado
             ? "rgba(255,82,82,0.05)"
             : "rgba(255,255,255,0.02)";
 
+          // ============================================================
+          // ✅ CARD COMPLETO
+          // ============================================================
           return `
             <div class="list-item ${atrasado ? "item-vencido" : ""}" 
                  data-id="${os.id}"
-                 style="display: flex; flex-direction: column; align-items: stretch; padding: 12px 14px; 
-                        border-bottom: 1px solid rgba(255,255,255,0.03); gap: 8px;
-                        border-left: 4px solid ${borderColor};
-                        background: ${bgColor};">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 6px;">
+                 style="
+                   display: flex; 
+                   flex-direction: column; 
+                   padding: 16px 18px; 
+                   margin-bottom: 14px;
+                   border-radius: 12px;
+                   border: 1px solid rgba(255,255,255,0.06);
+                   border-left: 4px solid ${borderColor};
+                   background: ${bgColor};
+                   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                   transition: all 0.25s ease;
+                   cursor: pointer;
+                 "
+                 onmouseenter="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.3)'; this.style.transform='translateY(-2px)';"
+                 onmouseleave="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)'; this.style.transform='translateY(0)';"
+                 onclick="visualizarLote('${os.id}')"
+                 >
+              
+              <!-- CABEÇALHO COM REFERÊNCIA EM DESTAQUE -->
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 6px; margin-bottom: 4px;">
                 <div style="flex: 1; min-width: 0;">
-                  <div class="item-title" style="font-size: 14px; font-weight: 600; color: ${atrasado ? "var(--error)" : "var(--white)"}; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                    <i class="ph ${statusIcon}" style="color: ${statusColor};"></i>
-                    ${os.order_number}
-                    <span style="font-size:0.6rem; color:${statusColor}; background:${statusColor}22; padding:2px 10px; border-radius:12px; border:1px solid ${statusColor}44;">
+                  <!-- Referência do Produto (TÍTULO PRINCIPAL) -->
+                  <div style="font-size: 17px; font-weight: 700; color: ${atrasado ? "var(--error)" : "var(--gold-light)"}; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <i class="ph ${statusIcon}" style="color: ${statusColor}; font-size: 18px;"></i>
+                    <span>Ref: ${referencia}</span>
+                    
+                    <!-- Badge de Status -->
+                    <span style="font-size:0.55rem; color:${statusColor}; background:${statusColor}22; padding:2px 10px; border-radius:20px; border:1px solid ${statusColor}44; font-weight:600;">
                       ${formatStatus(os.status)}
                     </span>
-                    <span style="font-size:0.6rem; color:${paymentInfo.color}; background:${paymentInfo.bg}; padding:2px 10px; border-radius:12px; border:${paymentInfo.border};">
+                    
+                    <!-- Badge de Pagamento -->
+                    <span style="font-size:0.55rem; color:${paymentInfo.color}; background:${paymentInfo.bg}; padding:2px 10px; border-radius:20px; border:${paymentInfo.border}; font-weight:600;">
                       <i class="ph ${paymentInfo.icon}"></i> ${paymentInfo.label}
                     </span>
                   </div>
-                  <div class="item-sub" style="font-size: 10px; color: var(--gray-dark); margin-top: 2px;">
-                    ${cliente} · ${os.total_quantity || 0} peças · ${formatCurrency(os.unit_price || 0)}/un${referencia}
-                    ${os.expected_delivery ? ` · 📅 Entrega: ${formatDate(os.expected_delivery)}` : ""}
-                    ${atrasado ? ` ⚠️ Atrasado` : ""}
+                  
+                  <!-- Informações secundárias (OS, Cliente, etc.) -->
+                  <div style="font-size: 11px; color: var(--gray-dark); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 4px 14px;">
+                    <span><i class="ph ph-files"></i> OS: ${orderNumber}</span>
+                    <span><i class="ph ph-user"></i> ${cliente}</span>
+                    <span><i class="ph ph-package"></i> ${os.total_quantity || 0} peças</span>
+                    <span><i class="ph ph-currency-circle-dollar"></i> ${formatCurrency(os.unit_price || 0)}/un</span>
+                    ${os.expected_delivery ? ` <span><i class="ph ph-calendar"></i> Entrega: ${formatDate(os.expected_delivery)}</span>` : ""}
+                    ${atrasado ? ` <span style="color:var(--error);"><i class="ph ph-warning"></i> Atrasado</span>` : ""}
                   </div>
-                  ${progressoHtml}
-                  <div style="font-size:0.6rem; color:var(--gray-dark); margin-top:3px; display:flex; gap:12px; flex-wrap:wrap;">
-                    <span>💰 Total: ${formatCurrency(valorTotal)}</span>
-                    ${paymentStatus === "pago" && os.payment_date ? ` · 📅 Pago em: ${formatDate(os.payment_date)}` : ""}
-                    ${paymentStatus === "pendente" && os.status === "entregue" ? ` · ⏳ Aguardando pagamento` : ""}
-                  </div>
-                  ${os.notes ? `<div style="font-size:0.55rem; color:var(--gray); margin-top:2px;">📝 ${os.notes}</div>` : ""}
                 </div>
               </div>
-              <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-top: 4px;">
-                ${botoes}
+
+              <!-- PROGRESSO -->
+              ${progressoHtml}
+
+              <!-- INFORMAÇÕES FINANCEIRAS -->
+              <div style="font-size:0.6rem; color:var(--gray-dark); margin-top:6px; display:flex; gap:16px; flex-wrap:wrap; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 8px;">
+                <span><strong>💰 Total:</strong> ${formatCurrency(valorTotal)}</span>
+                ${paymentStatus === "pago" && os.payment_date ? ` · <span><strong>📅 Pago em:</strong> ${formatDate(os.payment_date)}</span>` : ""}
+                ${paymentStatus === "pendente" && os.status === "entregue" ? ` · <span style="color:var(--warning);"><i class="ph ph-clock"></i> Aguardando pagamento</span>` : ""}
+                ${os.notes ? ` · <span><i class="ph ph-note"></i> ${os.notes}</span>` : ""}
+              </div>
+
+              <!-- BOTÕES DE AÇÃO -->
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px; align-items: center;">
+                <!-- Botões Principais -->
+                ${botoesPrincipais}
+                
+                <!-- Menu de Ações Completo (engrenagem) -->
+                <div style="position:relative; display:inline-block;">
+                  <button class="btn-action btn-action-ghost" 
+                          style="padding:4px 10px; font-size:0.65rem; border-radius:8px;"
+                          onclick="event.stopPropagation(); window.toggleMenu('${menuId}')">
+                    <i class="ph ph-gear-six"></i>
+                  </button>
+                  <div id="${menuId}" class="dropdown-actions-menu" style="display:none; position:absolute; bottom:100%; right:0; margin-bottom:4px; min-width:200px; background:var(--black-medium); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:4px; z-index:100; max-height:300px; overflow-y:auto;">
+                    ${menuItems}
+                  </div>
+                </div>
               </div>
             </div>
           `;
@@ -2255,14 +2451,28 @@
         .join("");
     } else {
       container.innerHTML = `
-        <div class="empty-state" style="text-align: center; padding: 30px 16px; color: var(--gray-dark);">
-          <i class="ph ph-factory" style="font-size: 32px; display: block; margin-bottom: 8px; color: var(--gray);"></i>
-          <p style="font-size: 13px;">Nenhum lote cadastrado</p>
-          <p style="font-size: 11px; color: var(--gray);">Clique em "Novo Lote" para começar</p>
+        <div class="empty-state" style="text-align: center; padding: 40px 16px; color: var(--gray-dark);">
+          <i class="ph ph-factory" style="font-size: 40px; display: block; margin-bottom: 12px; color: var(--gray);"></i>
+          <p style="font-size: 15px; font-weight: 500;">Nenhum lote cadastrado</p>
+          <p style="font-size: 12px; color: var(--gray); margin-top: 4px;">Clique em "Novo Lote" para começar</p>
         </div>
       `;
     }
   }
+
+  // ============================================================
+  // FECHA MENUS AO CLICAR FORA (GLOBAL)
+  // ============================================================
+  document.addEventListener("click", function (e) {
+    if (
+      !e.target.closest(".dropdown-actions-menu") &&
+      !e.target.closest(".btn-action-ghost")
+    ) {
+      document.querySelectorAll(".dropdown-actions-menu").forEach((m) => {
+        m.style.display = "none";
+      });
+    }
+  });
 
   // ============================================================
   // RENDERIZAR - ABA GERAL (DASHBOARD)
@@ -3122,4 +3332,6 @@
   window.editarLote = window.editarLote;
   window.visualizarLote = window.visualizarLote;
   window.registrarCosturaParcial = window.registrarCosturaParcial;
+  window.enviarRevisao = window.enviarRevisao;
+  window.voltarCostura = window.voltarCostura;
 })();
