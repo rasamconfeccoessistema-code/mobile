@@ -1,13 +1,13 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // JavaScript completo para o aplicativo do gestor
-// VERSÃO 2.7 - MELHORIAS VISUAIS V4 (MENU COMPLETO, CLIENTE NO EDIT)
+// VERSÃO 2.13 - FINANCEIRO COM VISÃO PREMIUM EM CARDS
 // ============================================================
 
 (function () {
   "use strict";
 
-  console.log("🚀 App do Gestor - Versão 2.7 com melhorias visuais V4");
+  console.log("🚀 App do Gestor - Versão 2.13 com Financeiro Premium em Cards");
 
   // ============================================================
   // SUPABASE
@@ -45,13 +45,14 @@
   const supabase = window.__supabaseClient;
 
   // ============================================================
-  // SISTEMA DE AUTENTICAÇÃO COM CACHE DE 5 MINUTOS
+  // SISTEMA DE AUTENTICAÇÃO COM CACHE DE 30 MINUTOS
   // ============================================================
 
-  const SESSION_DURATION = 5 * 60 * 1000; // 5 minutos em milissegundos
+  const SESSION_DURATION = 30 * 60 * 1000; // 30 minutos em milissegundos
 
   let usuarioAutenticado = null;
   let sessionTimeout = null;
+  let loginModalAberto = false;
 
   // ==== CARREGAR SESSÃO DO CACHE ====
   function carregarSessao() {
@@ -94,19 +95,65 @@
       clearTimeout(sessionTimeout);
     }
     sessionTimeout = setTimeout(() => {
-      console.log("⏰ Sessão expirada automaticamente");
+      console.log(
+        "⏰ Sessão expirada automaticamente após 30 minutos de inatividade",
+      );
       localStorage.removeItem("gestor_session");
       usuarioAutenticado = null;
       atualizarIndicadorSessao();
-      showFeedback(
-        "Sessão expirada",
-        "Sua sessão expirou após 5 minutos. Faça login novamente para ações que escrevem no banco.",
-        "info",
-      );
+
+      if (!loginModalAberto) {
+        showFeedback(
+          "Sessão expirada",
+          "Sua sessão expirou após 30 minutos de inatividade. Faça login novamente.",
+          "warning",
+          () => {
+            abrirModalLoginObrigatorio("continuar usando o app");
+          },
+        );
+      }
     }, SESSION_DURATION);
 
-    console.log(`💾 Sessão salva para: ${usuario.email} (expira em 5 minutos)`);
+    console.log(
+      `💾 Sessão salva para: ${usuario.email} (expira em 30 minutos)`,
+    );
     atualizarIndicadorSessao();
+  }
+
+  // ==== RENOVAR SESSÃO (resetar timer) ====
+  function renovarSessao() {
+    if (usuarioAutenticado) {
+      const session = {
+        usuario: usuarioAutenticado,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem("gestor_session", JSON.stringify(session));
+
+      if (sessionTimeout) {
+        clearTimeout(sessionTimeout);
+      }
+      sessionTimeout = setTimeout(() => {
+        console.log(
+          "⏰ Sessão expirada automaticamente após 30 minutos de inatividade",
+        );
+        localStorage.removeItem("gestor_session");
+        usuarioAutenticado = null;
+        atualizarIndicadorSessao();
+
+        if (!loginModalAberto) {
+          showFeedback(
+            "Sessão expirada",
+            "Sua sessão expirou após 30 minutos de inatividade. Faça login novamente.",
+            "warning",
+            () => {
+              abrirModalLoginObrigatorio("continuar usando o app");
+            },
+          );
+        }
+      }, SESSION_DURATION);
+
+      console.log("🔄 Sessão renovada por mais 30 minutos");
+    }
   }
 
   // ==== LIMPAR SESSÃO (LOGOUT) ====
@@ -187,10 +234,268 @@
     }
   }
 
+  // ==== MODAL DE LOGIN OBRIGATÓRIO (TELA INICIAL) ====
+  function abrirModalLoginObrigatorio(acao = "acessar o app") {
+    return new Promise((resolve) => {
+      loginModalAberto = true;
+
+      const appContainer = document.querySelector(".app-container");
+      if (appContainer) {
+        appContainer.style.display = "none";
+      }
+
+      const overlay = document.createElement("div");
+      overlay.id = "loginObrigatorioOverlay";
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.92);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        padding: 20px;
+        animation: fadeInOverlay 0.4s ease;
+      `;
+
+      if (!document.getElementById("loginStyles")) {
+        const style = document.createElement("style");
+        style.id = "loginStyles";
+        style.textContent = `
+          @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes slideUpLogin {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+          }
+          .login-modal-sheet {
+            animation: slideUpLogin 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          #loginObrigatorioOverlay .form-input:focus {
+            border-color: #e91e63 !important;
+            box-shadow: 0 0 0 3px rgba(233,30,99,0.15) !important;
+            outline: none;
+          }
+          #loginObrigatorioOverlay .form-input {
+            transition: all 0.3s ease;
+          }
+          #loginObrigatorioOverlay .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(233,30,99,0.3);
+          }
+          #loginObrigatorioOverlay .btn-login:active {
+            transform: scale(0.98);
+          }
+          .spinning {
+            animation: spin 0.8s infinite linear;
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      overlay.innerHTML = `
+        <div class="login-modal-sheet" style="
+          max-width: 420px; 
+          width: 100%; 
+          background: #1a1a1a;
+          border-radius: 24px;
+          border: 1px solid rgba(255,255,255,0.08);
+          padding: 32px 24px 28px;
+          box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+        ">
+          <div style="text-align: center; margin-bottom: 28px;">
+            <div style="
+              width: 80px; 
+              height: 80px; 
+              background: linear-gradient(135deg, #c2185b, #d4a017); 
+              border-radius: 50%; 
+              display: flex; 
+              align-items: center; 
+              justify-content: center; 
+              font-size: 32px; 
+              margin: 0 auto 16px;
+              box-shadow: 0 8px 32px rgba(233,30,99,0.3);
+            ">
+              <i class="ph ph-lock-simple" style="color: white;"></i>
+            </div>
+            <h2 style="color: #f0c75e; margin: 0; font-size: 1.5rem; letter-spacing: -0.5px; font-weight: 700;">
+              Facção Jeans
+            </h2>
+            <p style="color: #9e9e9e; font-size: 0.85rem; margin-top: 4px; font-weight: 400;">
+              App do Gestor
+            </p>
+            <p style="color: #555; font-size: 0.75rem; margin-top: 12px;">
+              Faça login para <strong style="color: #f0c75e;">${acao}</strong>
+            </p>
+          </div>
+
+          <div id="loginObrigatorioStatus" style="
+            color: #ff5252; 
+            font-size: 0.8rem; 
+            text-align: center; 
+            min-height: 24px; 
+            margin-bottom: 12px;
+            font-weight: 500;
+          "></div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label style="color: #9e9e9e; font-size: 0.7rem; display: block; margin-bottom: 4px; font-weight: 500; letter-spacing: 0.3px;">
+              <i class="ph ph-envelope"></i> Email
+            </label>
+            <input id="loginObrigatorioEmail" type="email" class="form-input" placeholder="seu@email.com" style="
+              width: 100%; 
+              padding: 12px 16px; 
+              background: rgba(255,255,255,0.05); 
+              border: 1px solid rgba(255,255,255,0.1); 
+              border-radius: 10px; 
+              color: #f5f5f5; 
+              font-size: 0.95rem;
+              outline: none;
+            " autofocus>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label style="color: #9e9e9e; font-size: 0.7rem; display: block; margin-bottom: 4px; font-weight: 500; letter-spacing: 0.3px;">
+              <i class="ph ph-key"></i> Senha
+            </label>
+            <input id="loginObrigatorioSenha" type="password" class="form-input" placeholder="••••••••" style="
+              width: 100%; 
+              padding: 12px 16px; 
+              background: rgba(255,255,255,0.05); 
+              border: 1px solid rgba(255,255,255,0.1); 
+              border-radius: 10px; 
+              color: #f5f5f5; 
+              font-size: 0.95rem;
+              outline: none;
+            ">
+          </div>
+
+          <button id="confirmarLoginObrigatorio" class="btn-login" style="
+            width: 100%; 
+            padding: 14px; 
+            font-size: 1rem; 
+            border-radius: 10px; 
+            background: linear-gradient(135deg, #c2185b, #d4a017); 
+            border: none; 
+            color: white; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+          ">
+            <i class="ph ph-check-circle"></i> Entrar
+          </button>
+
+          <div style="text-align: center; margin-top: 16px;">
+            <span style="color: #555; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <i class="ph ph-info"></i> Sessão válida por 30 minutos de atividade
+            </span>
+          </div>
+        </div>
+      `;
+
+      const oldOverlay = document.getElementById("loginObrigatorioOverlay");
+      if (oldOverlay) {
+        oldOverlay.remove();
+      }
+
+      document.body.appendChild(overlay);
+
+      setTimeout(() => {
+        const emailInput = document.getElementById("loginObrigatorioEmail");
+        if (emailInput) {
+          emailInput.focus();
+        }
+      }, 300);
+
+      document
+        .getElementById("loginObrigatorioEmail")
+        ?.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            document.getElementById("loginObrigatorioSenha")?.focus();
+          }
+        });
+
+      document
+        .getElementById("loginObrigatorioSenha")
+        ?.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            document.getElementById("confirmarLoginObrigatorio")?.click();
+          }
+        });
+
+      document
+        .getElementById("confirmarLoginObrigatorio")
+        ?.addEventListener("click", async function () {
+          const email = document
+            .getElementById("loginObrigatorioEmail")
+            .value.trim();
+          const senha = document
+            .getElementById("loginObrigatorioSenha")
+            .value.trim();
+          const statusEl = document.getElementById("loginObrigatorioStatus");
+
+          if (!email || !senha) {
+            statusEl.textContent = "❌ Preencha email e senha";
+            statusEl.style.color = "#ff5252";
+            return;
+          }
+
+          statusEl.textContent = "⏳ Verificando...";
+          statusEl.style.color = "#f0c75e";
+          this.disabled = true;
+          this.innerHTML = '<i class="ph ph-spinner spinning"></i> Entrando...';
+
+          const result = await fazerLogin(email, senha);
+
+          if (result.success) {
+            statusEl.textContent = `✅ Bem-vindo, ${result.usuario.user_metadata?.full_name || email}!`;
+            statusEl.style.color = "#4caf50";
+
+            const overlayEl = document.getElementById(
+              "loginObrigatorioOverlay",
+            );
+            if (overlayEl) {
+              overlayEl.remove();
+            }
+            loginModalAberto = false;
+
+            const appContainer = document.querySelector(".app-container");
+            if (appContainer) {
+              appContainer.style.display = "flex";
+            }
+
+            carregarDados();
+
+            resolve({ success: true, usuario: usuarioAutenticado });
+          } else {
+            statusEl.textContent = `❌ ${result.error || "Erro ao fazer login"}`;
+            statusEl.style.color = "#ff5252";
+            this.disabled = false;
+            this.innerHTML = '<i class="ph ph-check-circle"></i> Entrar';
+          }
+        });
+    });
+  }
+
   // ==== MODAL DE LOGIN (APENAS PARA AÇÕES QUE ESCREVEM) ====
   function abrirModalLogin(acao) {
     return new Promise((resolve) => {
       if (isAutenticado()) {
+        renovarSessao();
         resolve({ success: true, usuario: usuarioAutenticado });
         return;
       }
@@ -206,7 +511,7 @@
               Digite suas credenciais para <strong>${acao}</strong>
             </p>
             <p style="color: var(--gray-dark); font-size: 0.7rem; margin-top: 2px;">
-              <i class="ph ph-info"></i> Sessão válida por 5 minutos
+              <i class="ph ph-info"></i> Sessão válida por 30 minutos de atividade
             </p>
           </div>
 
@@ -292,6 +597,41 @@
   }
 
   // ============================================================
+  // DETECTOR DE ATIVIDADE DO USUÁRIO (RENOVAR SESSÃO)
+  // ============================================================
+  function setupActivityDetection() {
+    const events = [
+      "click",
+      "touchstart",
+      "touchmove",
+      "scroll",
+      "keydown",
+      "input",
+      "change",
+      "focus",
+      "blur",
+    ];
+
+    let activityTimer = null;
+
+    const handleActivity = () => {
+      if (isAutenticado()) {
+        renovarSessao();
+        clearTimeout(activityTimer);
+        activityTimer = setTimeout(() => {}, 5000);
+      }
+    };
+
+    events.forEach((event) => {
+      document.addEventListener(event, handleActivity, { passive: true });
+    });
+
+    console.log(
+      "🔄 Detector de atividade configurado - sessão será renovada com interação",
+    );
+  }
+
+  // ============================================================
   // AUXILIARES
   // ============================================================
   function todayISO() {
@@ -328,24 +668,23 @@
 
   function formatStatus(s) {
     const map = {
-      recebido: "📥 Recebido",
+      recebido: "📥 Lote Recebido",
       em_costura: "🧵 Em Costura",
       costurado: "✅ Costurado",
       em_revisao: "🔍 Em Revisão",
       entregue: "📦 Entregue",
       cancelado: "❌ Cancelado",
       parcialmente_entregue: "📦 Parcialmente Entregue",
-      aguardando_pagamento: "💰 Aguardando Pagamento",
+      aguardando_pagamento: "💰 Pagamento Pendente",
       pago: "💳 Pago",
     };
     return map[s] || s || "-";
   }
 
-  // Melhoria #1: Status de pagamento mais claro com ícones e cores
   function getPaymentStatusInfo(status) {
     const map = {
       pendente: {
-        label: "⏳ Pendente",
+        label: "⏳ Pagamento Pendente",
         icon: "ph-clock",
         color: "#ffc107",
         bg: "rgba(255,193,7,0.15)",
@@ -353,7 +692,7 @@
         description: "Aguardando pagamento",
       },
       pago: {
-        label: "✅ Pago",
+        label: "✅ Pagamento Recebido",
         icon: "ph-check-circle",
         color: "#4caf50",
         bg: "rgba(76,175,80,0.15)",
@@ -361,7 +700,7 @@
         description: "Pagamento confirmado",
       },
       atrasado: {
-        label: "🔴 Atrasado",
+        label: "🔴 Pagamento Atrasado",
         icon: "ph-warning-circle",
         color: "#ff5252",
         bg: "rgba(255,82,82,0.15)",
@@ -369,7 +708,7 @@
         description: "Pagamento vencido",
       },
       parcial: {
-        label: "🟡 Parcial",
+        label: "🟡 Pagamento Parcial",
         icon: "ph-clock",
         color: "#ff9800",
         bg: "rgba(255,152,0,0.15)",
@@ -380,7 +719,6 @@
     return map[status] || map.pendente;
   }
 
-  // Melhoria #3: Cores por status na lista
   function getStatusColor(status) {
     const map = {
       recebido: "#9e9e9e",
@@ -411,7 +749,6 @@
     return map[status] || "ph-circle";
   }
 
-  // Melhoria #10: Feedback visual - animação de pulse
   function pulseElement(element) {
     if (!element) return;
     element.style.transition = "transform 0.2s ease, box-shadow 0.2s ease";
@@ -607,10 +944,9 @@
   }
 
   // ============================================================
-  // FUNÇÃO PARA BUSCAR CATEGORIA DE RECEITA (CORRIGIDA)
+  // FUNÇÃO PARA BUSCAR CATEGORIA DE RECEITA
   // ============================================================
   async function obterCategoriaReceitaVenda() {
-    // Primeiro tenta buscar a categoria específica de faturamento de costura
     let { data: categoria } = await supabase
       .from("chart_of_accounts")
       .select("id")
@@ -620,7 +956,6 @@
       .maybeSingle();
 
     if (!categoria) {
-      // Se não encontrar, busca qualquer categoria do tipo receita
       const { data: qualquerReceita } = await supabase
         .from("chart_of_accounts")
         .select("id")
@@ -634,12 +969,11 @@
       console.warn("Nenhuma categoria de receita encontrada.");
       return null;
     }
-    console.log(`✅ Categoria de receita encontrada: ${categoria.id}`);
     return categoria.id;
   }
 
   // ============================================================
-  // FUNÇÃO PARA CRIAR/ATUALIZAR CONTA A RECEBER (CORRIGIDA)
+  // FUNÇÃO PARA CRIAR/ATUALIZAR CONTA A RECEBER
   // ============================================================
   async function criarContaReceber(
     osId,
@@ -662,8 +996,7 @@
       return;
     }
 
-    // O vencimento da conta a receber é a data de entrega do lote
-    const dueDateStr = dataReferencia; // data de entrega do lote
+    const dueDateStr = dataReferencia;
 
     if (contaExistente) {
       const { error } = await supabase
@@ -680,10 +1013,6 @@
 
       if (error) {
         console.error("❌ Erro ao atualizar conta a receber:", error);
-      } else {
-        console.log(
-          `✅ Conta a receber atualizada para OS: ${osId} com vencimento em ${dueDateStr}`,
-        );
       }
     } else {
       const { error } = await supabase.from("financial_transactions").insert({
@@ -701,16 +1030,12 @@
 
       if (error) {
         console.error("❌ Erro ao criar conta a receber:", error);
-      } else {
-        console.log(
-          `✅ Conta a receber criada para OS: ${osId} com vencimento em ${dueDateStr}`,
-        );
       }
     }
   }
 
   // ============================================================
-  // FUNÇÃO PARA ATUALIZAR CONTA A RECEBER (PAGO/PENDENTE)
+  // FUNÇÃO PARA ATUALIZAR CONTA A RECEBER
   // ============================================================
   async function atualizarContaReceber(
     osId,
@@ -750,8 +1075,6 @@
 
     if (error) {
       console.error("❌ Erro ao atualizar conta a receber:", error);
-    } else {
-      console.log(`✅ Conta a receber atualizada para status: ${status}`);
     }
   }
 
@@ -772,7 +1095,7 @@
   const scrollTopBtn = $("scrollTopBtn");
 
   // ============================================================
-  // FUNÇÃO PARA VISUALIZAR LOTE (MODAL COMPLETO - MELHORIA #7)
+  // FUNÇÃO PARA VISUALIZAR LOTE
   // ============================================================
   window.visualizarLote = async function (id) {
     const { data: lote, error } = await supabase
@@ -821,13 +1144,11 @@
       new Date(lote.expected_delivery) < new Date() &&
       !["pago", "cancelado"].includes(lote.status);
 
-    // Melhoria #1: Status de pagamento mais claro
     const paymentStatus = lote.payment_status || "pendente";
     const paymentInfo = getPaymentStatusInfo(paymentStatus);
     const statusColor = getStatusColor(lote.status);
     const statusIcon = getStatusIcon(lote.status);
 
-    // Melhoria #7: Cabeçalho colorido no modal
     const headerColor = atrasado
       ? "#ff5252"
       : paymentStatus === "pago"
@@ -840,7 +1161,6 @@
               ? "#d4a017"
               : "#9e9e9e";
 
-    // Grade de tamanhos
     let itemsHtml = "";
     if (items && items.length > 0) {
       itemsHtml = `
@@ -873,7 +1193,6 @@
       `;
     }
 
-    // Registros de costura
     let costuraHtml = "";
     if (sewingRecords && sewingRecords.length > 0) {
       costuraHtml = `
@@ -916,10 +1235,8 @@
           )
         : 0;
 
-    // Melhoria #7: Modal com cabeçalho colorido e melhor organização
     const html = `
       <div style="display:grid; gap:10px;">
-        <!-- Cabeçalho colorido -->
         <div style="background: ${headerColor}22; border: 2px solid ${headerColor}; border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
           <div>
             <h4 style="color: var(--gold-light); margin: 0; font-size: 1rem;">
@@ -936,7 +1253,6 @@
           </div>
         </div>
 
-        <!-- Abas melhoradas -->
         <div style="display:flex; gap:4px; overflow-x:auto; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
           <button class="tab-detail-btn active" data-tab="info" style="padding:6px 12px; border:none; background:rgba(212,160,23,0.15); border-radius:8px; color:var(--gold-light); font-size:0.7rem; cursor:pointer; white-space:nowrap; transition:all 0.2s;">
             <i class="ph ph-info"></i> Info
@@ -952,7 +1268,6 @@
           </button>
         </div>
 
-        <!-- Conteúdo das abas -->
         <div id="tab-info" class="tab-detail-content" style="display:block;">
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; font-size:0.75rem;">
             <div><strong>Cliente:</strong> ${cliente}</div>
@@ -1013,7 +1328,6 @@
 
     openModal(`📋 ${lote.order_number}`, html);
 
-    // Configurar abas do modal
     setTimeout(() => {
       const tabBtns = document.querySelectorAll(".tab-detail-btn");
       const tabContents = document.querySelectorAll(".tab-detail-content");
@@ -1304,7 +1618,6 @@
   // CRUD DE LOTES COM CONTROLE DE PAGAMENTO INTEGRADO
   // ============================================================
 
-  // 1. NOVO LOTE
   document
     .getElementById("btnNovoLote")
     ?.addEventListener("click", function () {
@@ -1484,9 +1797,6 @@
               delivered_quantity: 0,
             });
 
-            // ============================================================
-            // ✅ CRIAÇÃO DE CONTA A RECEBER COM account_id OBRIGATÓRIO
-            // ============================================================
             const descricaoConta = `Lote ${orderNumber} - ${produto}`;
             await criarContaReceber(
               novaOS.id,
@@ -1516,7 +1826,6 @@
         });
     });
 
-  // ==== INICIAR COSTURA ====
   window.iniciarCosturaLote = async function (id, orderNumber) {
     const loginResult = await abrirModalLogin("iniciar costura");
 
@@ -1555,7 +1864,6 @@
     }
   };
 
-  // ==== FINALIZAR COSTURA ====
   window.finalizarCosturaLote = async function (id, orderNumber) {
     const loginResult = await abrirModalLogin("finalizar costura");
 
@@ -1591,7 +1899,6 @@
     }
   };
 
-  // ==== MARCAR LOTE COMO ENTREGUE ====
   window.marcarEntregue = async function (id, orderNumber) {
     const loginResult = await abrirModalLogin("marcar lote como entregue");
 
@@ -1656,7 +1963,6 @@
     }
   };
 
-  // ==== MARCAR LOTE COMO PAGO ====
   window.marcarPago = async function (id, orderNumber) {
     const loginResult = await abrirModalLogin("marcar lote como pago");
 
@@ -1700,8 +2006,47 @@
     }
   };
 
-  // ==== CANCELAR LOTE ====
   window.cancelarLote = async function (id, orderNumber) {
+    const { data: conta, error: contaError } = await supabase
+      .from("financial_transactions")
+      .select("id, status, amount")
+      .eq("service_order_id", id)
+      .eq("type", "receber")
+      .maybeSingle();
+
+    if (conta && conta.status === "pago") {
+      const htmlBloqueio = `
+        <div style="text-align: center; padding: 12px 0;">
+          <div style="font-size: 3rem; margin-bottom: 12px;">🔒</div>
+          <h3 style="color: var(--error); margin-bottom: 8px;">Não é possível cancelar!</h3>
+          <p style="color: var(--gray); font-size: 0.95rem;">
+            Este lote já possui <strong style="color: var(--success);">pagamento confirmado</strong>.
+          </p>
+          <p style="color: var(--gray-dark); font-size: 0.85rem; margin-top: 4px;">
+            Valor: ${formatCurrency(conta.amount)}
+          </p>
+          <div style="background: rgba(255,82,82,0.08); border-radius: 8px; padding: 12px; margin-top: 12px; border-left: 3px solid var(--error);">
+            <p style="color: var(--gray); font-size: 0.8rem; margin: 0;">
+              <i class="ph ph-info"></i> Para cancelar, primeiro estorne o pagamento.
+            </p>
+          </div>
+          <button class="btn btn-primary" id="btnEntendiCancelar" style="margin-top: 16px; width: 100%;">
+            <i class="ph ph-check-circle"></i> Entendi
+          </button>
+        </div>
+      `;
+
+      openModal("⚠️ Ação Bloqueada", htmlBloqueio);
+
+      document
+        .getElementById("btnEntendiCancelar")
+        ?.addEventListener("click", () => {
+          document.getElementById("modalContainer").innerHTML = "";
+        });
+
+      return;
+    }
+
     if (!confirm(`Cancelar o lote ${orderNumber}?`)) return;
 
     const loginResult = await abrirModalLogin("cancelar lote");
@@ -1716,6 +2061,22 @@
     }
 
     try {
+      if (conta && conta.status === "pendente") {
+        await supabase
+          .from("financial_installments")
+          .delete()
+          .eq("transaction_id", conta.id);
+
+        await supabase
+          .from("financial_transactions")
+          .delete()
+          .eq("id", conta.id);
+
+        console.log(
+          `✅ Conta a receber removida por cancelamento: ${conta.id}`,
+        );
+      }
+
       const { error } = await supabase
         .from("service_orders")
         .update({ status: "cancelado" })
@@ -1738,62 +2099,211 @@
     }
   };
 
-  // ==== EXCLUIR LOTE ====
   window.excluirLote = async function (id, orderNumber) {
-    if (
-      !confirm(
-        `Excluir permanentemente o lote ${orderNumber}? Esta ação não pode ser desfeita.`,
-      )
-    )
-      return;
-
-    const loginResult = await abrirModalLogin("excluir lote permanentemente");
-
-    if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
-      return;
-    }
-
-    if (
-      !confirm(`⚠️ Confirme novamente: Excluir ${orderNumber} permanentemente?`)
-    )
-      return;
-
     try {
-      await supabase
-        .from("service_order_items")
-        .delete()
-        .eq("service_order_id", id);
-      await supabase
-        .from("sewing_records")
-        .delete()
-        .eq("service_order_item.service_order_id", id);
-      await supabase.from("shipments").delete().eq("service_order_id", id);
+      const { data: conta, error: contaError } = await supabase
+        .from("financial_transactions")
+        .select("id, status, amount")
+        .eq("service_order_id", id)
+        .eq("type", "receber")
+        .maybeSingle();
 
-      const { error } = await supabase
-        .from("service_orders")
-        .delete()
-        .eq("id", id);
+      if (conta && conta.status === "pago") {
+        const htmlBloqueio = `
+          <div style="text-align: center; padding: 12px 0;">
+            <div style="font-size: 3rem; margin-bottom: 12px;">🔒</div>
+            <h3 style="color: var(--error); margin-bottom: 8px;">Não é possível excluir!</h3>
+            <p style="color: var(--gray); font-size: 0.95rem;">
+              Este lote já possui <strong style="color: var(--success);">pagamento confirmado</strong>.
+            </p>
+            <p style="color: var(--gray-dark); font-size: 0.85rem; margin-top: 4px;">
+              Valor: ${formatCurrency(conta.amount)}
+            </p>
+            <div style="background: rgba(255,82,82,0.08); border-radius: 8px; padding: 12px; margin-top: 12px; border-left: 3px solid var(--error);">
+              <p style="color: var(--gray); font-size: 0.8rem; margin: 0;">
+                <i class="ph ph-info"></i> Para excluir, primeiro estorne o pagamento.
+              </p>
+            </div>
+            <button class="btn btn-primary" id="btnEntendiExcluir" style="margin-top: 16px; width: 100%;">
+              <i class="ph ph-check-circle"></i> Entendi
+            </button>
+          </div>
+        `;
 
-      if (error) throw error;
+        openModal("⚠️ Ação Bloqueada", htmlBloqueio);
 
-      showFeedback(
-        "Sucesso",
-        `🗑️ Lote ${orderNumber} excluído por ${loginResult.usuario.email}.`,
-        "success",
-        () => carregarDados(),
-      );
+        document
+          .getElementById("btnEntendiExcluir")
+          ?.addEventListener("click", () => {
+            document.getElementById("modalContainer").innerHTML = "";
+          });
+
+        return;
+      }
+
+      let mensagemAdicional = "";
+      if (conta && conta.status === "pendente") {
+        mensagemAdicional = `
+          <div style="background: rgba(255,193,7,0.08); border-radius: 8px; padding: 12px; margin-top: 8px; border-left: 3px solid var(--warning);">
+            <p style="color: var(--gray); font-size: 0.8rem; margin: 0;">
+              <i class="ph ph-info"></i> A conta a receber de <strong>${formatCurrency(conta.amount)}</strong> 
+              será removida automaticamente.
+            </p>
+          </div>
+        `;
+      }
+
+      const htmlConfirmacao = `
+        <div style="text-align: center; padding: 8px 0;">
+          <div style="font-size: 3rem; margin-bottom: 12px;">🗑️</div>
+          <h3 style="color: var(--error); margin-bottom: 8px;">Excluir Lote</h3>
+          <p style="color: var(--gold-light); font-size: 1.1rem; font-weight: 600;">
+            ${orderNumber}
+          </p>
+          <p style="color: var(--gray); font-size: 0.9rem;">
+            Tem certeza que deseja excluir este lote?
+          </p>
+          <p style="color: var(--gray-dark); font-size: 0.8rem;">
+            Esta ação <strong style="color: var(--error);">não pode ser desfeita</strong>.
+          </p>
+          ${mensagemAdicional}
+          <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <button class="btn btn-ghost" id="btnCancelarExclusao" style="flex: 1; padding: 12px;">
+              <i class="ph ph-x-circle"></i> Cancelar
+            </button>
+            <button class="btn btn-primary" id="btnConfirmarExclusao" style="flex: 1; padding: 12px; background: var(--error); border-color: var(--error);">
+              <i class="ph ph-trash"></i> Excluir
+            </button>
+          </div>
+          ${
+            conta && conta.status === "pendente"
+              ? `
+            <p style="color: var(--gray-dark); font-size: 0.7rem; margin-top: 12px;">
+              <i class="ph ph-currency-circle-dollar"></i> Conta a receber de ${formatCurrency(conta.amount)} será removida
+            </p>
+          `
+              : ""
+          }
+        </div>
+      `;
+
+      openModal("⚠️ Confirmar Exclusão", htmlConfirmacao);
+
+      document
+        .getElementById("btnCancelarExclusao")
+        ?.addEventListener("click", () => {
+          document.getElementById("modalContainer").innerHTML = "";
+        });
+
+      document
+        .getElementById("btnConfirmarExclusao")
+        ?.addEventListener("click", async function () {
+          this.disabled = true;
+          this.innerHTML =
+            '<i class="ph ph-spinner spinning"></i> Excluindo...';
+
+          const loginResult = await abrirModalLogin("excluir lote");
+          if (!loginResult.success) {
+            document.getElementById("modalContainer").innerHTML = "";
+            showFeedback(
+              "Ação cancelada",
+              "Você precisa estar autenticado.",
+              "warning",
+            );
+            return;
+          }
+
+          try {
+            if (conta) {
+              await supabase
+                .from("financial_installments")
+                .delete()
+                .eq("transaction_id", conta.id);
+
+              await supabase
+                .from("financial_transactions")
+                .delete()
+                .eq("id", conta.id);
+
+              console.log(`✅ Conta a receber removida: ${conta.id}`);
+            }
+
+            const { data: items } = await supabase
+              .from("service_order_items")
+              .select("id")
+              .eq("service_order_id", id);
+
+            if (items && items.length > 0) {
+              for (const item of items) {
+                await supabase
+                  .from("sewing_records")
+                  .delete()
+                  .eq("service_order_item_id", item.id);
+              }
+              await supabase
+                .from("service_order_items")
+                .delete()
+                .eq("service_order_id", id);
+            }
+
+            await supabase
+              .from("shipments")
+              .delete()
+              .eq("service_order_id", id);
+
+            await supabase
+              .from("material_consumption")
+              .delete()
+              .eq("service_order_id", id);
+
+            const { error } = await supabase
+              .from("service_orders")
+              .delete()
+              .eq("id", id);
+
+            if (error) throw error;
+
+            document.getElementById("modalContainer").innerHTML = "";
+
+            const htmlSucesso = `
+            <div style="text-align: center; padding: 20px 0;">
+              <div style="font-size: 3rem; margin-bottom: 12px;">✅</div>
+              <h3 style="color: var(--success);">Lote Excluído!</h3>
+              <p style="color: var(--gray);">
+                ${orderNumber} foi removido com sucesso.
+              </p>
+              ${conta ? `<p style="color: var(--gray-dark); font-size: 0.8rem;">Conta a receber removida.</p>` : ""}
+              <button class="btn btn-primary" id="btnOkSucesso" style="margin-top: 12px; width: 100%;">
+                <i class="ph ph-check-circle"></i> OK
+              </button>
+            </div>
+          `;
+
+            openModal("✅ Sucesso", htmlSucesso);
+            document
+              .getElementById("btnOkSucesso")
+              ?.addEventListener("click", () => {
+                document.getElementById("modalContainer").innerHTML = "";
+                carregarDados();
+              });
+
+            setTimeout(() => carregarDados(), 500);
+          } catch (error) {
+            console.error("Erro ao excluir lote:", error);
+            document.getElementById("modalContainer").innerHTML = "";
+            showFeedback(
+              "Erro",
+              "Falha ao excluir lote: " + error.message,
+              "error",
+            );
+          }
+        });
     } catch (error) {
       console.error("Erro ao excluir lote:", error);
       showFeedback("Erro", "Falha ao excluir lote.", "error");
     }
   };
 
-  // ==== EDITAR LOTE (COM CLIENTE CORRETO) ====
   window.editarLote = async function (id) {
     const { data: lote, error: fetchError } = await supabase
       .from("service_orders")
@@ -1817,9 +2327,6 @@
       return;
     }
 
-    // ============================================================
-    // ✅ NOME DO CLIENTE
-    // ============================================================
     const nomeCliente =
       lote.customers?.trade_name ||
       lote.customers?.company_name ||
@@ -1864,7 +2371,7 @@
           <div class="form-group">
             <label>Status de Produção</label>
             <select id="editStatus" class="form-select">
-              <option value="recebido" ${lote.status === "recebido" ? "selected" : ""}>📥 Recebido</option>
+              <option value="recebido" ${lote.status === "recebido" ? "selected" : ""}>📥 Lote Recebido</option>
               <option value="em_costura" ${lote.status === "em_costura" ? "selected" : ""}>🧵 Em Costura</option>
               <option value="costurado" ${lote.status === "costurado" ? "selected" : ""}>✅ Costurado</option>
               <option value="entregue" ${lote.status === "entregue" ? "selected" : ""}>📦 Entregue</option>
@@ -1874,8 +2381,8 @@
           <div class="form-group">
             <label>Status de Pagamento</label>
             <select id="editPagamento" class="form-select">
-              <option value="pendente" ${lote.payment_status === "pendente" || !lote.payment_status ? "selected" : ""}>⏳ Pendente</option>
-              <option value="pago" ${lote.payment_status === "pago" ? "selected" : ""}>✅ Pago</option>
+              <option value="pendente" ${lote.payment_status === "pendente" || !lote.payment_status ? "selected" : ""}>⏳ Pagamento Pendente</option>
+              <option value="pago" ${lote.payment_status === "pago" ? "selected" : ""}>✅ Pagamento Recebido</option>
             </select>
           </div>
         </div>
@@ -2026,30 +2533,20 @@
       });
   };
 
-  // ============================================================
-  // FUNÇÃO PARA ALTERNAR MENU DE AÇÕES (GLOBAL)
-  // ============================================================
   window.toggleMenu = function (menuId) {
     const menu = document.getElementById(menuId);
     if (!menu) return;
 
-    // Fecha outros menus
     document.querySelectorAll(".dropdown-actions-menu").forEach((m) => {
       if (m.id !== menuId) {
         m.style.display = "none";
       }
     });
 
-    // Alterna o menu atual
     const isOpen = menu.style.display === "block";
     menu.style.display = isOpen ? "none" : "block";
   };
 
-  // ============================================================
-  // FUNÇÕES ADICIONAIS (Enviar Revisão, Voltar Costura)
-  // ============================================================
-
-  // Enviar para Revisão
   window.enviarRevisao = async function (id, orderNumber) {
     if (!confirm(`Enviar o lote ${orderNumber} para revisão?`)) return;
 
@@ -2084,7 +2581,6 @@
     }
   };
 
-  // Voltar para Costura
   window.voltarCostura = async function (id, orderNumber) {
     if (!confirm(`Retornar o lote ${orderNumber} para costura?`)) return;
 
@@ -2120,24 +2616,34 @@
   };
 
   // ============================================================
-  // RENDERIZAR LISTA DE LOTES (COM MENU DE AÇÕES COMPLETO)
+  // RENDERIZAR LISTA DE LOTES (PRODUÇÃO)
   // ============================================================
   function renderizarProducao(dados) {
-    const { osAtivas, emCostura, costurados } = dados;
+    console.log("📊 renderizarProducao chamada com dados:", dados);
 
-    document.getElementById("prodEmCostura").textContent = emCostura;
-    document.getElementById("prodCosturados").textContent = costurados;
+    const { osAtivas } = dados;
 
     const hoje = new Date();
+
+    const emCostura = osAtivas.filter((o) => o.status === "em_costura").length;
+    const costurados = osAtivas.filter((o) => o.status === "costurado").length;
+    const recebidos = osAtivas.filter((o) => o.status === "recebido").length;
+    const emRevisao = osAtivas.filter((o) => o.status === "em_revisao").length;
+    const entregues = osAtivas.filter((o) => o.status === "entregue").length;
+    const cancelados = osAtivas.filter((o) => o.status === "cancelado").length;
+
     const atrasados = osAtivas.filter((o) => {
       if (!o.expected_delivery) return false;
       const prazo = new Date(o.expected_delivery);
-      return prazo < hoje && !["cancelado"].includes(o.status);
+      return (
+        prazo < hoje && !["entregue", "cancelado", "pago"].includes(o.status)
+      );
     }).length;
 
     const aguardandoPagto = osAtivas.filter(
       (o) => o.status === "entregue" && o.payment_status !== "pago",
     ).length;
+
     const pagos = osAtivas.filter((o) => o.payment_status === "pago").length;
 
     const entreguesHoje = osAtivas.filter((o) => {
@@ -2149,15 +2655,40 @@
       );
     }).length;
 
-    document.getElementById("prodAtrasados").textContent = atrasados;
-    document.getElementById("prodAguardandoPagto").textContent =
-      aguardandoPagto;
-    document.getElementById("prodEntreguesHoje").textContent = entreguesHoje;
-    document.getElementById("prodPagos").textContent = pagos;
+    console.log("📊 Status calculados:", {
+      total: osAtivas.length,
+      emCostura,
+      costurados,
+      recebidos,
+      emRevisao,
+      entregues,
+      cancelados,
+      atrasados,
+      aguardandoPagto,
+      pagos,
+      entreguesHoje,
+    });
+
+    const elEmCostura = document.getElementById("prodEmCostura");
+    const elCosturados = document.getElementById("prodCosturados");
+    const elAtrasados = document.getElementById("prodAtrasados");
+    const elAguardandoPagto = document.getElementById("prodAguardandoPagto");
+    const elEntreguesHoje = document.getElementById("prodEntreguesHoje");
+    const elPagos = document.getElementById("prodPagos");
+
+    if (elEmCostura) elEmCostura.textContent = emCostura;
+    if (elCosturados) elCosturados.textContent = costurados;
+    if (elAtrasados) elAtrasados.textContent = atrasados;
+    if (elAguardandoPagto) elAguardandoPagto.textContent = aguardandoPagto;
+    if (elEntreguesHoje) elEntreguesHoje.textContent = entreguesHoje;
+    if (elPagos) elPagos.textContent = pagos;
 
     const container = document.getElementById("listaProducao");
-    document.getElementById("totalLotes").textContent =
-      (osAtivas || []).length + " lotes";
+    const totalEl = document.getElementById("totalLotes");
+
+    if (totalEl) {
+      totalEl.textContent = (osAtivas || []).length + " lotes";
+    }
 
     if (osAtivas && osAtivas.length > 0) {
       container.innerHTML = osAtivas
@@ -2170,16 +2701,13 @@
             os.customers?.trade_name || os.customers?.company_name || "-";
           const atrasado =
             new Date(os.expected_delivery) < new Date() &&
-            !["cancelado"].includes(os.status);
+            !["cancelado", "entregue", "pago"].includes(os.status);
 
           const paymentStatus = os.payment_status || "pendente";
           const paymentInfo = getPaymentStatusInfo(paymentStatus);
           const statusColor = getStatusColor(os.status);
           const statusIcon = getStatusIcon(os.status);
 
-          // ============================================================
-          // ✅ REFERÊNCIA DO PRODUTO COMO TÍTULO PRINCIPAL COM "Ref:"
-          // ============================================================
           const referencia =
             os.product_reference || os.order_number || "Sem referência";
           const orderNumber = os.order_number || "";
@@ -2195,12 +2723,14 @@
               : 0;
           const percentEntregue =
             prog.total > 0 ? Math.round((prog.entregue / prog.total) * 100) : 0;
+          const faltamCosturar = prog.total - prog.costurado;
+          const faltamEntregar = prog.total - prog.entregue;
 
           const progressoHtml = `
             <div style="font-size:0.65rem; color:var(--gray); margin-top:4px;">
               <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
-                <span>🧵 Costurado: ${prog.costurado}/${prog.total}</span>
-                <span>📦 Entregue: ${prog.entregue}/${prog.total}</span>
+                <span>🧵 Costurado: <strong style="color:var(--gold-light);">${prog.costurado}</strong>/${prog.total}</span>
+                <span>📦 Entregue: <strong style="color:var(--pink-light);">${prog.entregue}</strong>/${prog.total}</span>
               </div>
               <div style="height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; margin-bottom:2px;">
                 <div style="height:100%; width:${percentCosturado}%; background:var(--gold); border-radius:3px; transition:width 0.5s ease;"></div>
@@ -2208,24 +2738,24 @@
               <div style="height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden;">
                 <div style="height:100%; width:${percentEntregue}%; background:var(--pink); border-radius:3px; transition:width 0.5s ease;"></div>
               </div>
-              <div style="display:flex; justify-content:space-between; margin-top:2px;">
-                <span style="font-size:0.55rem; color:var(--gray-dark);">Progresso: ${percentCosturado}% costurado</span>
-                ${atrasado ? '<span style="font-size:0.55rem; color:var(--error);"><i class="ph ph-warning"></i> Atrasado</span>' : ""}
+              <div style="display:flex; justify-content:space-between; margin-top:2px; font-size:0.55rem; color:var(--gray-dark);">
+                <span>${faltamCosturar > 0 ? `⏳ Faltam ${faltamCosturar} para costurar` : "✅ Tudo costurado!"}</span>
+                <span>${faltamEntregar > 0 ? `📦 Faltam ${faltamEntregar} para entregar` : "✅ Tudo entregue!"}</span>
               </div>
+              ${atrasado ? '<span style="font-size:0.55rem; color:var(--error);"><i class="ph ph-warning"></i> Atrasado</span>' : ""}
             </div>
           `;
 
           const valorTotal = os.total_quantity * os.unit_price;
+          const statusProducaoLabel = formatStatus(os.status);
+          const statusPagamentoLabel = paymentInfo.label;
 
-          // ============================================================
-          // ✅ BOTÕES PRINCIPAIS (visíveis)
-          // ============================================================
           let botoesPrincipais = "";
 
           if (os.status === "recebido") {
             botoesPrincipais = `
               <button class="btn-action btn-action-primary" onclick="event.stopPropagation(); iniciarCosturaLote('${os.id}', '${os.order_number}')" style="padding:6px 14px; font-size:0.65rem;">
-                <i class="ph ph-play"></i> Iniciar
+                <i class="ph ph-play"></i> Iniciar Costura
               </button>
             `;
           } else if (os.status === "em_costura") {
@@ -2256,7 +2786,7 @@
             } else {
               botoesPrincipais = `
                 <span style="font-size:0.65rem; color:var(--success); padding:4px 12px; background:rgba(76,175,80,0.1); border-radius:20px;">
-                  <i class="ph ph-check-circle"></i> Recebido
+                  <i class="ph ph-check-circle"></i> Pagamento Recebido
                 </span>
               `;
             }
@@ -2270,26 +2800,29 @@
             botoesPrincipais = `<span style="font-size:0.65rem; color:var(--gray);">${formatStatus(os.status)}</span>`;
           }
 
-          // ============================================================
-          // ✅ MENU DE AÇÕES COMPLETO (como no desktop)
-          // ============================================================
           let menuItems = "";
 
-          // Visualizar (sempre)
           menuItems += `
             <a href="#" class="action-item action-view" onclick="event.stopPropagation(); visualizarLote('${os.id}')" style="padding:6px 12px; font-size:0.7rem;">
               <i class="ph ph-eye"></i> Visualizar
             </a>
           `;
 
-          // Editar (sempre)
           menuItems += `
             <a href="#" class="action-item action-edit" onclick="event.stopPropagation(); editarLote('${os.id}')" style="padding:6px 12px; font-size:0.7rem;">
               <i class="ph ph-pencil-simple"></i> Editar
             </a>
           `;
 
-          // Ações específicas por status
+          if (os.status !== "cancelado" && os.status !== "entregue") {
+            menuItems += `
+              <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
+              <a href="#" class="action-item action-register" onclick="event.stopPropagation(); registrarCosturaParcial('${os.id}')" style="padding:6px 12px; font-size:0.7rem;">
+                <i class="ph ph-thread"></i> Registrar Progresso
+              </a>
+            `;
+          }
+
           if (os.status === "recebido") {
             menuItems += `
               <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
@@ -2300,9 +2833,6 @@
           } else if (os.status === "em_costura") {
             menuItems += `
               <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
-              <a href="#" class="action-item action-register" onclick="event.stopPropagation(); registrarCosturaParcial('${os.id}')" style="padding:6px 12px; font-size:0.7rem;">
-                <i class="ph ph-thread"></i> Registrar Costura
-              </a>
               <a href="#" class="action-item action-finish" onclick="event.stopPropagation(); finalizarCosturaLote('${os.id}', '${os.order_number}')" style="padding:6px 12px; font-size:0.7rem;">
                 <i class="ph ph-check-circle"></i> Finalizar Costura
               </a>
@@ -2338,7 +2868,6 @@
             }
           }
 
-          // Cancelar (sempre, exceto se já cancelado)
           if (os.status !== "cancelado") {
             menuItems += `
               <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
@@ -2348,7 +2877,6 @@
             `;
           }
 
-          // Excluir (sempre)
           menuItems += `
             <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
             <a href="#" class="action-item action-delete" onclick="event.stopPropagation(); excluirLote('${os.id}', '${os.order_number}')" style="padding:6px 12px; font-size:0.7rem;">
@@ -2362,9 +2890,6 @@
             ? "rgba(255,82,82,0.05)"
             : "rgba(255,255,255,0.02)";
 
-          // ============================================================
-          // ✅ CARD COMPLETO
-          // ============================================================
           return `
             <div class="list-item ${atrasado ? "item-vencido" : ""}" 
                  data-id="${os.id}"
@@ -2386,26 +2911,13 @@
                  onclick="visualizarLote('${os.id}')"
                  >
               
-              <!-- CABEÇALHO COM REFERÊNCIA EM DESTAQUE -->
               <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 6px; margin-bottom: 4px;">
                 <div style="flex: 1; min-width: 0;">
-                  <!-- Referência do Produto (TÍTULO PRINCIPAL) -->
                   <div style="font-size: 17px; font-weight: 700; color: ${atrasado ? "var(--error)" : "var(--gold-light)"}; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <i class="ph ${statusIcon}" style="color: ${statusColor}; font-size: 18px;"></i>
                     <span>Ref: ${referencia}</span>
-                    
-                    <!-- Badge de Status -->
-                    <span style="font-size:0.55rem; color:${statusColor}; background:${statusColor}22; padding:2px 10px; border-radius:20px; border:1px solid ${statusColor}44; font-weight:600;">
-                      ${formatStatus(os.status)}
-                    </span>
-                    
-                    <!-- Badge de Pagamento -->
-                    <span style="font-size:0.55rem; color:${paymentInfo.color}; background:${paymentInfo.bg}; padding:2px 10px; border-radius:20px; border:${paymentInfo.border}; font-weight:600;">
-                      <i class="ph ${paymentInfo.icon}"></i> ${paymentInfo.label}
-                    </span>
                   </div>
                   
-                  <!-- Informações secundárias (OS, Cliente, etc.) -->
                   <div style="font-size: 11px; color: var(--gray-dark); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 4px 14px;">
                     <span><i class="ph ph-files"></i> OS: ${orderNumber}</span>
                     <span><i class="ph ph-user"></i> ${cliente}</span>
@@ -2414,13 +2926,20 @@
                     ${os.expected_delivery ? ` <span><i class="ph ph-calendar"></i> Entrega: ${formatDate(os.expected_delivery)}</span>` : ""}
                     ${atrasado ? ` <span style="color:var(--error);"><i class="ph ph-warning"></i> Atrasado</span>` : ""}
                   </div>
+                  
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
+                    <span style="font-size:0.6rem; color:${statusColor}; background:${statusColor}22; padding:3px 12px; border-radius:20px; border:1px solid ${statusColor}44; font-weight:500;">
+                      <i class="ph ${statusIcon}"></i> ${statusProducaoLabel}
+                    </span>
+                    <span style="font-size:0.6rem; color:${paymentInfo.color}; background:${paymentInfo.bg}; padding:3px 12px; border-radius:20px; border:${paymentInfo.border}; font-weight:500;">
+                      <i class="ph ${paymentInfo.icon}"></i> ${statusPagamentoLabel}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <!-- PROGRESSO -->
               ${progressoHtml}
 
-              <!-- INFORMAÇÕES FINANCEIRAS -->
               <div style="font-size:0.6rem; color:var(--gray-dark); margin-top:6px; display:flex; gap:16px; flex-wrap:wrap; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 8px;">
                 <span><strong>💰 Total:</strong> ${formatCurrency(valorTotal)}</span>
                 ${paymentStatus === "pago" && os.payment_date ? ` · <span><strong>📅 Pago em:</strong> ${formatDate(os.payment_date)}</span>` : ""}
@@ -2428,12 +2947,9 @@
                 ${os.notes ? ` · <span><i class="ph ph-note"></i> ${os.notes}</span>` : ""}
               </div>
 
-              <!-- BOTÕES DE AÇÃO -->
               <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px; align-items: center;">
-                <!-- Botões Principais -->
                 ${botoesPrincipais}
                 
-                <!-- Menu de Ações Completo (engrenagem) -->
                 <div style="position:relative; display:inline-block;">
                   <button class="btn-action btn-action-ghost" 
                           style="padding:4px 10px; font-size:0.65rem; border-radius:8px;"
@@ -2461,18 +2977,444 @@
   }
 
   // ============================================================
-  // FECHA MENUS AO CLICAR FORA (GLOBAL)
+  // RENDERIZAR - ABA FINANCEIRO (VISÃO PREMIUM EM CARDS)
   // ============================================================
-  document.addEventListener("click", function (e) {
-    if (
-      !e.target.closest(".dropdown-actions-menu") &&
-      !e.target.closest(".btn-action-ghost")
-    ) {
-      document.querySelectorAll(".dropdown-actions-menu").forEach((m) => {
-        m.style.display = "none";
-      });
+  function renderizarFinanceiro(dados) {
+    const { eventosFinanceiros, totalPagar, totalReceber } = dados;
+
+    console.log(
+      "💰 renderizarFinanceiro chamada com",
+      eventosFinanceiros?.length || 0,
+      "eventos",
+    );
+
+    // Atualizar cards de resumo
+    document.getElementById("finTotalPagar").textContent =
+      formatCurrency(totalPagar);
+    document.getElementById("finTotalReceber").textContent =
+      formatCurrency(totalReceber);
+
+    let saldoMes = 0;
+    let contasVencidas = 0;
+    let contasPagas = 0;
+    let contasPendentes = 0;
+    const hoje = new Date();
+
+    for (const e of eventosFinanceiros) {
+      if (e.tipo === "receber") {
+        saldoMes += e.valor;
+      } else {
+        saldoMes -= e.valor;
+      }
+
+      if (e.status === "pago" || e.status === "recebido") {
+        contasPagas++;
+      } else if (e.status === "pendente" || e.status === "atrasado") {
+        contasPendentes++;
+        if (new Date(e.vencimento) < hoje) {
+          contasVencidas++;
+        }
+      }
     }
-  });
+
+    document.getElementById("finSaldoMes").textContent =
+      formatCurrency(saldoMes);
+    document.getElementById("finContasVencidas").textContent = contasVencidas;
+
+    const container = document.getElementById("listaFinanceiro");
+    document.getElementById("totalLancamentos").textContent =
+      (eventosFinanceiros || []).length + " contas";
+
+    if (eventosFinanceiros && eventosFinanceiros.length > 0) {
+      // Ordenar por vencimento (mais próximos primeiro)
+      const ordenados = [...eventosFinanceiros].sort((a, b) => {
+        return new Date(a.vencimento) - new Date(b.vencimento);
+      });
+
+      container.innerHTML = ordenados
+        .slice(0, 20)
+        .map((e) => {
+          const isPagar = e.tipo === "pagar";
+          const vencido =
+            e.status === "pendente" && new Date(e.vencimento) < new Date();
+          const pago = e.status === "pago" || e.status === "recebido";
+          const hoje = new Date();
+          const diasFalta = Math.ceil(
+            (new Date(e.vencimento) - hoje) / (1000 * 60 * 60 * 24),
+          );
+
+          let statusIcon = "";
+          let statusColor = "";
+          let statusBg = "";
+          let statusLabel = "";
+
+          if (pago) {
+            statusIcon = "ph-check-circle";
+            statusColor = "var(--success)";
+            statusBg = "rgba(76,175,80,0.12)";
+            statusLabel = "Pago ✅";
+          } else if (vencido) {
+            statusIcon = "ph-warning-circle";
+            statusColor = "var(--error)";
+            statusBg = "rgba(255,82,82,0.12)";
+            statusLabel = `Vencido há ${Math.abs(diasFalta)} dias`;
+          } else if (diasFalta <= 3) {
+            statusIcon = "ph-clock";
+            statusColor = "var(--warning)";
+            statusBg = "rgba(255,193,7,0.12)";
+            statusLabel = `Vence em ${diasFalta} dias`;
+          } else {
+            statusIcon = "ph-hourglass";
+            statusColor = "var(--gray)";
+            statusBg = "rgba(255,255,255,0.03)";
+            statusLabel = `Vence em ${diasFalta} dias`;
+          }
+
+          const valor = e.valor || 0;
+          const sinal = isPagar ? "-" : "+";
+          const corValor = isPagar ? "var(--error)" : "var(--success)";
+          const tipoLabel = isPagar ? "💰 A Pagar" : "📈 A Receber";
+
+          const parcelaInfo = e.isParcela
+            ? `Parcela ${e.numero_parcela}/${e.total_parcelas}`
+            : "Avulsa";
+
+          // Ícone para categoria
+          let catIcon = "ph-file";
+          const catLower = (e.categoria || "").toLowerCase();
+          if (catLower.includes("venda") || catLower.includes("faturamento"))
+            catIcon = "ph-shopping-cart";
+          else if (catLower.includes("salário") || catLower.includes("folha"))
+            catIcon = "ph-users";
+          else if (catLower.includes("aluguel")) catIcon = "ph-building";
+          else if (catLower.includes("material") || catLower.includes("insumo"))
+            catIcon = "ph-package";
+          else if (catLower.includes("imposto") || catLower.includes("taxa"))
+            catIcon = "ph-receipt";
+          else if (
+            catLower.includes("energia") ||
+            catLower.includes("agua") ||
+            catLower.includes("luz")
+          )
+            catIcon = "ph-lightning";
+          else if (
+            catLower.includes("internet") ||
+            catLower.includes("telefone")
+          )
+            catIcon = "ph-wifi";
+
+          const diasRestantes = pago
+            ? "Pago"
+            : vencido
+              ? "Vencido"
+              : `${diasFalta} dias`;
+
+          return `
+            <div class="card-financeiro" 
+                 style="
+                   background: var(--black-soft);
+                   border: 1px solid ${pago ? "rgba(76,175,80,0.2)" : vencido ? "rgba(255,82,82,0.2)" : "rgba(255,255,255,0.06)"};
+                   border-radius: 16px;
+                   padding: 14px 16px;
+                   margin-bottom: 10px;
+                   transition: all 0.2s ease;
+                   cursor: pointer;
+                   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                 "
+                 onclick="abrirModalConta('${e.id}')"
+                 onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 16px rgba(0,0,0,0.3)';"
+                 onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';"
+                 >
+              
+              <!-- Linha 1: Status + Valor -->
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="
+                    background: ${statusBg};
+                    color: ${statusColor};
+                    padding: 2px 10px;
+                    border-radius: 20px;
+                    font-size: 0.6rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                  ">
+                    <i class="ph ${statusIcon}"></i>
+                    ${statusLabel}
+                  </span>
+                  <span style="
+                    font-size: 0.55rem;
+                    color: var(--gray-dark);
+                    background: rgba(255,255,255,0.04);
+                    padding: 2px 8px;
+                    border-radius: 12px;
+                  ">
+                    ${parcelaInfo}
+                  </span>
+                </div>
+                <div style="
+                  font-size: 1.2rem;
+                  font-weight: 700;
+                  color: ${corValor};
+                ">
+                  ${sinal} ${formatCurrency(valor)}
+                </div>
+              </div>
+
+              <!-- Linha 2: Descrição e Categoria -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+                  <span style="
+                    width: 32px;
+                    height: 32px;
+                    background: rgba(212,160,23,0.1);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: var(--gold-light);
+                    font-size: 0.9rem;
+                    flex-shrink: 0;
+                  ">
+                    <i class="ph ${catIcon}"></i>
+                  </span>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="
+                      font-size: 0.9rem;
+                      font-weight: 600;
+                      color: var(--white);
+                      white-space: nowrap;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                    ">
+                      ${e.descricao}
+                    </div>
+                    <div style="
+                      font-size: 0.65rem;
+                      color: var(--gray);
+                      display: flex;
+                      gap: 8px;
+                      flex-wrap: wrap;
+                    ">
+                      <span><i class="ph ph-tag"></i> ${e.categoria || "Sem categoria"}</span>
+                      <span>•</span>
+                      <span><i class="ph ph-calendar"></i> ${formatDate(e.vencimento)}</span>
+                      <span>•</span>
+                      <span style="color: var(--gray-dark);">${tipoLabel}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Linha 3: Ações rápidas -->
+              <div style="
+                display: flex;
+                justify-content: flex-end;
+                gap: 6px;
+                margin-top: 8px;
+                padding-top: 8px;
+                border-top: 1px solid rgba(255,255,255,0.04);
+              ">
+                ${
+                  !pago
+                    ? `
+                  <button class="btn-action btn-action-success" 
+                          onclick="event.stopPropagation(); baixarLancamento('${e.transaction_id}')" 
+                          style="padding:4px 12px; font-size:0.6rem; background:rgba(76,175,80,0.15); color:#a5d6a7; border:1px solid rgba(76,175,80,0.2); border-radius:16px;">
+                    <i class="ph ph-check-circle"></i> Baixar
+                  </button>
+                `
+                    : `
+                  <button class="btn-action btn-action-ghost" 
+                          onclick="event.stopPropagation(); abrirModalConta('${e.id}')" 
+                          style="padding:4px 12px; font-size:0.6rem;">
+                    <i class="ph ph-eye"></i> Detalhes
+                  </button>
+                `
+                }
+                <button class="btn-action btn-action-ghost" 
+                        onclick="event.stopPropagation(); editarLancamento('${e.transaction_id}')" 
+                        style="padding:4px 12px; font-size:0.6rem;">
+                  <i class="ph ph-pencil-simple"></i>
+                </button>
+                <button class="btn-action btn-action-ghost" 
+                        onclick="event.stopPropagation(); excluirLancamento('${e.transaction_id}')" 
+                        style="padding:4px 12px; font-size:0.6rem; color:var(--error);">
+                  <i class="ph ph-trash"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    } else {
+      container.innerHTML = `
+        <div class="empty-state" style="text-align:center;padding:40px 16px;color:var(--gray-dark);">
+          <i class="ph ph-currency-circle-dollar" style="font-size:40px;display:block;margin-bottom:12px;color:var(--gray);"></i>
+          <p style="font-size:15px;font-weight:500;">Nenhuma conta no mês</p>
+          <p style="font-size:12px;color:var(--gray);margin-top:4px;">Clique em "Novo Lançamento" para começar</p>
+        </div>
+      `;
+    }
+  }
+
+  // ============================================================
+  // FUNÇÕES PARA LANÇAMENTOS FINANCEIROS (MANTIDAS)
+  // ============================================================
+
+  // Função para abrir modal de conta (mantida)
+  window.abrirModalConta = function (id) {
+    const evento = dados.eventosFinanceiros?.find((e) => e.id === id);
+    if (!evento) {
+      showFeedback("Erro", "Conta não encontrada.", "error");
+      return;
+    }
+
+    const isPagar = evento.tipo === "pagar";
+    const vencido =
+      evento.status === "pendente" && new Date(evento.vencimento) < new Date();
+    const pago = evento.status === "pago" || evento.status === "recebido";
+
+    let statusText = "";
+    let statusColor = "";
+    if (pago) {
+      statusText = "✅ Pago";
+      statusColor = "var(--success)";
+    } else if (vencido) {
+      statusText = "🔴 Vencido";
+      statusColor = "var(--error)";
+    } else {
+      statusText = "🟡 Pendente";
+      statusColor = "var(--warning)";
+    }
+
+    let parcelasHtml = "";
+    if (evento.isParcela && evento.parcela_original) {
+      parcelasHtml = `
+        <div class="info-row"><span class="label">Parcela</span><span class="value">${evento.numero_parcela}/${evento.total_parcelas}</span></div>
+        ${evento.interest_paid ? `<div class="info-row"><span class="label">Juros pagos</span><span class="value">${formatCurrency(evento.interest_paid)}</span></div>` : ""}
+        ${evento.late_fee_paid ? `<div class="info-row"><span class="label">Multa paga</span><span class="value">${formatCurrency(evento.late_fee_paid)}</span></div>` : ""}
+      `;
+    }
+
+    const html = `
+      <div style="margin-bottom:16px;">
+        <h3 style="font-size:1.1rem;color:var(--gold-light);">${evento.descricao}</h3>
+        <p style="color:var(--gray);font-size:0.85rem;">${evento.categoria || "Sem categoria"}</p>
+        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
+      </div>
+      <div class="info-row"><span class="label">Valor</span><span class="value gold">${formatCurrency(evento.valor)}</span></div>
+      <div class="info-row"><span class="label">Vencimento</span><span class="value">${formatDate(evento.vencimento)}</span></div>
+      <div class="info-row"><span class="label">Tipo</span><span class="value ${isPagar ? "danger" : "success"}">${isPagar ? "A Pagar" : "A Receber"}</span></div>
+      ${evento.payment_method ? `<div class="info-row"><span class="label">Forma de Pagamento</span><span class="value">${evento.payment_method}</span></div>` : ""}
+      ${parcelasHtml}
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${evento.id}</div>
+      </div>
+    `;
+
+    openModal("Detalhes da Conta", html);
+  };
+
+  // Função para baixar lançamento
+  window.baixarLancamento = async function (transactionId) {
+    const { data: t } = await supabase
+      .from("financial_transactions")
+      .select("*")
+      .eq("id", transactionId)
+      .single();
+
+    if (!t) {
+      showFeedback("Erro", "Lançamento não encontrado.", "error");
+      return;
+    }
+
+    const loginResult = await abrirModalLogin("baixar lançamento");
+    if (!loginResult.success) {
+      showFeedback(
+        "Ação cancelada",
+        "Você precisa estar autenticado.",
+        "warning",
+      );
+      return;
+    }
+
+    try {
+      const dataPag = new Date().toISOString().split("T")[0];
+
+      const { error } = await supabase
+        .from("financial_transactions")
+        .update({
+          status: "pago",
+          payment_date: dataPag,
+        })
+        .eq("id", transactionId);
+
+      if (error) throw error;
+
+      showFeedback(
+        "Sucesso",
+        "Lançamento baixado com sucesso!",
+        "success",
+        () => carregarDados(),
+      );
+    } catch (error) {
+      console.error("Erro ao baixar lançamento:", error);
+      showFeedback("Erro", "Falha ao baixar lançamento.", "error");
+    }
+  };
+
+  // Função para editar lançamento (simplificada)
+  window.editarLancamento = async function (transactionId) {
+    const { data: t } = await supabase
+      .from("financial_transactions")
+      .select("*")
+      .eq("id", transactionId)
+      .single();
+
+    if (!t) {
+      showFeedback("Erro", "Lançamento não encontrado.", "error");
+      return;
+    }
+
+    showFeedback(
+      "Info",
+      "Edição de lançamento em desenvolvimento. Use o sistema web para editar.",
+      "info",
+    );
+  };
+
+  // Função para excluir lançamento
+  window.excluirLancamento = async function (transactionId) {
+    const loginResult = await abrirModalLogin("excluir lançamento");
+    if (!loginResult.success) {
+      showFeedback(
+        "Ação cancelada",
+        "Você precisa estar autenticado.",
+        "warning",
+      );
+      return;
+    }
+
+    if (!confirm("Deseja realmente excluir este lançamento?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("financial_transactions")
+        .delete()
+        .eq("id", transactionId);
+
+      if (error) throw error;
+
+      showFeedback("Sucesso", "Lançamento excluído!", "success", () =>
+        carregarDados(),
+      );
+    } catch (error) {
+      console.error("Erro ao excluir lançamento:", error);
+      showFeedback("Erro", "Falha ao excluir lançamento.", "error");
+    }
+  };
 
   // ============================================================
   // RENDERIZAR - ABA GERAL (DASHBOARD)
@@ -2589,83 +3531,6 @@
       year: "numeric",
     });
     document.getElementById("resumoPeriodo").textContent = mesNome;
-  }
-
-  // ============================================================
-  // RENDERIZAR - ABA FINANCEIRO
-  // ============================================================
-  function renderizarFinanceiro(dados) {
-    const { eventosFinanceiros, totalPagar, totalReceber } = dados;
-
-    document.getElementById("finTotalPagar").textContent =
-      formatCurrency(totalPagar);
-    document.getElementById("finTotalReceber").textContent =
-      formatCurrency(totalReceber);
-
-    let saldoMes = 0;
-    let contasVencidas = 0;
-    const hoje = new Date();
-
-    for (const e of eventosFinanceiros) {
-      if (e.tipo === "receber") {
-        saldoMes += e.valor;
-      } else {
-        saldoMes -= e.valor;
-      }
-      if (e.status === "pendente" && new Date(e.vencimento) < hoje) {
-        contasVencidas++;
-      }
-    }
-
-    document.getElementById("finSaldoMes").textContent =
-      formatCurrency(saldoMes);
-    document.getElementById("finContasVencidas").textContent = contasVencidas;
-
-    const container = document.getElementById("listaFinanceiro");
-    document.getElementById("totalLancamentos").textContent =
-      (eventosFinanceiros || []).length + " contas";
-
-    if (eventosFinanceiros && eventosFinanceiros.length > 0) {
-      container.innerHTML = eventosFinanceiros
-        .slice(0, 15)
-        .map((e) => {
-          const isPagar = e.tipo === "pagar";
-          const vencido =
-            e.status === "pendente" && new Date(e.vencimento) < new Date();
-          const pago = e.status === "pago" || e.status === "recebido";
-
-          let classeItem = "";
-          let cor = "";
-          if (pago) {
-            classeItem = "item-pago";
-            cor = "var(--success)";
-          } else if (vencido) {
-            classeItem = "item-vencido";
-            cor = "var(--error)";
-          } else {
-            cor = "var(--white)";
-          }
-
-          const statusClass = pago ? "pago" : vencido ? "vencido" : "pendente";
-          const parcelaInfo = e.isParcela
-            ? `Parcela ${e.numero_parcela}/${e.total_parcelas}`
-            : "Avulsa";
-
-          return `<div class="list-item ${classeItem}" onclick="abrirModalConta('${e.id}')" style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);gap:10px;transition:var(--transition);cursor:pointer;${pago ? "border-left:3px solid var(--success);background:rgba(76,175,80,0.05);" : ""}${vencido ? "border-left:3px solid var(--error);background:rgba(255,82,82,0.05);" : ""}">
-            <div class="item-main" style="flex:1;min-width:0;">
-              <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${cor};">${e.descricao}</div>
-              <div class="item-sub" style="font-size:10px;color:var(--gray-dark);margin-top:1px;">${formatDate(e.vencimento)} ${e.isParcela ? `· ${parcelaInfo}` : ""}</div>
-            </div>
-            <div class="item-right" style="text-align:right;flex-shrink:0;">
-              <span class="item-badge badge-status-${statusClass}" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">${pago ? "✅ Pago" : vencido ? "🔴 Vencido" : "🟡 Pendente"}</span>
-              <div class="item-value ${isPagar ? "item-error" : "item-success"}" style="font-size:14px;font-weight:700;color:${cor};">${isPagar ? "-" : "+"}${formatCurrency(e.valor)}</div>
-            </div>
-          </div>`;
-        })
-        .join("");
-    } else {
-      container.innerHTML = `<div class="empty-state" style="text-align:center;padding:24px 16px;color:var(--gray-dark);"><i class="ph ph-currency-circle-dollar" style="font-size:28px;display:block;margin-bottom:6px;color:var(--gray);"></i><p style="font-size:12px;">Nenhuma conta no mês</p></div>`;
-    }
   }
 
   // ============================================================
@@ -2788,62 +3653,6 @@
   }
 
   // ============================================================
-  // ABRIR MODAL CONTA
-  // ============================================================
-  window.abrirModalConta = function (id) {
-    const evento = dados.eventosFinanceiros?.find((e) => e.id === id);
-    if (!evento) {
-      showFeedback("Erro", "Conta não encontrada.", "error");
-      return;
-    }
-
-    const isPagar = evento.tipo === "pagar";
-    const vencido =
-      evento.status === "pendente" && new Date(evento.vencimento) < new Date();
-    const pago = evento.status === "pago" || evento.status === "recebido";
-
-    let statusText = "";
-    let statusColor = "";
-    if (pago) {
-      statusText = "✅ Pago";
-      statusColor = "var(--success)";
-    } else if (vencido) {
-      statusText = "🔴 Vencido";
-      statusColor = "var(--error)";
-    } else {
-      statusText = "🟡 Pendente";
-      statusColor = "var(--warning)";
-    }
-
-    let parcelasHtml = "";
-    if (evento.isParcela && evento.parcela_original) {
-      parcelasHtml = `
-        <div class="info-row"><span class="label">Parcela</span><span class="value">${evento.numero_parcela}/${evento.total_parcelas}</span></div>
-        ${evento.interest_paid ? `<div class="info-row"><span class="label">Juros pagos</span><span class="value">${formatCurrency(evento.interest_paid)}</span></div>` : ""}
-        ${evento.late_fee_paid ? `<div class="info-row"><span class="label">Multa paga</span><span class="value">${formatCurrency(evento.late_fee_paid)}</span></div>` : ""}
-      `;
-    }
-
-    const html = `
-      <div style="margin-bottom:16px;">
-        <h3 style="font-size:1.1rem;color:var(--gold-light);">${evento.descricao}</h3>
-        <p style="color:var(--gray);font-size:0.85rem;">${evento.categoria || "Sem categoria"}</p>
-        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
-      </div>
-      <div class="info-row"><span class="label">Valor</span><span class="value gold">${formatCurrency(evento.valor)}</span></div>
-      <div class="info-row"><span class="label">Vencimento</span><span class="value">${formatDate(evento.vencimento)}</span></div>
-      <div class="info-row"><span class="label">Tipo</span><span class="value ${isPagar ? "danger" : "success"}">${isPagar ? "A Pagar" : "A Receber"}</span></div>
-      ${evento.payment_method ? `<div class="info-row"><span class="label">Forma de Pagamento</span><span class="value">${evento.payment_method}</span></div>` : ""}
-      ${parcelasHtml}
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${evento.id}</div>
-      </div>
-    `;
-
-    openModal("Detalhes da Conta", html);
-  };
-
-  // ============================================================
   // ABRIR MODAL DÍVIDA
   // ============================================================
   function abrirModalDivida(div) {
@@ -2951,9 +3760,6 @@
       const mesRange = getMonthRange();
       console.log(`📅 Mês atual: ${mesRange.mes}/${mesRange.ano}`);
 
-      // ============================================================
-      // 1. TODAS AS ORDENS DE SERVIÇO (para produção)
-      // ============================================================
       let queryOS = supabase
         .from("service_orders")
         .select(
@@ -2973,7 +3779,6 @@
         (o) => !["cancelado"].includes(o.status),
       );
 
-      // Buscar progresso (itens)
       const osIds = osAtivas.map((o) => o.id);
       let progressoMap = {};
       if (osIds.length > 0) {
@@ -3010,9 +3815,6 @@
 
       dados.progressoMap = progressoMap;
 
-      // ============================================================
-      // 2. FINANCEIRO
-      // ============================================================
       let queryAvulsas = supabase
         .from("financial_transactions")
         .select(
@@ -3114,9 +3916,6 @@
         }
       }
 
-      // ============================================================
-      // 3. RH
-      // ============================================================
       const { data: funcionarios, error: errFunc } = await supabase
         .from("employees")
         .select("*")
@@ -3135,9 +3934,6 @@
         .order("start_date", { ascending: true });
       if (errFer) console.error("❌ Erro férias:", errFer);
 
-      // ============================================================
-      // 4. DÍVIDAS
-      // ============================================================
       const { data: dividas, error: errDiv } = await supabase
         .from("debts")
         .select("*")
@@ -3152,9 +3948,6 @@
       }
       const saldoDevedor = totalDividas - totalPago;
 
-      // ============================================================
-      // ARMAZENA DADOS
-      // ============================================================
       dados = {
         osAtivas: osAtivas || [],
         emCostura: emCostura || 0,
@@ -3311,10 +4104,43 @@
   // INICIALIZAÇÃO
   // ============================================================
   document.addEventListener("DOMContentLoaded", async function () {
-    carregarSessao();
-    mostrarAba("geral");
-    await carregarDados();
-    setInterval(carregarDados, 60000);
+    const sessaoValida = carregarSessao();
+
+    if (sessaoValida && usuarioAutenticado) {
+      console.log("✅ Sessão válida encontrada, carregando app...");
+      const appContainer = document.querySelector(".app-container");
+      if (appContainer) {
+        appContainer.style.display = "flex";
+      }
+      mostrarAba("geral");
+      await carregarDados();
+      setupActivityDetection();
+    } else {
+      console.log("🔐 Sessão não encontrada, exibindo login...");
+      const appContainer = document.querySelector(".app-container");
+      if (appContainer) {
+        appContainer.style.display = "none";
+      }
+
+      await abrirModalLoginObrigatorio("acessar o app");
+      setupActivityDetection();
+
+      setInterval(
+        () => {
+          if (isAutenticado()) {
+            renovarSessao();
+            console.log("🔄 Sessão renovada automaticamente (keep-alive)");
+          }
+        },
+        25 * 60 * 1000,
+      );
+    }
+
+    setInterval(() => {
+      if (isAutenticado()) {
+        carregarDados();
+      }
+    }, 60000);
   });
 
   // ============================================================
@@ -3334,4 +4160,7 @@
   window.registrarCosturaParcial = window.registrarCosturaParcial;
   window.enviarRevisao = window.enviarRevisao;
   window.voltarCostura = window.voltarCostura;
+  window.baixarLancamento = window.baixarLancamento;
+  window.editarLancamento = window.editarLancamento;
+  window.excluirLancamento = window.excluirLancamento;
 })();
