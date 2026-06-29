@@ -1,13 +1,13 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // JavaScript completo para o aplicativo do gestor
-// VERSÃO 2.15 - FINANCEIRO COM SELEÇÃO INTELIGENTE DE PARCELAS
+// VERSÃO 2.16 - FINANCEIRO COM VISÃO EM CALENDÁRIO
 // ============================================================
 
 (function () {
   "use strict";
 
-  console.log("🚀 App do Gestor - Versão 2.15 com seleção inteligente de parcelas");
+  console.log("🚀 App do Gestor - Versão 2.16 com visão em calendário");
 
   // ============================================================
   // SUPABASE
@@ -48,20 +48,18 @@
   // SISTEMA DE AUTENTICAÇÃO COM CACHE DE 30 MINUTOS
   // ============================================================
 
-  const SESSION_DURATION = 30 * 60 * 1000; // 30 minutos em milissegundos
+  const SESSION_DURATION = 30 * 60 * 1000;
 
   let usuarioAutenticado = null;
   let sessionTimeout = null;
   let loginModalAberto = false;
 
-  // ==== CARREGAR SESSÃO DO CACHE ====
   function carregarSessao() {
     try {
       const dados = localStorage.getItem("gestor_session");
       if (dados) {
         const session = JSON.parse(dados);
         const agora = Date.now();
-
         if (session.timestamp && agora - session.timestamp < SESSION_DURATION) {
           usuarioAutenticado = session.usuario;
           console.log(`✅ Sessão ativa para: ${usuarioAutenticado.email}`);
@@ -82,7 +80,6 @@
     }
   }
 
-  // ==== SALVAR SESSÃO NO CACHE ====
   function salvarSessao(usuario) {
     const session = {
       usuario: usuario,
@@ -90,16 +87,16 @@
     };
     localStorage.setItem("gestor_session", JSON.stringify(session));
     usuarioAutenticado = usuario;
-
     if (sessionTimeout) {
       clearTimeout(sessionTimeout);
     }
     sessionTimeout = setTimeout(() => {
-      console.log("⏰ Sessão expirada automaticamente após 30 minutos de inatividade");
+      console.log(
+        "⏰ Sessão expirada automaticamente após 30 minutos de inatividade",
+      );
       localStorage.removeItem("gestor_session");
       usuarioAutenticado = null;
       atualizarIndicadorSessao();
-      
       if (!loginModalAberto) {
         showFeedback(
           "Sessão expirada",
@@ -107,16 +104,16 @@
           "warning",
           () => {
             abrirModalLoginObrigatorio("continuar usando o app");
-          }
+          },
         );
       }
     }, SESSION_DURATION);
-
-    console.log(`💾 Sessão salva para: ${usuario.email} (expira em 30 minutos)`);
+    console.log(
+      `💾 Sessão salva para: ${usuario.email} (expira em 30 minutos)`,
+    );
     atualizarIndicadorSessao();
   }
 
-  // ==== RENOVAR SESSÃO (resetar timer) ====
   function renovarSessao() {
     if (usuarioAutenticado) {
       const session = {
@@ -124,16 +121,16 @@
         timestamp: Date.now(),
       };
       localStorage.setItem("gestor_session", JSON.stringify(session));
-      
       if (sessionTimeout) {
         clearTimeout(sessionTimeout);
       }
       sessionTimeout = setTimeout(() => {
-        console.log("⏰ Sessão expirada automaticamente após 30 minutos de inatividade");
+        console.log(
+          "⏰ Sessão expirada automaticamente após 30 minutos de inatividade",
+        );
         localStorage.removeItem("gestor_session");
         usuarioAutenticado = null;
         atualizarIndicadorSessao();
-        
         if (!loginModalAberto) {
           showFeedback(
             "Sessão expirada",
@@ -141,16 +138,14 @@
             "warning",
             () => {
               abrirModalLoginObrigatorio("continuar usando o app");
-            }
+            },
           );
         }
       }, SESSION_DURATION);
-      
       console.log("🔄 Sessão renovada por mais 30 minutos");
     }
   }
 
-  // ==== LIMPAR SESSÃO (LOGOUT) ====
   function limparSessao() {
     localStorage.removeItem("gestor_session");
     usuarioAutenticado = null;
@@ -162,28 +157,23 @@
     atualizarIndicadorSessao();
   }
 
-  // ==== FAZER LOGIN COM SUPABASE AUTH ====
   async function fazerLogin(email, senha) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: senha,
       });
-
       if (error) {
         throw new Error(error.message);
       }
-
       if (data && data.user) {
         salvarSessao({
           id: data.user.id,
           email: data.user.email,
           nome: data.user.user_metadata?.full_name || data.user.email,
         });
-
         return { success: true, usuario: data.user };
       }
-
       return { success: false, error: "Usuário não encontrado" };
     } catch (error) {
       console.error("Erro no login:", error);
@@ -191,7 +181,6 @@
     }
   }
 
-  // ==== VERIFICAR SE O USUÁRIO ESTÁ AUTENTICADO ====
   function isAutenticado() {
     if (!usuarioAutenticado) {
       carregarSessao();
@@ -199,7 +188,6 @@
     return !!usuarioAutenticado;
   }
 
-  // ==== OBTER USUÁRIO ATUAL ====
   function getUsuarioAtual() {
     if (!usuarioAutenticado) {
       carregarSessao();
@@ -207,12 +195,10 @@
     return usuarioAutenticado;
   }
 
-  // ==== ATUALIZAR INDICADOR DE SESSÃO ====
   function atualizarIndicadorSessao() {
     const indicator = document.getElementById("sessionIndicator");
     const icon = document.getElementById("sessionStatusIcon");
     const text = document.getElementById("sessionStatusText");
-
     if (isAutenticado() && usuarioAutenticado) {
       indicator.className = "session-indicator online";
       icon.style.color = "var(--success)";
@@ -228,16 +214,13 @@
     }
   }
 
-  // ==== MODAL DE LOGIN OBRIGATÓRIO (TELA INICIAL) ====
   function abrirModalLoginObrigatorio(acao = "acessar o app") {
     return new Promise((resolve) => {
       loginModalAberto = true;
-      
       const appContainer = document.querySelector(".app-container");
       if (appContainer) {
         appContainer.style.display = "none";
       }
-      
       const overlay = document.createElement("div");
       overlay.id = "loginObrigatorioOverlay";
       overlay.style.cssText = `
@@ -256,7 +239,6 @@
         padding: 20px;
         animation: fadeInOverlay 0.4s ease;
       `;
-      
       if (!document.getElementById("loginStyles")) {
         const style = document.createElement("style");
         style.id = "loginStyles";
@@ -296,7 +278,6 @@
         `;
         document.head.appendChild(style);
       }
-      
       overlay.innerHTML = `
         <div class="login-modal-sheet" style="
           max-width: 420px; 
@@ -400,70 +381,66 @@
           </div>
         </div>
       `;
-      
       const oldOverlay = document.getElementById("loginObrigatorioOverlay");
       if (oldOverlay) {
         oldOverlay.remove();
       }
-      
       document.body.appendChild(overlay);
-      
       setTimeout(() => {
         const emailInput = document.getElementById("loginObrigatorioEmail");
         if (emailInput) {
           emailInput.focus();
         }
       }, 300);
-
-      document.getElementById("loginObrigatorioEmail")?.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          document.getElementById("loginObrigatorioSenha")?.focus();
-        }
-      });
-      
-      document.getElementById("loginObrigatorioSenha")?.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          document.getElementById("confirmarLoginObrigatorio")?.click();
-        }
-      });
-
+      document
+        .getElementById("loginObrigatorioEmail")
+        ?.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            document.getElementById("loginObrigatorioSenha")?.focus();
+          }
+        });
+      document
+        .getElementById("loginObrigatorioSenha")
+        ?.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            document.getElementById("confirmarLoginObrigatorio")?.click();
+          }
+        });
       document
         .getElementById("confirmarLoginObrigatorio")
         ?.addEventListener("click", async function () {
-          const email = document.getElementById("loginObrigatorioEmail").value.trim();
-          const senha = document.getElementById("loginObrigatorioSenha").value.trim();
+          const email = document
+            .getElementById("loginObrigatorioEmail")
+            .value.trim();
+          const senha = document
+            .getElementById("loginObrigatorioSenha")
+            .value.trim();
           const statusEl = document.getElementById("loginObrigatorioStatus");
-
           if (!email || !senha) {
             statusEl.textContent = "❌ Preencha email e senha";
             statusEl.style.color = "#ff5252";
             return;
           }
-
           statusEl.textContent = "⏳ Verificando...";
           statusEl.style.color = "#f0c75e";
           this.disabled = true;
           this.innerHTML = '<i class="ph ph-spinner spinning"></i> Entrando...';
-
           const result = await fazerLogin(email, senha);
-
           if (result.success) {
             statusEl.textContent = `✅ Bem-vindo, ${result.usuario.user_metadata?.full_name || email}!`;
             statusEl.style.color = "#4caf50";
-
-            const overlayEl = document.getElementById("loginObrigatorioOverlay");
+            const overlayEl = document.getElementById(
+              "loginObrigatorioOverlay",
+            );
             if (overlayEl) {
               overlayEl.remove();
             }
             loginModalAberto = false;
-            
             const appContainer = document.querySelector(".app-container");
             if (appContainer) {
               appContainer.style.display = "flex";
             }
-
             carregarDados();
-            
             resolve({ success: true, usuario: usuarioAutenticado });
           } else {
             statusEl.textContent = `❌ ${result.error || "Erro ao fazer login"}`;
@@ -475,7 +452,6 @@
     });
   }
 
-  // ==== MODAL DE LOGIN (APENAS PARA AÇÕES QUE ESCREVEM) ====
   function abrirModalLogin(acao) {
     return new Promise((resolve) => {
       if (isAutenticado()) {
@@ -483,7 +459,6 @@
         resolve({ success: true, usuario: usuarioAutenticado });
         return;
       }
-
       const html = `
         <div style="display: grid; gap: 16px; padding: 8px 0;">
           <div style="text-align: center; margin-bottom: 8px;">
@@ -519,9 +494,7 @@
           </div>
         </div>
       `;
-
       openModal("🔐 Autenticação Necessária", html);
-
       document
         .getElementById("cancelarLoginModal")
         ?.addEventListener("click", () => {
@@ -531,29 +504,23 @@
             error: "Ação cancelada pelo usuário",
           });
         });
-
       document
         .getElementById("confirmarLoginModal")
         ?.addEventListener("click", async function () {
           const email = document.getElementById("modalLoginEmail").value.trim();
           const senha = document.getElementById("modalLoginSenha").value.trim();
           const statusEl = document.getElementById("loginModalStatus");
-
           if (!email || !senha) {
             statusEl.textContent = "❌ Preencha email e senha";
             return;
           }
-
           statusEl.textContent = "⏳ Verificando...";
           statusEl.style.color = "var(--gold-light)";
           this.disabled = true;
-
           const result = await fazerLogin(email, senha);
-
           if (result.success) {
             statusEl.textContent = `✅ Bem-vindo, ${result.usuario.user_metadata?.full_name || email}!`;
             statusEl.style.color = "var(--success)";
-
             document.getElementById("modalContainer").innerHTML = "";
             resolve({ success: true, usuario: usuarioAutenticado });
           } else {
@@ -562,7 +529,6 @@
             this.disabled = false;
           }
         });
-
       document
         .getElementById("modalLoginEmail")
         ?.addEventListener("keydown", (e) => {
@@ -580,17 +546,19 @@
     });
   }
 
-  // ============================================================
-  // DETECTOR DE ATIVIDADE DO USUÁRIO (RENOVAR SESSÃO)
-  // ============================================================
   function setupActivityDetection() {
     const events = [
-      'click', 'touchstart', 'touchmove', 'scroll', 'keydown', 
-      'input', 'change', 'focus', 'blur'
+      "click",
+      "touchstart",
+      "touchmove",
+      "scroll",
+      "keydown",
+      "input",
+      "change",
+      "focus",
+      "blur",
     ];
-    
     let activityTimer = null;
-    
     const handleActivity = () => {
       if (isAutenticado()) {
         renovarSessao();
@@ -598,12 +566,12 @@
         activityTimer = setTimeout(() => {}, 5000);
       }
     };
-    
-    events.forEach(event => {
+    events.forEach((event) => {
       document.addEventListener(event, handleActivity, { passive: true });
     });
-    
-    console.log("🔄 Detector de atividade configurado - sessão será renovada com interação");
+    console.log(
+      "🔄 Detector de atividade configurado - sessão será renovada com interação",
+    );
   }
 
   // ============================================================
@@ -797,7 +765,6 @@
     document.getElementById("modalOverlay").addEventListener("click", (e) => {
       if (e.target.id === "modalOverlay") container.innerHTML = "";
     });
-
     setTimeout(() => {
       if (!document.querySelector("#modalContainer .modal-footer")) {
         const footer = document.createElement("div");
@@ -837,16 +804,13 @@
         </div>
       </div>
     `;
-
     const container = document.getElementById("modalContainer");
     if (!container) return;
     container.innerHTML = html;
-
     const closeModal = () => {
       container.innerHTML = "";
       if (typeof callback === "function") callback();
     };
-
     document
       .getElementById("closeFeedback")
       ?.addEventListener("click", closeModal);
@@ -865,10 +829,8 @@
   // ============================================================
   function gerarEventosFinanceiros(transacoes) {
     const eventos = [];
-
     for (const t of transacoes || []) {
       const transacaoParcelada = t.installments === true;
-
       if (transacaoParcelada && t.financial_installments?.length) {
         for (const parcela of t.financial_installments) {
           eventos.push({
@@ -913,7 +875,6 @@
         });
       }
     }
-
     eventos.sort((a, b) => a.vencimento.localeCompare(b.vencimento));
     return eventos;
   }
@@ -929,7 +890,6 @@
       .ilike("name", "%faturamento%")
       .limit(1)
       .maybeSingle();
-
     if (!categoria) {
       const { data: qualquerReceita } = await supabase
         .from("chart_of_accounts")
@@ -939,7 +899,6 @@
         .maybeSingle();
       if (qualquerReceita) categoria = qualquerReceita;
     }
-
     if (!categoria) {
       console.warn("Nenhuma categoria de receita encontrada.");
       return null;
@@ -964,15 +923,12 @@
       .eq("service_order_id", osId)
       .eq("type", "receber")
       .maybeSingle();
-
     const categoriaId = await obterCategoriaReceitaVenda();
     if (!categoriaId) {
       console.warn("⚠️ Categoria de receita não encontrada. Conta não criada.");
       return;
     }
-
     const dueDateStr = dataReferencia;
-
     if (contaExistente) {
       const { error } = await supabase
         .from("financial_transactions")
@@ -985,7 +941,6 @@
           notes: `Referente ao lote. Status: ${statusOS}`,
         })
         .eq("id", contaExistente.id);
-
       if (error) {
         console.error("❌ Erro ao atualizar conta a receber:", error);
       }
@@ -1002,7 +957,6 @@
         service_order_id: osId,
         notes: `Gerado do lote. Cliente: ${clienteNome}`,
       });
-
       if (error) {
         console.error("❌ Erro ao criar conta a receber:", error);
       }
@@ -1024,16 +978,13 @@
       .eq("service_order_id", osId)
       .eq("type", "receber")
       .maybeSingle();
-
     if (!conta) {
       console.warn(`⚠️ Conta a receber não encontrada para OS: ${osId}`);
       return;
     }
-
     const updateData = {
       status: status === "pago" ? "pago" : "pendente",
     };
-
     if (status === "pago") {
       updateData.payment_date =
         paymentDate || new Date().toISOString().split("T")[0];
@@ -1042,12 +993,10 @@
       updateData.payment_date = null;
       updateData.payment_method = null;
     }
-
     const { error } = await supabase
       .from("financial_transactions")
       .update(updateData)
       .eq("id", conta.id);
-
     if (error) {
       console.error("❌ Erro ao atualizar conta a receber:", error);
     }
@@ -1059,6 +1008,7 @@
   let abaAtual = "geral";
   let dados = {};
   let carregando = false;
+  let visualizacaoFinanceiro = "cards"; // 'cards' ou 'calendario'
 
   // ============================================================
   // ELEMENTOS
@@ -1083,18 +1033,15 @@
       )
       .eq("id", id)
       .single();
-
     if (error || !lote) {
       showFeedback("Erro", "Lote não encontrado.", "error");
       return;
     }
-
     const { data: items } = await supabase
       .from("service_order_items")
       .select("*")
       .eq("service_order_id", id)
       .order("size");
-
     const { data: sewingRecords } = await supabase
       .from("sewing_records")
       .select(
@@ -1107,23 +1054,19 @@
       .eq("service_order_items.service_order_id", id)
       .order("start_time", { ascending: false })
       .limit(10);
-
     const totalPecas = items?.length
       ? items.reduce((sum, i) => sum + i.quantity, 0)
       : lote.total_quantity;
-
     const valorTotal = lote.total || totalPecas * lote.unit_price;
     const cliente =
       lote.customers?.trade_name || lote.customers?.company_name || "-";
     const atrasado =
       new Date(lote.expected_delivery) < new Date() &&
       !["pago", "cancelado"].includes(lote.status);
-
     const paymentStatus = lote.payment_status || "pendente";
     const paymentInfo = getPaymentStatusInfo(paymentStatus);
     const statusColor = getStatusColor(lote.status);
     const statusIcon = getStatusIcon(lote.status);
-
     const headerColor = atrasado
       ? "#ff5252"
       : paymentStatus === "pago"
@@ -1135,7 +1078,6 @@
             : lote.status === "entregue"
               ? "#d4a017"
               : "#9e9e9e";
-
     let itemsHtml = "";
     if (items && items.length > 0) {
       itemsHtml = `
@@ -1167,7 +1109,6 @@
         </div>
       `;
     }
-
     let costuraHtml = "";
     if (sewingRecords && sewingRecords.length > 0) {
       costuraHtml = `
@@ -1200,7 +1141,6 @@
         </div>
       `;
     }
-
     const progresso =
       totalPecas > 0
         ? Math.round(
@@ -1209,7 +1149,6 @@
               100,
           )
         : 0;
-
     const html = `
       <div style="display:grid; gap:10px;">
         <div style="background: ${headerColor}22; border: 2px solid ${headerColor}; border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
@@ -1300,13 +1239,10 @@
         </div>
       </div>
     `;
-
     openModal(`📋 ${lote.order_number}`, html);
-
     setTimeout(() => {
       const tabBtns = document.querySelectorAll(".tab-detail-btn");
       const tabContents = document.querySelectorAll(".tab-detail-content");
-
       tabBtns.forEach((btn) => {
         btn.addEventListener("click", function () {
           const tab = this.dataset.tab;
@@ -1333,18 +1269,15 @@
       .select("id, order_number, total_quantity, status")
       .eq("id", id)
       .single();
-
     if (error || !os) {
       showFeedback("Erro", "OS não encontrada.", "error");
       return;
     }
-
     const { data: items } = await supabase
       .from("service_order_items")
       .select("*")
       .eq("service_order_id", id)
       .order("size");
-
     if (!items || items.length === 0) {
       showFeedback(
         "Erro",
@@ -1353,19 +1286,16 @@
       );
       return;
     }
-
     const { data: funcionarios } = await supabase
       .from("employees")
       .select("id, full_name")
       .eq("active", true)
       .order("full_name");
-
     const optsFuncionarios = funcionarios?.length
       ? funcionarios
           .map((f) => `<option value="${f.id}">${f.full_name}</option>`)
           .join("")
       : '<option value="">Nenhum funcionário cadastrado</option>';
-
     let gradeFields = "";
     items.forEach((item) => {
       const restante = item.quantity - (item.sewn_quantity || 0);
@@ -1388,7 +1318,6 @@
         </div>
       `;
     });
-
     const formHtml = `
       <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:12px; margin-bottom:12px;">
         <p style="font-size:0.8rem;"><strong>OS:</strong> ${os.order_number}</p>
@@ -1409,18 +1338,15 @@
         <input id="costuraMaquina" class="form-input" placeholder="Ex: Máquina 01, Overloque..." style="padding:6px 8px; font-size:0.75rem;">
       </div>
     `;
-
     openModal("Registrar Costura Parcial", formHtml);
     document
       .getElementById("modalContainer")
       .querySelector(".modal-header h2").innerHTML =
       '<i class="ph ph-thread"></i> Registrar Costura Parcial';
-
     document
       .getElementById("modalContainer")
       .querySelector(".modal-footer")
       ?.remove();
-
     const footer = document.createElement("div");
     footer.className = "modal-footer";
     footer.innerHTML = `
@@ -1431,13 +1357,11 @@
       .getElementById("modalContainer")
       .querySelector(".modal-sheet")
       .appendChild(footer);
-
     document
       .getElementById("cancelarCostura")
       ?.addEventListener("click", () => {
         document.getElementById("modalContainer").innerHTML = "";
       });
-
     document
       .getElementById("salvarCostura")
       ?.addEventListener("click", async function () {
@@ -1445,11 +1369,9 @@
           document.getElementById("costuraFuncionario")?.value || null;
         const maquina =
           document.getElementById("costuraMaquina")?.value?.trim() || null;
-
         let totalCosturadoAgora = 0;
         const updates = [];
         const records = [];
-
         document.querySelectorAll(".costura-qtd-item").forEach((input) => {
           const itemId = input.dataset.itemId;
           const qtd = parseInt(input.value) || 0;
@@ -1457,7 +1379,6 @@
             `.costura-defeitos-item[data-item-id="${itemId}"]`,
           );
           const defeitos = parseInt(defeitosInput?.value) || 0;
-
           if (qtd > 0) {
             totalCosturadoAgora += qtd;
             updates.push({ id: itemId, qtd, defeitos });
@@ -1471,7 +1392,6 @@
             });
           }
         });
-
         if (totalCosturadoAgora === 0) {
           showFeedback(
             "Aviso",
@@ -1480,7 +1400,6 @@
           );
           return;
         }
-
         const loginResult = await abrirModalLogin("registrar costura parcial");
         if (!loginResult.success) {
           showFeedback(
@@ -1490,7 +1409,6 @@
           );
           return;
         }
-
         try {
           for (const u of updates) {
             const item = items.find((i) => i.id === u.id);
@@ -1500,23 +1418,19 @@
               .update({ sewn_quantity: novaQtdCosturada })
               .eq("id", u.id);
           }
-
           if (records.length > 0) {
             await supabase.from("sewing_records").insert(records);
           }
-
           const { data: itemsAtualizados } = await supabase
             .from("service_order_items")
             .select("sewn_quantity, quantity")
             .eq("service_order_id", id);
-
           const totalCosturado = itemsAtualizados
             ? itemsAtualizados.reduce(
                 (sum, i) => sum + (i.sewn_quantity || 0),
                 0,
               )
             : 0;
-
           let sugestaoConcluir = false;
           if (
             totalCosturado >= os.total_quantity &&
@@ -1524,9 +1438,7 @@
           ) {
             sugestaoConcluir = true;
           }
-
           document.getElementById("modalContainer").innerHTML = "";
-
           if (sugestaoConcluir) {
             openModal(
               "Costura Concluída",
@@ -1546,7 +1458,6 @@
               .getElementById("modalContainer")
               .querySelector(".modal-sheet")
               .appendChild(footer2);
-
             document
               .getElementById("depoisCostura")
               ?.addEventListener("click", () => {
@@ -1558,7 +1469,6 @@
                   () => carregarDados(),
                 );
               });
-
             document
               .getElementById("concluirCosturaAgora")
               ?.addEventListener("click", async () => {
@@ -1640,15 +1550,12 @@
           </div>
         </div>
       `;
-
       openModal("Novo Lote", html);
-
       document
         .getElementById("cancelarNovoLote")
         ?.addEventListener("click", () => {
           document.getElementById("modalContainer").innerHTML = "";
         });
-
       document
         .getElementById("salvarNovoLote")
         ?.addEventListener("click", async function () {
@@ -1669,10 +1576,8 @@
             "novoLoteRecebimento",
           ).value;
           const prazo = document.getElementById("novoLotePrazo").value;
-          const obs = document
-            .getElementById("novoLoteObs")
-            .value.trim() || null;
-
+          const obs =
+            document.getElementById("novoLoteObs").value.trim() || null;
           if (
             !cliente ||
             !produto ||
@@ -1689,9 +1594,7 @@
             );
             return;
           }
-
           const loginResult = await abrirModalLogin("cadastrar novo lote");
-
           if (!loginResult.success) {
             showFeedback(
               "Ação cancelada",
@@ -1700,7 +1603,6 @@
             );
             return;
           }
-
           try {
             let clienteId = null;
             const { data: clientes } = await supabase
@@ -1708,7 +1610,6 @@
               .select("id")
               .ilike("company_name", `%${cliente}%`)
               .limit(1);
-
             if (clientes && clientes.length > 0) {
               clienteId = clientes[0].id;
             } else {
@@ -1723,7 +1624,6 @@
                 .single();
               if (novoCliente) clienteId = novoCliente.id;
             }
-
             if (!clienteId) {
               showFeedback(
                 "Erro",
@@ -1732,10 +1632,8 @@
               );
               return;
             }
-
             const orderNumber = "OS-" + Date.now();
             const total = qtd * preco;
-
             const { data: novaOS, error } = await supabase
               .from("service_orders")
               .insert({
@@ -1754,7 +1652,6 @@
               })
               .select("id")
               .single();
-
             if (error) {
               console.error("❌ Erro ao criar OS:", error);
               showFeedback(
@@ -1764,7 +1661,6 @@
               );
               return;
             }
-
             await supabase.from("service_order_items").insert({
               service_order_id: novaOS.id,
               size: "Único",
@@ -1772,7 +1668,6 @@
               sewn_quantity: 0,
               delivered_quantity: 0,
             });
-
             const descricaoConta = `Lote ${orderNumber} - ${produto}`;
             await criarContaReceber(
               novaOS.id,
@@ -1782,9 +1677,7 @@
               cliente,
               "recebido",
             );
-
             document.getElementById("modalContainer").innerHTML = "";
-
             showFeedback(
               "Sucesso",
               `Lote ${orderNumber} criado com referência ${referencia}!<br>💰 Conta a receber gerada com vencimento em ${formatDate(prazo)}.`,
@@ -1804,7 +1697,6 @@
 
   window.iniciarCosturaLote = async function (id, orderNumber) {
     const loginResult = await abrirModalLogin("iniciar costura");
-
     if (!loginResult.success) {
       showFeedback(
         "Ação cancelada",
@@ -1813,7 +1705,6 @@
       );
       return;
     }
-
     try {
       const { error } = await supabase
         .from("service_orders")
@@ -1822,12 +1713,9 @@
           started_date: new Date().toISOString(),
         })
         .eq("id", id);
-
       if (error) throw error;
-
       const card = document.querySelector(`.list-item[data-id="${id}"]`);
       if (card) pulseElement(card);
-
       showFeedback(
         "Sucesso",
         `🧵 Lote ${orderNumber} em costura! (por ${loginResult.usuario.email})`,
@@ -1842,7 +1730,6 @@
 
   window.finalizarCosturaLote = async function (id, orderNumber) {
     const loginResult = await abrirModalLogin("finalizar costura");
-
     if (!loginResult.success) {
       showFeedback(
         "Ação cancelada",
@@ -1851,18 +1738,14 @@
       );
       return;
     }
-
     try {
       const { error } = await supabase
         .from("service_orders")
         .update({ status: "costurado" })
         .eq("id", id);
-
       if (error) throw error;
-
       const card = document.querySelector(`.list-item[data-id="${id}"]`);
       if (card) pulseElement(card);
-
       showFeedback(
         "Sucesso",
         `✅ Lote ${orderNumber} costurado! Aguardando entrega.`,
@@ -1877,7 +1760,6 @@
 
   window.marcarEntregue = async function (id, orderNumber) {
     const loginResult = await abrirModalLogin("marcar lote como entregue");
-
     if (!loginResult.success) {
       showFeedback(
         "Ação cancelada",
@@ -1886,24 +1768,20 @@
       );
       return;
     }
-
     try {
       const { data: lote } = await supabase
         .from("service_orders")
         .select("*, customers(company_name, trade_name)")
         .eq("id", id)
         .single();
-
       if (!lote) {
         showFeedback("Erro", "Lote não encontrado.", "error");
         return;
       }
-
       const valorTotal = lote.total_quantity * lote.unit_price;
       const clienteNome =
         lote.customers?.trade_name || lote.customers?.company_name || "Cliente";
       const descricao = `Lote ${lote.order_number} - ${lote.product_description || ""} - Ref: ${lote.product_reference || ""}`;
-
       const { error } = await supabase
         .from("service_orders")
         .update({
@@ -1912,9 +1790,7 @@
           updated_at: new Date().toISOString(),
         })
         .eq("id", id);
-
       if (error) throw error;
-
       await criarContaReceber(
         id,
         valorTotal,
@@ -1923,10 +1799,8 @@
         clienteNome,
         "entregue",
       );
-
       const card = document.querySelector(`.list-item[data-id="${id}"]`);
       if (card) pulseElement(card);
-
       showFeedback(
         "Sucesso",
         `📦 Lote ${orderNumber} entregue!<br>💰 Conta a receber gerada com vencimento em ${formatDate(lote.expected_delivery)}.`,
@@ -1941,7 +1815,6 @@
 
   window.marcarPago = async function (id, orderNumber) {
     const loginResult = await abrirModalLogin("marcar lote como pago");
-
     if (!loginResult.success) {
       showFeedback(
         "Ação cancelada",
@@ -1950,10 +1823,8 @@
       );
       return;
     }
-
     try {
       const dataPag = new Date().toISOString().split("T")[0];
-
       const { error } = await supabase
         .from("service_orders")
         .update({
@@ -1962,14 +1833,10 @@
           updated_at: new Date().toISOString(),
         })
         .eq("id", id);
-
       if (error) throw error;
-
       await atualizarContaReceber(id, "pago", dataPag, null);
-
       const card = document.querySelector(`.list-item[data-id="${id}"]`);
       if (card) pulseElement(card);
-
       showFeedback(
         "Sucesso",
         `💳 Lote ${orderNumber} marcado como pago!`,
@@ -1989,7 +1856,6 @@
       .eq("service_order_id", id)
       .eq("type", "receber")
       .maybeSingle();
-
     if (conta && conta.status === "pago") {
       const htmlBloqueio = `
         <div style="text-align: center; padding: 12px 0;">
@@ -2011,20 +1877,16 @@
           </button>
         </div>
       `;
-
       openModal("⚠️ Ação Bloqueada", htmlBloqueio);
-      
-      document.getElementById("btnEntendiCancelar")?.addEventListener("click", () => {
-        document.getElementById("modalContainer").innerHTML = "";
-      });
-      
+      document
+        .getElementById("btnEntendiCancelar")
+        ?.addEventListener("click", () => {
+          document.getElementById("modalContainer").innerHTML = "";
+        });
       return;
     }
-
     if (!confirm(`Cancelar o lote ${orderNumber}?`)) return;
-
     const loginResult = await abrirModalLogin("cancelar lote");
-
     if (!loginResult.success) {
       showFeedback(
         "Ação cancelada",
@@ -2033,32 +1895,27 @@
       );
       return;
     }
-
     try {
       if (conta && conta.status === "pendente") {
         await supabase
           .from("financial_installments")
           .delete()
           .eq("transaction_id", conta.id);
-
         await supabase
           .from("financial_transactions")
           .delete()
           .eq("id", conta.id);
-        
-        console.log(`✅ Conta a receber removida por cancelamento: ${conta.id}`);
+        console.log(
+          `✅ Conta a receber removida por cancelamento: ${conta.id}`,
+        );
       }
-
       const { error } = await supabase
         .from("service_orders")
         .update({ status: "cancelado" })
         .eq("id", id);
-
       if (error) throw error;
-
       const card = document.querySelector(`.list-item[data-id="${id}"]`);
       if (card) pulseElement(card);
-
       showFeedback(
         "Sucesso",
         `❌ Lote ${orderNumber} cancelado.`,
@@ -2079,7 +1936,6 @@
         .eq("service_order_id", id)
         .eq("type", "receber")
         .maybeSingle();
-
       if (conta && conta.status === "pago") {
         const htmlBloqueio = `
           <div style="text-align: center; padding: 12px 0;">
@@ -2101,16 +1957,14 @@
             </button>
           </div>
         `;
-
         openModal("⚠️ Ação Bloqueada", htmlBloqueio);
-        
-        document.getElementById("btnEntendiExcluir")?.addEventListener("click", () => {
-          document.getElementById("modalContainer").innerHTML = "";
-        });
-        
+        document
+          .getElementById("btnEntendiExcluir")
+          ?.addEventListener("click", () => {
+            document.getElementById("modalContainer").innerHTML = "";
+          });
         return;
       }
-
       let mensagemAdicional = "";
       if (conta && conta.status === "pendente") {
         mensagemAdicional = `
@@ -2122,7 +1976,6 @@
           </div>
         `;
       }
-
       const htmlConfirmacao = `
         <div style="text-align: center; padding: 8px 0;">
           <div style="font-size: 3rem; margin-bottom: 12px;">🗑️</div>
@@ -2145,88 +1998,82 @@
               <i class="ph ph-trash"></i> Excluir
             </button>
           </div>
-          ${conta && conta.status === "pendente" ? `
+          ${
+            conta && conta.status === "pendente"
+              ? `
             <p style="color: var(--gray-dark); font-size: 0.7rem; margin-top: 12px;">
               <i class="ph ph-currency-circle-dollar"></i> Conta a receber de ${formatCurrency(conta.amount)} será removida
             </p>
-          ` : ""}
+          `
+              : ""
+          }
         </div>
       `;
-
       openModal("⚠️ Confirmar Exclusão", htmlConfirmacao);
-
-      document.getElementById("btnCancelarExclusao")?.addEventListener("click", () => {
-        document.getElementById("modalContainer").innerHTML = "";
-      });
-
-      document.getElementById("btnConfirmarExclusao")?.addEventListener("click", async function() {
-        this.disabled = true;
-        this.innerHTML = '<i class="ph ph-spinner spinning"></i> Excluindo...';
-
-        const loginResult = await abrirModalLogin("excluir lote");
-        if (!loginResult.success) {
+      document
+        .getElementById("btnCancelarExclusao")
+        ?.addEventListener("click", () => {
           document.getElementById("modalContainer").innerHTML = "";
-          showFeedback(
-            "Ação cancelada",
-            "Você precisa estar autenticado.",
-            "warning",
-          );
-          return;
-        }
-
-        try {
-          if (conta) {
-            await supabase
-              .from("financial_installments")
-              .delete()
-              .eq("transaction_id", conta.id);
-
-            await supabase
-              .from("financial_transactions")
-              .delete()
-              .eq("id", conta.id);
-            
-            console.log(`✅ Conta a receber removida: ${conta.id}`);
+        });
+      document
+        .getElementById("btnConfirmarExclusao")
+        ?.addEventListener("click", async function () {
+          this.disabled = true;
+          this.innerHTML =
+            '<i class="ph ph-spinner spinning"></i> Excluindo...';
+          const loginResult = await abrirModalLogin("excluir lote");
+          if (!loginResult.success) {
+            document.getElementById("modalContainer").innerHTML = "";
+            showFeedback(
+              "Ação cancelada",
+              "Você precisa estar autenticado.",
+              "warning",
+            );
+            return;
           }
-
-          const { data: items } = await supabase
-            .from("service_order_items")
-            .select("id")
-            .eq("service_order_id", id);
-
-          if (items && items.length > 0) {
-            for (const item of items) {
+          try {
+            if (conta) {
               await supabase
-                .from("sewing_records")
+                .from("financial_installments")
                 .delete()
-                .eq("service_order_item_id", item.id);
+                .eq("transaction_id", conta.id);
+              await supabase
+                .from("financial_transactions")
+                .delete()
+                .eq("id", conta.id);
+              console.log(`✅ Conta a receber removida: ${conta.id}`);
+            }
+            const { data: items } = await supabase
+              .from("service_order_items")
+              .select("id")
+              .eq("service_order_id", id);
+            if (items && items.length > 0) {
+              for (const item of items) {
+                await supabase
+                  .from("sewing_records")
+                  .delete()
+                  .eq("service_order_item_id", item.id);
+              }
+              await supabase
+                .from("service_order_items")
+                .delete()
+                .eq("service_order_id", id);
             }
             await supabase
-              .from("service_order_items")
+              .from("shipments")
               .delete()
               .eq("service_order_id", id);
-          }
-
-          await supabase
-            .from("shipments")
-            .delete()
-            .eq("service_order_id", id);
-
-          await supabase
-            .from("material_consumption")
-            .delete()
-            .eq("service_order_id", id);
-
-          const { error } = await supabase
-            .from("service_orders")
-            .delete()
-            .eq("id", id);
-
-          if (error) throw error;
-
-          document.getElementById("modalContainer").innerHTML = "";
-
-          const htmlSucesso = `
+            await supabase
+              .from("material_consumption")
+              .delete()
+              .eq("service_order_id", id);
+            const { error } = await supabase
+              .from("service_orders")
+              .delete()
+              .eq("id", id);
+            if (error) throw error;
+            document.getElementById("modalContainer").innerHTML = "";
+            const htmlSucesso = `
             <div style="text-align: center; padding: 20px 0;">
               <div style="font-size: 3rem; margin-bottom: 12px;">✅</div>
               <h3 style="color: var(--success);">Lote Excluído!</h3>
@@ -2239,21 +2086,24 @@
               </button>
             </div>
           `;
-
-          openModal("✅ Sucesso", htmlSucesso);
-          document.getElementById("btnOkSucesso")?.addEventListener("click", () => {
+            openModal("✅ Sucesso", htmlSucesso);
+            document
+              .getElementById("btnOkSucesso")
+              ?.addEventListener("click", () => {
+                document.getElementById("modalContainer").innerHTML = "";
+                carregarDados();
+              });
+            setTimeout(() => carregarDados(), 500);
+          } catch (error) {
+            console.error("Erro ao excluir lote:", error);
             document.getElementById("modalContainer").innerHTML = "";
-            carregarDados();
-          });
-
-          setTimeout(() => carregarDados(), 500);
-
-        } catch (error) {
-          console.error("Erro ao excluir lote:", error);
-          document.getElementById("modalContainer").innerHTML = "";
-          showFeedback("Erro", "Falha ao excluir lote: " + error.message, "error");
-        }
-      });
+            showFeedback(
+              "Erro",
+              "Falha ao excluir lote: " + error.message,
+              "error",
+            );
+          }
+        });
     } catch (error) {
       console.error("Erro ao excluir lote:", error);
       showFeedback("Erro", "Falha ao excluir lote.", "error");
@@ -2266,14 +2116,11 @@
       .select("*, customers(company_name, trade_name)")
       .eq("id", id)
       .single();
-
     if (fetchError || !lote) {
       showFeedback("Erro", "Lote não encontrado.", "error");
       return;
     }
-
     const loginResult = await abrirModalLogin("editar lote");
-
     if (!loginResult.success) {
       showFeedback(
         "Ação cancelada",
@@ -2282,12 +2129,10 @@
       );
       return;
     }
-
     const nomeCliente =
       lote.customers?.trade_name ||
       lote.customers?.company_name ||
       "Cliente não informado";
-
     const html = `
       <div style="display: grid; gap: 10px;">
         <h4 style="color: var(--gold-light); font-size:0.9rem;">Editar Lote ${lote.order_number}</h4>
@@ -2369,9 +2214,7 @@
         </div>
       </div>
     `;
-
     openModal("Editar Lote", html);
-
     document
       .getElementById("editPagamento")
       ?.addEventListener("change", function () {
@@ -2385,15 +2228,12 @@
           campos.style.display = "none";
         }
       });
-
     if (lote.payment_status === "pago") {
       document.getElementById("camposPagamento").style.display = "grid";
     }
-
     document.getElementById("cancelarEdit")?.addEventListener("click", () => {
       document.getElementById("modalContainer").innerHTML = "";
     });
-
     document
       .getElementById("salvarEdit")
       ?.addEventListener("click", async function () {
@@ -2412,7 +2252,6 @@
         const formaPagamento =
           document.getElementById("editFormaPagamento").value || null;
         const obs = document.getElementById("editObs").value.trim() || null;
-
         if (
           !produto ||
           !referencia ||
@@ -2428,9 +2267,7 @@
           );
           return;
         }
-
         const total = qtd * preco;
-
         try {
           const updateData = {
             product_description: produto,
@@ -2444,7 +2281,6 @@
             notes: obs,
             total: total,
           };
-
           if (paymentStatus === "pago") {
             updateData.payment_date = dataPagamento || todayISO();
             updateData.payment_method = formaPagamento;
@@ -2452,26 +2288,20 @@
             updateData.payment_date = null;
             updateData.payment_method = null;
           }
-
           const { error } = await supabase
             .from("service_orders")
             .update(updateData)
             .eq("id", id);
-
           if (error) throw error;
-
           await atualizarContaReceber(
             id,
             paymentStatus,
             dataPagamento,
             formaPagamento,
           );
-
           document.getElementById("modalContainer").innerHTML = "";
-
           const card = document.querySelector(`.list-item[data-id="${id}"]`);
           if (card) pulseElement(card);
-
           showFeedback(
             "Sucesso",
             `✅ Lote ${lote.order_number} atualizado!`,
@@ -2492,22 +2322,18 @@
   window.toggleMenu = function (menuId) {
     const menu = document.getElementById(menuId);
     if (!menu) return;
-
     document.querySelectorAll(".dropdown-actions-menu").forEach((m) => {
       if (m.id !== menuId) {
         m.style.display = "none";
       }
     });
-
     const isOpen = menu.style.display === "block";
     menu.style.display = isOpen ? "none" : "block";
   };
 
   window.enviarRevisao = async function (id, orderNumber) {
     if (!confirm(`Enviar o lote ${orderNumber} para revisão?`)) return;
-
     const loginResult = await abrirModalLogin("enviar para revisão");
-
     if (!loginResult.success) {
       showFeedback(
         "Ação cancelada",
@@ -2516,15 +2342,12 @@
       );
       return;
     }
-
     try {
       const { error } = await supabase
         .from("service_orders")
         .update({ status: "em_revisao" })
         .eq("id", id);
-
       if (error) throw error;
-
       showFeedback(
         "Sucesso",
         `🔍 Lote ${orderNumber} enviado para revisão.`,
@@ -2539,9 +2362,7 @@
 
   window.voltarCostura = async function (id, orderNumber) {
     if (!confirm(`Retornar o lote ${orderNumber} para costura?`)) return;
-
     const loginResult = await abrirModalLogin("voltar para costura");
-
     if (!loginResult.success) {
       showFeedback(
         "Ação cancelada",
@@ -2550,15 +2371,12 @@
       );
       return;
     }
-
     try {
       const { error } = await supabase
         .from("service_orders")
         .update({ status: "em_costura" })
         .eq("id", id);
-
       if (error) throw error;
-
       showFeedback(
         "Sucesso",
         `🔄 Lote ${orderNumber} voltou para costura.`,
@@ -2576,30 +2394,25 @@
   // ============================================================
   function renderizarProducao(dados) {
     console.log("📊 renderizarProducao chamada com dados:", dados);
-    
     const { osAtivas } = dados;
-
     const hoje = new Date();
-    
     const emCostura = osAtivas.filter((o) => o.status === "em_costura").length;
     const costurados = osAtivas.filter((o) => o.status === "costurado").length;
     const recebidos = osAtivas.filter((o) => o.status === "recebido").length;
     const emRevisao = osAtivas.filter((o) => o.status === "em_revisao").length;
     const entregues = osAtivas.filter((o) => o.status === "entregue").length;
     const cancelados = osAtivas.filter((o) => o.status === "cancelado").length;
-    
     const atrasados = osAtivas.filter((o) => {
       if (!o.expected_delivery) return false;
       const prazo = new Date(o.expected_delivery);
-      return prazo < hoje && !["entregue", "cancelado", "pago"].includes(o.status);
+      return (
+        prazo < hoje && !["entregue", "cancelado", "pago"].includes(o.status)
+      );
     }).length;
-
     const aguardandoPagto = osAtivas.filter(
-      (o) => o.status === "entregue" && o.payment_status !== "pago"
+      (o) => o.status === "entregue" && o.payment_status !== "pago",
     ).length;
-
     const pagos = osAtivas.filter((o) => o.payment_status === "pago").length;
-
     const entreguesHoje = osAtivas.filter((o) => {
       if (!o.updated_at) return false;
       const dataAtualizacao = new Date(o.updated_at);
@@ -2608,7 +2421,6 @@
         dataAtualizacao.toDateString() === hoje.toDateString()
       );
     }).length;
-
     console.log("📊 Status calculados:", {
       total: osAtivas.length,
       emCostura,
@@ -2620,30 +2432,25 @@
       atrasados,
       aguardandoPagto,
       pagos,
-      entreguesHoje
+      entreguesHoje,
     });
-
     const elEmCostura = document.getElementById("prodEmCostura");
     const elCosturados = document.getElementById("prodCosturados");
     const elAtrasados = document.getElementById("prodAtrasados");
     const elAguardandoPagto = document.getElementById("prodAguardandoPagto");
     const elEntreguesHoje = document.getElementById("prodEntreguesHoje");
     const elPagos = document.getElementById("prodPagos");
-
     if (elEmCostura) elEmCostura.textContent = emCostura;
     if (elCosturados) elCosturados.textContent = costurados;
     if (elAtrasados) elAtrasados.textContent = atrasados;
     if (elAguardandoPagto) elAguardandoPagto.textContent = aguardandoPagto;
     if (elEntreguesHoje) elEntreguesHoje.textContent = entreguesHoje;
     if (elPagos) elPagos.textContent = pagos;
-
     const container = document.getElementById("listaProducao");
     const totalEl = document.getElementById("totalLotes");
-    
     if (totalEl) {
       totalEl.textContent = (osAtivas || []).length + " lotes";
     }
-
     if (osAtivas && osAtivas.length > 0) {
       container.innerHTML = osAtivas
         .sort(
@@ -2656,16 +2463,13 @@
           const atrasado =
             new Date(os.expected_delivery) < new Date() &&
             !["cancelado", "entregue", "pago"].includes(os.status);
-
           const paymentStatus = os.payment_status || "pendente";
           const paymentInfo = getPaymentStatusInfo(paymentStatus);
           const statusColor = getStatusColor(os.status);
           const statusIcon = getStatusIcon(os.status);
-
           const referencia =
             os.product_reference || os.order_number || "Sem referência";
           const orderNumber = os.order_number || "";
-
           const prog = dados.progressoMap?.[os.id] || {
             total: os.total_quantity,
             costurado: 0,
@@ -2679,7 +2483,6 @@
             prog.total > 0 ? Math.round((prog.entregue / prog.total) * 100) : 0;
           const faltamCosturar = prog.total - prog.costurado;
           const faltamEntregar = prog.total - prog.entregue;
-
           const progressoHtml = `
             <div style="font-size:0.65rem; color:var(--gray); margin-top:4px;">
               <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
@@ -2699,13 +2502,10 @@
               ${atrasado ? '<span style="font-size:0.55rem; color:var(--error);"><i class="ph ph-warning"></i> Atrasado</span>' : ""}
             </div>
           `;
-
           const valorTotal = os.total_quantity * os.unit_price;
           const statusProducaoLabel = formatStatus(os.status);
           const statusPagamentoLabel = paymentInfo.label;
-
           let botoesPrincipais = "";
-
           if (os.status === "recebido") {
             botoesPrincipais = `
               <button class="btn-action btn-action-primary" onclick="event.stopPropagation(); iniciarCosturaLote('${os.id}', '${os.order_number}')" style="padding:6px 14px; font-size:0.65rem;">
@@ -2753,21 +2553,17 @@
           } else {
             botoesPrincipais = `<span style="font-size:0.65rem; color:var(--gray);">${formatStatus(os.status)}</span>`;
           }
-
           let menuItems = "";
-
           menuItems += `
             <a href="#" class="action-item action-view" onclick="event.stopPropagation(); visualizarLote('${os.id}')" style="padding:6px 12px; font-size:0.7rem;">
               <i class="ph ph-eye"></i> Visualizar
             </a>
           `;
-
           menuItems += `
             <a href="#" class="action-item action-edit" onclick="event.stopPropagation(); editarLote('${os.id}')" style="padding:6px 12px; font-size:0.7rem;">
               <i class="ph ph-pencil-simple"></i> Editar
             </a>
           `;
-
           if (os.status !== "cancelado" && os.status !== "entregue") {
             menuItems += `
               <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
@@ -2776,7 +2572,6 @@
               </a>
             `;
           }
-
           if (os.status === "recebido") {
             menuItems += `
               <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
@@ -2821,7 +2616,6 @@
               `;
             }
           }
-
           if (os.status !== "cancelado") {
             menuItems += `
               <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
@@ -2830,20 +2624,17 @@
               </a>
             `;
           }
-
           menuItems += `
             <div class="dropdown-divider" style="margin:4px 0; border-color:rgba(255,255,255,0.05);"></div>
             <a href="#" class="action-item action-delete" onclick="event.stopPropagation(); excluirLote('${os.id}', '${os.order_number}')" style="padding:6px 12px; font-size:0.7rem;">
               <i class="ph ph-trash"></i> Excluir
             </a>
           `;
-
           const menuId = `menu-prod-${os.id}`;
           const borderColor = atrasado ? "#ff5252" : statusColor;
           const bgColor = atrasado
             ? "rgba(255,82,82,0.05)"
             : "rgba(255,255,255,0.02)";
-
           return `
             <div class="list-item ${atrasado ? "item-vencido" : ""}" 
                  data-id="${os.id}"
@@ -2935,59 +2726,49 @@
   // ============================================================
   window.abrirBaixaParcelas = async function (transactionId) {
     console.log("📋 abrirBaixaParcelas chamado para:", transactionId);
-    
     try {
       const { data: transacao, error: transError } = await supabase
         .from("financial_transactions")
-        .select(`
+        .select(
+          `
           id, description, type, amount, 
           financial_installments(id, numero_parcela, valor, vencimento, status, payment_date)
-        `)
+        `,
+        )
         .eq("id", transactionId)
         .single();
-
       if (transError || !transacao) {
         showFeedback("Erro", "Transação não encontrada.", "error");
         return;
       }
-
       const parcelas = transacao.financial_installments || [];
-      
       if (parcelas.length === 0) {
         await baixarLancamento(transactionId);
         return;
       }
-
       const hoje = new Date();
       const hojeISO = todayISO();
       const mesAtual = hoje.getMonth();
       const anoAtual = hoje.getFullYear();
-      
-      // Filtrar parcelas pendentes
-      const parcelasPendentes = parcelas.filter(p => p.status !== "pago");
-      
+      const parcelasPendentes = parcelas.filter((p) => p.status !== "pago");
       if (parcelasPendentes.length === 0) {
         showFeedback("Aviso", "Todas as parcelas já foram pagas.", "info");
         return;
       }
-
-      const totalPendente = parcelasPendentes.reduce((sum, p) => sum + parseFloat(p.valor), 0);
-
-      // ============================================================
-      // 🔥 SELEÇÃO INTELIGENTE:
-      // - Marca apenas parcelas vencidas E parcelas do mês atual
-      // - Parcelas já pagas ficam desabilitadas
-      // ============================================================
-      let parcelasHtml = parcelasPendentes.map((p) => {
-        const dataVenc = new Date(p.vencimento);
-        const isVencida = dataVenc < hoje;
-        const isMesAtual = dataVenc.getMonth() === mesAtual && dataVenc.getFullYear() === anoAtual;
-        const isPaga = p.status === "pago";
-        
-        // Só seleciona se for vencida OU do mês atual (e não estiver paga)
-        const deveSelecionar = (isVencida || isMesAtual) && !isPaga;
-        
-        return `
+      const totalPendente = parcelasPendentes.reduce(
+        (sum, p) => sum + parseFloat(p.valor),
+        0,
+      );
+      let parcelasHtml = parcelasPendentes
+        .map((p) => {
+          const dataVenc = new Date(p.vencimento);
+          const isVencida = dataVenc < hoje;
+          const isMesAtual =
+            dataVenc.getMonth() === mesAtual &&
+            dataVenc.getFullYear() === anoAtual;
+          const isPaga = p.status === "pago";
+          const deveSelecionar = (isVencida || isMesAtual) && !isPaga;
+          return `
           <div style="
             display: flex;
             align-items: center;
@@ -3002,13 +2783,13 @@
               <input type="checkbox" class="parcela-checkbox" 
                      data-id="${p.id}" 
                      data-valor="${p.valor}"
-                     ${deveSelecionar ? 'checked' : ''}
+                     ${deveSelecionar ? "checked" : ""}
                      style="width: 18px; height: 18px; accent-color: var(--gold-light); cursor: pointer;">
               <div>
                 <div style="font-weight: 600; font-size: 0.9rem;">
                   Parcela ${p.numero_parcela}ª
-                  ${isVencida ? '<span style="color: var(--error); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-warning"></i> Vencida</span>' : ''}
-                  ${isMesAtual && !isVencida ? '<span style="color: var(--warning); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-clock"></i> Mês atual</span>' : ''}
+                  ${isVencida ? '<span style="color: var(--error); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-warning"></i> Vencida</span>' : ""}
+                  ${isMesAtual && !isVencida ? '<span style="color: var(--warning); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-clock"></i> Mês atual</span>' : ""}
                 </div>
                 <div style="font-size: 0.7rem; color: var(--gray);">
                   Vence: ${formatDate(p.vencimento)}
@@ -3020,14 +2801,17 @@
             </div>
           </div>
         `;
-      }).join("");
-
+        })
+        .join("");
       const loginResult = await abrirModalLogin("baixar parcelas");
       if (!loginResult.success) {
-        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        showFeedback(
+          "Ação cancelada",
+          "Você precisa estar autenticado.",
+          "warning",
+        );
         return;
       }
-
       const html = `
         <div style="display: grid; gap: 12px;">
           <div style="background: rgba(212,160,23,0.06); border-radius: 12px; padding: 14px;">
@@ -3086,64 +2870,75 @@
           </div>
         </div>
       `;
-
       openModal("💰 Baixar Parcelas", html);
-
       function atualizarTotalSelecionado() {
         const checks = document.querySelectorAll(".parcela-checkbox:checked");
         let total = 0;
-        checks.forEach(cb => {
+        checks.forEach((cb) => {
           total += parseFloat(cb.dataset.valor) || 0;
         });
-        document.getElementById("totalSelecionadoParcelas").textContent = formatCurrency(total);
+        document.getElementById("totalSelecionadoParcelas").textContent =
+          formatCurrency(total);
       }
-
-      // Botão para selecionar vencidas + mês atual
-      document.getElementById("selecionarVencidasMesAtual")?.addEventListener("click", () => {
-        document.querySelectorAll(".parcela-checkbox").forEach(cb => {
-          const tr = cb.closest('div[style*="border-left"]');
-          if (tr) {
-            const isVencida = tr.style.borderLeftColor === "var(--error)" || tr.style.borderLeftColor === "#ff5252";
-            const isMesAtual = tr.style.borderLeftColor === "var(--warning)" || tr.style.borderLeftColor === "#ffc107";
-            cb.checked = isVencida || isMesAtual;
-          }
+      document
+        .getElementById("selecionarVencidasMesAtual")
+        ?.addEventListener("click", () => {
+          document.querySelectorAll(".parcela-checkbox").forEach((cb) => {
+            const tr = cb.closest('div[style*="border-left"]');
+            if (tr) {
+              const isVencida =
+                tr.style.borderLeftColor === "var(--error)" ||
+                tr.style.borderLeftColor === "#ff5252";
+              const isMesAtual =
+                tr.style.borderLeftColor === "var(--warning)" ||
+                tr.style.borderLeftColor === "#ffc107";
+              cb.checked = isVencida || isMesAtual;
+            }
+          });
+          atualizarTotalSelecionado();
         });
-        atualizarTotalSelecionado();
-      });
-
-      document.getElementById("selecionarTodasParcelas")?.addEventListener("click", () => {
-        document.querySelectorAll(".parcela-checkbox").forEach(cb => cb.checked = true);
-        atualizarTotalSelecionado();
-      });
-
-      document.getElementById("desmarcarTodasParcelas")?.addEventListener("click", () => {
-        document.querySelectorAll(".parcela-checkbox").forEach(cb => cb.checked = false);
-        atualizarTotalSelecionado();
-      });
-
-      document.querySelectorAll(".parcela-checkbox").forEach(cb => {
+      document
+        .getElementById("selecionarTodasParcelas")
+        ?.addEventListener("click", () => {
+          document
+            .querySelectorAll(".parcela-checkbox")
+            .forEach((cb) => (cb.checked = true));
+          atualizarTotalSelecionado();
+        });
+      document
+        .getElementById("desmarcarTodasParcelas")
+        ?.addEventListener("click", () => {
+          document
+            .querySelectorAll(".parcela-checkbox")
+            .forEach((cb) => (cb.checked = false));
+          atualizarTotalSelecionado();
+        });
+      document.querySelectorAll(".parcela-checkbox").forEach((cb) => {
         cb.addEventListener("change", atualizarTotalSelecionado);
       });
-
-      document.getElementById("cancelarBaixaParcelas")?.addEventListener("click", () => {
-        document.getElementById("modalContainer").innerHTML = "";
-      });
-
-      document.getElementById("confirmarBaixaParcelas")?.addEventListener("click", async function() {
-        const checks = document.querySelectorAll(".parcela-checkbox:checked");
-        
-        if (checks.length === 0) {
-          showFeedback("Aviso", "Selecione pelo menos uma parcela.", "warning");
-          return;
-        }
-
-        // ============================================================
-        // CONFIRMAÇÃO ANTES DE BAIXAR (PARA PARCELAS AVULSA OU SELECIONADAS)
-        // ============================================================
-        const totalSelecionado = Array.from(checks).reduce((sum, cb) => sum + parseFloat(cb.dataset.valor), 0);
-        const qtdSelecionadas = checks.length;
-        
-        const confirmHtml = `
+      document
+        .getElementById("cancelarBaixaParcelas")
+        ?.addEventListener("click", () => {
+          document.getElementById("modalContainer").innerHTML = "";
+        });
+      document
+        .getElementById("confirmarBaixaParcelas")
+        ?.addEventListener("click", async function () {
+          const checks = document.querySelectorAll(".parcela-checkbox:checked");
+          if (checks.length === 0) {
+            showFeedback(
+              "Aviso",
+              "Selecione pelo menos uma parcela.",
+              "warning",
+            );
+            return;
+          }
+          const totalSelecionado = Array.from(checks).reduce(
+            (sum, cb) => sum + parseFloat(cb.dataset.valor),
+            0,
+          );
+          const qtdSelecionadas = checks.length;
+          const confirmHtml = `
           <div style="text-align: center; padding: 12px 0;">
             <div style="font-size: 3rem; margin-bottom: 12px;">💳</div>
             <h3 style="color: var(--gold-light); margin-bottom: 8px;">Confirmar Baixa</h3>
@@ -3163,10 +2958,8 @@
             </div>
           </div>
         `;
-
-        // Abrir modal de confirmação
-        const modalContainer = document.getElementById("modalContainer");
-        const modalHtml = `
+          const modalContainer = document.getElementById("modalContainer");
+          const modalHtml = `
           <div class="modal-overlay" id="modalOverlay">
             <div class="modal-sheet">
               <div class="handle"></div>
@@ -3178,81 +2971,88 @@
             </div>
           </div>
         `;
-        modalContainer.innerHTML = modalHtml;
-
-        document.getElementById("closeModalBtn")?.addEventListener("click", () => {
-          document.getElementById("modalContainer").innerHTML = "";
-        });
-
-        document.getElementById("cancelarConfirmacaoBaixa")?.addEventListener("click", () => {
-          document.getElementById("modalContainer").innerHTML = "";
-        });
-
-        document.getElementById("confirmarBaixaFinal")?.addEventListener("click", async function() {
-          this.disabled = true;
-          this.innerHTML = '<i class="ph ph-spinner spinning"></i> Processando...';
-
-          try {
-            let sucessos = 0;
-            let erros = 0;
-
-            for (const cb of checks) {
-              const parcelaId = cb.dataset.id;
-              const { error } = await supabase
-                .from("financial_installments")
-                .update({ 
-                  status: "pago",
-                  payment_date: new Date().toISOString().split("T")[0]
-                })
-                .eq("id", parcelaId);
-
-              if (error) {
-                console.error("Erro ao baixar parcela:", error);
-                erros++;
-              } else {
-                sucessos++;
+          modalContainer.innerHTML = modalHtml;
+          document
+            .getElementById("closeModalBtn")
+            ?.addEventListener("click", () => {
+              document.getElementById("modalContainer").innerHTML = "";
+            });
+          document
+            .getElementById("cancelarConfirmacaoBaixa")
+            ?.addEventListener("click", () => {
+              document.getElementById("modalContainer").innerHTML = "";
+            });
+          document
+            .getElementById("confirmarBaixaFinal")
+            ?.addEventListener("click", async function () {
+              this.disabled = true;
+              this.innerHTML =
+                '<i class="ph ph-spinner spinning"></i> Processando...';
+              try {
+                let sucessos = 0;
+                let erros = 0;
+                for (const cb of checks) {
+                  const parcelaId = cb.dataset.id;
+                  const { error } = await supabase
+                    .from("financial_installments")
+                    .update({
+                      status: "pago",
+                      payment_date: new Date().toISOString().split("T")[0],
+                    })
+                    .eq("id", parcelaId);
+                  if (error) {
+                    console.error("Erro ao baixar parcela:", error);
+                    erros++;
+                  } else {
+                    sucessos++;
+                  }
+                }
+                const { data: parcelasRestantes } = await supabase
+                  .from("financial_installments")
+                  .select("status")
+                  .eq("transaction_id", transactionId)
+                  .neq("status", "pago");
+                const todasPagas =
+                  !parcelasRestantes || parcelasRestantes.length === 0;
+                await supabase
+                  .from("financial_transactions")
+                  .update({
+                    status: todasPagas ? "pago" : "pendente",
+                    payment_date: todasPagas
+                      ? new Date().toISOString().split("T")[0]
+                      : null,
+                  })
+                  .eq("id", transactionId);
+                document.getElementById("modalContainer").innerHTML = "";
+                if (erros === 0) {
+                  showFeedback(
+                    "Sucesso",
+                    `${sucessos} parcela(s) baixada(s) com sucesso!`,
+                    "success",
+                    () => carregarDados(),
+                  );
+                } else {
+                  showFeedback(
+                    "Aviso",
+                    `${sucessos} parcela(s) baixada(s), ${erros} erro(s).`,
+                    "warning",
+                    () => carregarDados(),
+                  );
+                }
+              } catch (error) {
+                console.error("Erro ao baixar parcelas:", error);
+                showFeedback("Erro", "Falha ao baixar parcelas.", "error");
+                document.getElementById("modalContainer").innerHTML = "";
               }
-            }
-
-            const { data: parcelasRestantes } = await supabase
-              .from("financial_installments")
-              .select("status")
-              .eq("transaction_id", transactionId)
-              .neq("status", "pago");
-
-            const todasPagas = !parcelasRestantes || parcelasRestantes.length === 0;
-
-            await supabase
-              .from("financial_transactions")
-              .update({ 
-                status: todasPagas ? "pago" : "pendente",
-                payment_date: todasPagas ? new Date().toISOString().split("T")[0] : null
-              })
-              .eq("id", transactionId);
-
-            document.getElementById("modalContainer").innerHTML = "";
-
-            if (erros === 0) {
-              showFeedback("Sucesso", `${sucessos} parcela(s) baixada(s) com sucesso!`, "success", () => carregarDados());
-            } else {
-              showFeedback("Aviso", `${sucessos} parcela(s) baixada(s), ${erros} erro(s).`, "warning", () => carregarDados());
-            }
-          } catch (error) {
-            console.error("Erro ao baixar parcelas:", error);
-            showFeedback("Erro", "Falha ao baixar parcelas.", "error");
-            document.getElementById("modalContainer").innerHTML = "";
-          }
+            });
+          document
+            .getElementById("modalOverlay")
+            ?.addEventListener("click", (e) => {
+              if (e.target.id === "modalOverlay") {
+                document.getElementById("modalContainer").innerHTML = "";
+              }
+            });
         });
-
-        // Fechar modal de confirmação ao clicar fora
-        document.getElementById("modalOverlay")?.addEventListener("click", (e) => {
-          if (e.target.id === "modalOverlay") {
-            document.getElementById("modalContainer").innerHTML = "";
-          }
-        });
-
-      });
-
     } catch (error) {
       console.error("Erro ao abrir baixa de parcelas:", error);
       showFeedback("Erro", "Falha ao carregar parcelas.", "error");
@@ -3264,43 +3064,32 @@
   // ============================================================
   window.baixarLancamento = async function (transactionId) {
     console.log("💰 baixarLancamento chamado para:", transactionId);
-    
     try {
       const { data: parcelas, error: parcelasError } = await supabase
         .from("financial_installments")
         .select("id, status")
         .eq("transaction_id", transactionId);
-
       if (parcelasError) {
         console.error("Erro ao verificar parcelas:", parcelasError);
       }
-
       if (parcelas && parcelas.length > 0) {
-        const pendentes = parcelas.filter(p => p.status !== "pago");
+        const pendentes = parcelas.filter((p) => p.status !== "pago");
         if (pendentes.length > 0) {
           await abrirBaixaParcelas(transactionId);
           return;
         }
       }
-
-      // Buscar dados do lançamento para mostrar na confirmação
       const { data: lancamento, error: lancError } = await supabase
         .from("financial_transactions")
         .select("description, amount, due_date, type")
         .eq("id", transactionId)
         .single();
-
       if (lancError || !lancamento) {
         showFeedback("Erro", "Lançamento não encontrado.", "error");
         return;
       }
-
       const valor = Math.abs(lancamento.amount);
       const tipo = lancamento.type === "receber" ? "Receber" : "Pagar";
-
-      // ============================================================
-      // MODAL DE CONFIRMAÇÃO PARA LANÇAMENTO AVULSO
-      // ============================================================
       const confirmHtml = `
         <div style="text-align: center; padding: 12px 0;">
           <div style="font-size: 3rem; margin-bottom: 12px;">💳</div>
@@ -3324,7 +3113,6 @@
           </div>
         </div>
       `;
-
       const modalContainer = document.getElementById("modalContainer");
       const modalHtml = `
         <div class="modal-overlay" id="modalOverlay">
@@ -3339,54 +3127,62 @@
         </div>
       `;
       modalContainer.innerHTML = modalHtml;
-
-      document.getElementById("closeModalBtn")?.addEventListener("click", () => {
-        document.getElementById("modalContainer").innerHTML = "";
-      });
-
-      document.getElementById("cancelarConfirmacaoBaixa")?.addEventListener("click", () => {
-        document.getElementById("modalContainer").innerHTML = "";
-      });
-
-      document.getElementById("confirmarBaixaFinal")?.addEventListener("click", async function() {
-        this.disabled = true;
-        this.innerHTML = '<i class="ph ph-spinner spinning"></i> Processando...';
-
-        const loginResult = await abrirModalLogin("baixar lançamento");
-        if (!loginResult.success) {
+      document
+        .getElementById("closeModalBtn")
+        ?.addEventListener("click", () => {
           document.getElementById("modalContainer").innerHTML = "";
-          showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
-          return;
-        }
-
-        try {
-          const dataPag = new Date().toISOString().split("T")[0];
-          
-          const { error } = await supabase
-            .from("financial_transactions")
-            .update({
-              status: "pago",
-              payment_date: dataPag,
-            })
-            .eq("id", transactionId);
-
-          if (error) throw error;
-
+        });
+      document
+        .getElementById("cancelarConfirmacaoBaixa")
+        ?.addEventListener("click", () => {
           document.getElementById("modalContainer").innerHTML = "";
-          showFeedback("Sucesso", "Lançamento baixado com sucesso!", "success", () => carregarDados());
-        } catch (error) {
-          console.error("Erro ao baixar lançamento:", error);
-          document.getElementById("modalContainer").innerHTML = "";
-          showFeedback("Erro", "Falha ao baixar lançamento.", "error");
-        }
-      });
-
-      document.getElementById("modalOverlay")?.addEventListener("click", (e) => {
-        if (e.target.id === "modalOverlay") {
-          document.getElementById("modalContainer").innerHTML = "";
-        }
-      });
-
+        });
+      document
+        .getElementById("confirmarBaixaFinal")
+        ?.addEventListener("click", async function () {
+          this.disabled = true;
+          this.innerHTML =
+            '<i class="ph ph-spinner spinning"></i> Processando...';
+          const loginResult = await abrirModalLogin("baixar lançamento");
+          if (!loginResult.success) {
+            document.getElementById("modalContainer").innerHTML = "";
+            showFeedback(
+              "Ação cancelada",
+              "Você precisa estar autenticado.",
+              "warning",
+            );
+            return;
+          }
+          try {
+            const dataPag = new Date().toISOString().split("T")[0];
+            const { error } = await supabase
+              .from("financial_transactions")
+              .update({
+                status: "pago",
+                payment_date: dataPag,
+              })
+              .eq("id", transactionId);
+            if (error) throw error;
+            document.getElementById("modalContainer").innerHTML = "";
+            showFeedback(
+              "Sucesso",
+              "Lançamento baixado com sucesso!",
+              "success",
+              () => carregarDados(),
+            );
+          } catch (error) {
+            console.error("Erro ao baixar lançamento:", error);
+            document.getElementById("modalContainer").innerHTML = "";
+            showFeedback("Erro", "Falha ao baixar lançamento.", "error");
+          }
+        });
+      document
+        .getElementById("modalOverlay")
+        ?.addEventListener("click", (e) => {
+          if (e.target.id === "modalOverlay") {
+            document.getElementById("modalContainer").innerHTML = "";
+          }
+        });
     } catch (error) {
       console.error("Erro ao baixar lançamento:", error);
       showFeedback("Erro", "Falha ao baixar lançamento.", "error");
@@ -3394,15 +3190,45 @@
   };
 
   // ============================================================
-  // RENDERIZAR - ABA FINANCEIRO (VISÃO PREMIUM EM CARDS)
+  // FUNÇÃO PARA ALTERNAR VISUALIZAÇÃO DO FINANCEIRO
+  // ============================================================
+  function alternarVisualizacaoFinanceiro() {
+    visualizacaoFinanceiro =
+      visualizacaoFinanceiro === "cards" ? "calendario" : "cards";
+    console.log(`📊 Alternando visualização para: ${visualizacaoFinanceiro}`);
+    renderizarFinanceiro(dados);
+
+    // Atualizar botão de toggle
+    const btnToggle = document.getElementById(
+      "btnToggleVisualizacaoFinanceiro",
+    );
+    if (btnToggle) {
+      if (visualizacaoFinanceiro === "cards") {
+        btnToggle.innerHTML = '<i class="ph ph-calendar"></i> Calendário';
+        btnToggle.title = "Alternar para visão em calendário";
+      } else {
+        btnToggle.innerHTML = '<i class="ph ph-list"></i> Lista';
+        btnToggle.title = "Alternar para visão em lista";
+      }
+    }
+  }
+
+  // ============================================================
+  // RENDERIZAR - ABA FINANCEIRO (VISÃO PREMIUM EM CARDS + CALENDÁRIO)
   // ============================================================
   function renderizarFinanceiro(dados) {
     const { eventosFinanceiros, totalPagar, totalReceber } = dados;
+    console.log(
+      "💰 renderizarFinanceiro chamada com",
+      eventosFinanceiros?.length || 0,
+      "eventos",
+    );
 
-    console.log("💰 renderizarFinanceiro chamada com", eventosFinanceiros?.length || 0, "eventos");
-
-    document.getElementById("finTotalPagar").textContent = formatCurrency(totalPagar);
-    document.getElementById("finTotalReceber").textContent = formatCurrency(totalReceber);
+    // Atualizar cards de resumo (sempre visíveis)
+    document.getElementById("finTotalPagar").textContent =
+      formatCurrency(totalPagar);
+    document.getElementById("finTotalReceber").textContent =
+      formatCurrency(totalReceber);
 
     let saldoMes = 0;
     let contasVencidas = 0;
@@ -3416,7 +3242,6 @@
       } else {
         saldoMes -= e.valor;
       }
-      
       if (e.status === "pago" || e.status === "recebido") {
         contasPagas++;
       } else if (e.status === "pendente" || e.status === "atrasado") {
@@ -3427,13 +3252,62 @@
       }
     }
 
-    document.getElementById("finSaldoMes").textContent = formatCurrency(saldoMes);
+    document.getElementById("finSaldoMes").textContent =
+      formatCurrency(saldoMes);
     document.getElementById("finContasVencidas").textContent = contasVencidas;
 
     const container = document.getElementById("listaFinanceiro");
     document.getElementById("totalLancamentos").textContent =
       (eventosFinanceiros || []).length + " contas";
 
+    // ============================================================
+    // BOTÃO DE TOGGLE PARA VISUALIZAÇÃO
+    // ============================================================
+    let toggleContainer = document.getElementById(
+      "toggleVisualizacaoFinanceiro",
+    );
+    if (!toggleContainer) {
+      const panelHeader = document.querySelector(
+        "#page-financeiro .panel-header",
+      );
+      if (panelHeader) {
+        toggleContainer = document.createElement("div");
+        toggleContainer.id = "toggleVisualizacaoFinanceiro";
+        toggleContainer.style.cssText =
+          "display:flex; gap:8px; align-items:center; margin-left:12px;";
+        const btn = document.createElement("button");
+        btn.id = "btnToggleVisualizacaoFinanceiro";
+        btn.className = "btn btn-ghost btn-sm";
+        btn.innerHTML = '<i class="ph ph-calendar"></i> Calendário';
+        btn.title = "Alternar para visão em calendário";
+        btn.addEventListener("click", alternarVisualizacaoFinanceiro);
+        toggleContainer.appendChild(btn);
+        panelHeader.appendChild(toggleContainer);
+      }
+    } else {
+      const btn = document.getElementById("btnToggleVisualizacaoFinanceiro");
+      if (btn) {
+        if (visualizacaoFinanceiro === "cards") {
+          btn.innerHTML = '<i class="ph ph-calendar"></i> Calendário';
+          btn.title = "Alternar para visão em calendário";
+        } else {
+          btn.innerHTML = '<i class="ph ph-list"></i> Lista';
+          btn.title = "Alternar para visão em lista";
+        }
+      }
+    }
+
+    // ============================================================
+    // RENDERIZAR CONFORME VISUALIZAÇÃO
+    // ============================================================
+    if (visualizacaoFinanceiro === "calendario") {
+      renderizarCalendarioFinanceiro(eventosFinanceiros);
+      return;
+    }
+
+    // ============================================================
+    // VISÃO EM CARDS (PADRÃO)
+    // ============================================================
     if (eventosFinanceiros && eventosFinanceiros.length > 0) {
       const ordenados = [...eventosFinanceiros].sort((a, b) => {
         return new Date(a.vencimento) - new Date(b.vencimento);
@@ -3443,11 +3317,14 @@
         .slice(0, 20)
         .map((e) => {
           const isPagar = e.tipo === "pagar";
-          const vencido = e.status === "pendente" && new Date(e.vencimento) < new Date();
+          const vencido =
+            e.status === "pendente" && new Date(e.vencimento) < new Date();
           const pago = e.status === "pago" || e.status === "recebido";
           const hoje = new Date();
-          const diasFalta = Math.ceil((new Date(e.vencimento) - hoje) / (1000 * 60 * 60 * 24));
-          
+          const diasFalta = Math.ceil(
+            (new Date(e.vencimento) - hoje) / (1000 * 60 * 60 * 24),
+          );
+
           let statusIcon = "";
           let statusColor = "";
           let statusBg = "";
@@ -3479,22 +3356,38 @@
           const sinal = isPagar ? "-" : "+";
           const corValor = isPagar ? "var(--error)" : "var(--success)";
           const tipoLabel = isPagar ? "💰 A Pagar" : "📈 A Receber";
-          
+
           const parcelaInfo = e.isParcela
             ? `Parcela ${e.numero_parcela}/${e.total_parcelas}`
             : "Avulsa";
 
           let catIcon = "ph-file";
           const catLower = (e.categoria || "").toLowerCase();
-          if (catLower.includes("venda") || catLower.includes("faturamento")) catIcon = "ph-shopping-cart";
-          else if (catLower.includes("salário") || catLower.includes("folha")) catIcon = "ph-users";
+          if (catLower.includes("venda") || catLower.includes("faturamento"))
+            catIcon = "ph-shopping-cart";
+          else if (catLower.includes("salário") || catLower.includes("folha"))
+            catIcon = "ph-users";
           else if (catLower.includes("aluguel")) catIcon = "ph-building";
-          else if (catLower.includes("material") || catLower.includes("insumo")) catIcon = "ph-package";
-          else if (catLower.includes("imposto") || catLower.includes("taxa")) catIcon = "ph-receipt";
-          else if (catLower.includes("energia") || catLower.includes("agua") || catLower.includes("luz")) catIcon = "ph-lightning";
-          else if (catLower.includes("internet") || catLower.includes("telefone")) catIcon = "ph-wifi";
+          else if (catLower.includes("material") || catLower.includes("insumo"))
+            catIcon = "ph-package";
+          else if (catLower.includes("imposto") || catLower.includes("taxa"))
+            catIcon = "ph-receipt";
+          else if (
+            catLower.includes("energia") ||
+            catLower.includes("agua") ||
+            catLower.includes("luz")
+          )
+            catIcon = "ph-lightning";
+          else if (
+            catLower.includes("internet") ||
+            catLower.includes("telefone")
+          )
+            catIcon = "ph-wifi";
 
-          const temParcelas = e.isParcela || (e.transacao_original && e.transacao_original.installments === true);
+          const temParcelas =
+            e.isParcela ||
+            (e.transacao_original &&
+              e.transacao_original.installments === true);
           const transactionId = e.transaction_id;
 
           return `
@@ -3602,27 +3495,35 @@
                 border-top: 1px solid rgba(255,255,255,0.04);
                 flex-wrap: wrap;
               ">
-                ${!pago ? `
-                  ${temParcelas ? `
+                ${
+                  !pago
+                    ? `
+                  ${
+                    temParcelas
+                      ? `
                     <button class="btn-action btn-action-primary" 
                             onclick="event.stopPropagation(); abrirBaixaParcelas('${transactionId}')" 
                             style="padding:4px 12px; font-size:0.6rem; background:rgba(33,150,243,0.15); color:#64b5f6; border:1px solid rgba(33,150,243,0.2); border-radius:16px;">
                       <i class="ph ph-receipt"></i> Baixar Parcelas
                     </button>
-                  ` : `
+                  `
+                      : `
                     <button class="btn-action btn-action-success" 
                             onclick="event.stopPropagation(); baixarLancamento('${transactionId}')" 
                             style="padding:4px 12px; font-size:0.6rem; background:rgba(76,175,80,0.15); color:#a5d6a7; border:1px solid rgba(76,175,80,0.2); border-radius:16px;">
                       <i class="ph ph-check-circle"></i> Baixar
                     </button>
-                  `}
-                ` : `
+                  `
+                  }
+                `
+                    : `
                   <button class="btn-action btn-action-ghost" 
                           onclick="event.stopPropagation(); abrirModalConta('${e.id}')" 
                           style="padding:4px 12px; font-size:0.6rem;">
                     <i class="ph ph-eye"></i> Detalhes
                   </button>
-                `}
+                `
+                }
                 <button class="btn-action btn-action-ghost" 
                         onclick="event.stopPropagation(); editarLancamento('${transactionId}')" 
                         style="padding:4px 12px; font-size:0.6rem;">
@@ -3650,9 +3551,365 @@
   }
 
   // ============================================================
+  // RENDERIZAR CALENDÁRIO FINANCEIRO
+  // ============================================================
+  function renderizarCalendarioFinanceiro(eventos) {
+    const container = document.getElementById("listaFinanceiro");
+
+    // Estado do calendário
+    if (!window.calendarioState) {
+      const hoje = new Date();
+      window.calendarioState = {
+        mes: hoje.getMonth(),
+        ano: hoje.getFullYear(),
+        diaSelecionado: hoje.getDate(),
+      };
+    }
+
+    const { mes, ano, diaSelecionado } = window.calendarioState;
+
+    // Navegação do calendário
+    const nomeMes = new Date(ano, mes, 1).toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric",
+    });
+
+    // Dias da semana
+    const diasSemana = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+
+    // Calcular dias do mês
+    const primeiroDia = new Date(ano, mes, 1);
+    const ultimoDia = new Date(ano, mes + 1, 0);
+    const diasNoMes = ultimoDia.getDate();
+    const primeiroDiaSemana = primeiroDia.getDay();
+
+    // Agrupar eventos por dia
+    const eventosPorDia = {};
+    for (const e of eventos) {
+      if (!e.vencimento) continue;
+      const data = new Date(e.vencimento);
+      const dia = data.getDate();
+      const mesEvento = data.getMonth();
+      const anoEvento = data.getFullYear();
+      if (mesEvento === mes && anoEvento === ano) {
+        if (!eventosPorDia[dia]) eventosPorDia[dia] = [];
+        eventosPorDia[dia].push(e);
+      }
+    }
+
+    // Construir grid do calendário
+    let calendarioHtml = `
+      <div style="background: rgba(255,255,255,0.02); border-radius: 16px; padding: 16px; border: 1px solid rgba(255,255,255,0.06);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="btn btn-ghost btn-sm" id="btnMesAnteriorFinanceiro" style="padding: 4px 8px;">
+              <i class="ph ph-caret-left"></i>
+            </button>
+            <h4 style="margin: 0; color: var(--gold-light); font-size: 1rem;">
+              ${capitalizeFirst(nomeMes)}
+            </h4>
+            <button class="btn btn-ghost btn-sm" id="btnMesProximoFinanceiro" style="padding: 4px 8px;">
+              <i class="ph ph-caret-right"></i>
+            </button>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="btnHojeFinanceiro" style="font-size: 0.65rem;">
+            <i class="ph ph-calendar-check"></i> Hoje
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 12px;">
+          ${diasSemana
+            .map(
+              (d) => `
+            <div style="text-align: center; font-size: 0.6rem; color: var(--gray-dark); font-weight: 600; padding: 4px 0;">
+              ${d}
+            </div>
+          `,
+            )
+            .join("")}
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
+    `;
+
+    // Dias vazios antes do primeiro dia
+    for (let i = 0; i < primeiroDiaSemana; i++) {
+      calendarioHtml += `<div style="opacity: 0.2; padding: 8px; text-align: center; font-size: 0.7rem;">&nbsp;</div>`;
+    }
+
+    // Dias do mês
+    const hoje = new Date();
+    const hojeNum = hoje.getDate();
+    const hojeMes = hoje.getMonth();
+    const hojeAno = hoje.getFullYear();
+
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+      const eventosDia = eventosPorDia[dia] || [];
+      const temEventos = eventosDia.length > 0;
+      const isHoje = dia === hojeNum && mes === hojeMes && ano === hojeAno;
+      const isSelecionado =
+        dia === diaSelecionado &&
+        mes === window.calendarioState.mes &&
+        ano === window.calendarioState.ano;
+
+      // Determinar cores do dia
+      let corFundo = "transparent";
+      let corBorda = "transparent";
+      let indicador = "";
+      let tooltip = "";
+
+      if (temEventos) {
+        const temPago = eventosDia.some(
+          (e) => e.status === "pago" || e.status === "recebido",
+        );
+        const temVencido = eventosDia.some(
+          (e) => e.status === "pendente" && new Date(e.vencimento) < new Date(),
+        );
+        const temPendente = eventosDia.some(
+          (e) => e.status === "pendente" || e.status === "atrasado",
+        );
+
+        if (temVencido) {
+          corFundo = "rgba(255,82,82,0.12)";
+          corBorda = "2px solid var(--error)";
+          indicador = "🔴";
+          tooltip = `${eventosDia.length} conta(s) - Vencidas!`;
+        } else if (temPago && !temPendente) {
+          corFundo = "rgba(76,175,80,0.08)";
+          corBorda = "2px solid var(--success)";
+          indicador = "✅";
+          tooltip = `${eventosDia.length} conta(s) pagas`;
+        } else if (temPendente) {
+          corFundo = "rgba(255,193,7,0.08)";
+          corBorda = "2px solid var(--warning)";
+          indicador = "⏳";
+          tooltip = `${eventosDia.length} conta(s) pendentes`;
+        }
+      }
+
+      const isDiaComEvento = temEventos ? "cursor: pointer;" : "";
+
+      calendarioHtml += `
+        <div 
+          class="dia-calendario-financeiro"
+          data-dia="${dia}"
+          data-mes="${mes}"
+          data-ano="${ano}"
+          onclick="${temEventos ? `selecionarDiaCalendarioFinanceiro(${dia}, ${mes}, ${ano})` : ""}"
+          style="
+            background: ${corFundo};
+            border: ${isSelecionado ? "2px solid var(--gold-light)" : isHoje ? "1px solid rgba(212,160,23,0.3)" : corBorda};
+            border-radius: 8px;
+            padding: 6px 4px;
+            text-align: center;
+            ${isDiaComEvento}
+            transition: all 0.2s ease;
+            min-height: 48px;
+            position: relative;
+            ${isHoje ? "box-shadow: 0 0 12px rgba(212,160,23,0.1);" : ""}
+          "
+          ${temEventos ? `title="${tooltip}"` : ""}
+        >
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+            <span style="
+              font-size: 0.8rem; 
+              font-weight: ${isHoje ? "700" : "400"};
+              color: ${isHoje ? "var(--gold-light)" : "var(--white)"};
+            ">
+              ${dia}
+            </span>
+            ${
+              temEventos
+                ? `
+              <span style="font-size: 0.55rem; color: var(--gray);">
+                ${indicador} ${eventosDia.length}
+              </span>
+            `
+                : ""
+            }
+            ${isHoje ? '<span style="font-size: 0.45rem; color: var(--gold-light);">●</span>' : ""}
+          </div>
+        </div>
+      `;
+    }
+
+    calendarioHtml += `
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.6rem; color: var(--gray);">
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--error);margin-right:4px;"></span> Vencidas</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--warning);margin-right:4px;"></span> Pendentes</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--success);margin-right:4px;"></span> Pagas</span>
+        </div>
+      </div>
+    `;
+
+    // Detalhes do dia selecionado
+    const eventosDiaSelecionado = eventos.filter((e) => {
+      if (!e.vencimento) return false;
+      const data = new Date(e.vencimento);
+      return (
+        data.getDate() === diaSelecionado &&
+        data.getMonth() === mes &&
+        data.getFullYear() === ano
+      );
+    });
+
+    let detalhesHtml = `
+      <div style="margin-top: 16px; background: rgba(255,255,255,0.02); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.06);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h5 style="margin: 0; color: var(--gold-light); font-size: 0.9rem;">
+            <i class="ph ph-calendar-check"></i> ${String(diaSelecionado).padStart(2, "0")}/${String(mes + 1).padStart(2, "0")}/${ano}
+          </h5>
+          <span style="font-size: 0.7rem; color: var(--gray);">${eventosDiaSelecionado.length} conta(s)</span>
+        </div>
+    `;
+
+    if (eventosDiaSelecionado.length === 0) {
+      detalhesHtml += `
+        <div style="text-align: center; padding: 20px 0; color: var(--gray-dark);">
+          <i class="ph ph-calendar-blank" style="font-size: 1.5rem; display: block; margin-bottom: 8px;"></i>
+          Nenhuma conta neste dia
+        </div>
+      `;
+    } else {
+      detalhesHtml += eventosDiaSelecionado
+        .sort((a, b) => {
+          const vA = a.status === "pago" ? 1 : a.status === "pendente" ? 0 : 2;
+          const vB = b.status === "pago" ? 1 : b.status === "pendente" ? 0 : 2;
+          return vA - vB;
+        })
+        .map((e) => {
+          const isPagar = e.tipo === "pagar";
+          const vencido =
+            e.status === "pendente" && new Date(e.vencimento) < new Date();
+          const pago = e.status === "pago" || e.status === "recebido";
+          const valor = e.valor || 0;
+          const sinal = isPagar ? "-" : "+";
+          const corValor = isPagar ? "var(--error)" : "var(--success)";
+
+          let statusBadge = "";
+          let statusColor = "";
+          if (pago) {
+            statusBadge = "✅ Pago";
+            statusColor = "var(--success)";
+          } else if (vencido) {
+            statusBadge = "🔴 Vencido";
+            statusColor = "var(--error)";
+          } else {
+            statusBadge = "⏳ Pendente";
+            statusColor = "var(--warning)";
+          }
+
+          return `
+            <div style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 8px 12px;
+              margin-bottom: 6px;
+              background: rgba(255,255,255,0.02);
+              border-radius: 8px;
+              border-left: 3px solid ${statusColor};
+              cursor: pointer;
+              transition: all 0.2s ease;
+            "
+            onclick="abrirModalConta('${e.id}')"
+            onmouseenter="this.style.background='rgba(255,255,255,0.05)'"
+            onmouseleave="this.style.background='rgba(255,255,255,0.02)'"
+            >
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 600; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  ${e.descricao}
+                </div>
+                <div style="font-size: 0.65rem; color: var(--gray);">
+                  ${e.categoria || "Sem categoria"} ${e.isParcela ? `• Parcela ${e.numero_parcela}/${e.total_parcelas}` : ""}
+                </div>
+              </div>
+              <div style="text-align: right; flex-shrink: 0; margin-left: 12px;">
+                <div style="font-weight: 700; color: ${corValor};">
+                  ${sinal} ${formatCurrency(valor)}
+                </div>
+                <div style="font-size: 0.6rem; color: ${statusColor};">
+                  ${statusBadge}
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    detalhesHtml += `</div>`;
+    calendarioHtml += detalhesHtml;
+
+    container.innerHTML = calendarioHtml;
+
+    // ============================================================
+    // EVENTOS DE NAVEGAÇÃO DO CALENDÁRIO
+    // ============================================================
+    document
+      .getElementById("btnMesAnteriorFinanceiro")
+      ?.addEventListener("click", () => {
+        window.calendarioState.mes--;
+        if (window.calendarioState.mes < 0) {
+          window.calendarioState.mes = 11;
+          window.calendarioState.ano--;
+        }
+        renderizarFinanceiro(dados);
+      });
+
+    document
+      .getElementById("btnMesProximoFinanceiro")
+      ?.addEventListener("click", () => {
+        window.calendarioState.mes++;
+        if (window.calendarioState.mes > 11) {
+          window.calendarioState.mes = 0;
+          window.calendarioState.ano++;
+        }
+        renderizarFinanceiro(dados);
+      });
+
+    document
+      .getElementById("btnHojeFinanceiro")
+      ?.addEventListener("click", () => {
+        const hoje = new Date();
+        window.calendarioState.mes = hoje.getMonth();
+        window.calendarioState.ano = hoje.getFullYear();
+        window.calendarioState.diaSelecionado = hoje.getDate();
+        renderizarFinanceiro(dados);
+      });
+  }
+
+  // ============================================================
+  // FUNÇÃO PARA SELECIONAR DIA NO CALENDÁRIO
+  // ============================================================
+  window.selecionarDiaCalendarioFinanceiro = function (dia, mes, ano) {
+    if (!window.calendarioState) {
+      window.calendarioState = {
+        mes: new Date().getMonth(),
+        ano: new Date().getFullYear(),
+        diaSelecionado: new Date().getDate(),
+      };
+    }
+    window.calendarioState.diaSelecionado = dia;
+    window.calendarioState.mes = mes;
+    window.calendarioState.ano = ano;
+    renderizarFinanceiro(dados);
+  };
+
+  // ============================================================
+  // FUNÇÃO PARA CAPITALIZAR PRIMEIRA LETRA
+  // ============================================================
+  function capitalizeFirst(str) {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
+  // ============================================================
   // FUNÇÕES PARA LANÇAMENTOS FINANCEIROS
   // ============================================================
-  
+
   window.abrirModalConta = function (id) {
     const evento = dados.eventosFinanceiros?.find((e) => e.id === id);
     if (!evento) {
@@ -3661,7 +3918,8 @@
     }
 
     const isPagar = evento.tipo === "pagar";
-    const vencido = evento.status === "pendente" && new Date(evento.vencimento) < new Date();
+    const vencido =
+      evento.status === "pendente" && new Date(evento.vencimento) < new Date();
     const pago = evento.status === "pago" || evento.status === "recebido";
 
     let statusText = "";
@@ -3717,13 +3975,21 @@
       return;
     }
 
-    showFeedback("Info", "Edição de lançamento em desenvolvimento. Use o sistema web para editar.", "info");
+    showFeedback(
+      "Info",
+      "Edição de lançamento em desenvolvimento. Use o sistema web para editar.",
+      "info",
+    );
   };
 
   window.excluirLancamento = async function (transactionId) {
     const loginResult = await abrirModalLogin("excluir lançamento");
     if (!loginResult.success) {
-      showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+      showFeedback(
+        "Ação cancelada",
+        "Você precisa estar autenticado.",
+        "warning",
+      );
       return;
     }
 
@@ -3737,7 +4003,9 @@
 
       if (error) throw error;
 
-      showFeedback("Sucesso", "Lançamento excluído!", "success", () => carregarDados());
+      showFeedback("Sucesso", "Lançamento excluído!", "success", () =>
+        carregarDados(),
+      );
     } catch (error) {
       console.error("Erro ao excluir lançamento:", error);
       showFeedback("Erro", "Falha ao excluir lançamento.", "error");
@@ -4433,7 +4701,7 @@
   // ============================================================
   document.addEventListener("DOMContentLoaded", async function () {
     const sessaoValida = carregarSessao();
-    
+
     if (sessaoValida && usuarioAutenticado) {
       console.log("✅ Sessão válida encontrada, carregando app...");
       const appContainer = document.querySelector(".app-container");
@@ -4449,18 +4717,21 @@
       if (appContainer) {
         appContainer.style.display = "none";
       }
-      
+
       await abrirModalLoginObrigatorio("acessar o app");
       setupActivityDetection();
-      
-      setInterval(() => {
-        if (isAutenticado()) {
-          renovarSessao();
-          console.log("🔄 Sessão renovada automaticamente (keep-alive)");
-        }
-      }, 25 * 60 * 1000);
+
+      setInterval(
+        () => {
+          if (isAutenticado()) {
+            renovarSessao();
+            console.log("🔄 Sessão renovada automaticamente (keep-alive)");
+          }
+        },
+        25 * 60 * 1000,
+      );
     }
-    
+
     setInterval(() => {
       if (isAutenticado()) {
         carregarDados();
@@ -4489,4 +4760,7 @@
   window.editarLancamento = window.editarLancamento;
   window.excluirLancamento = window.excluirLancamento;
   window.abrirBaixaParcelas = window.abrirBaixaParcelas;
+  window.alternarVisualizacaoFinanceiro = alternarVisualizacaoFinanceiro;
+  window.selecionarDiaCalendarioFinanceiro =
+    window.selecionarDiaCalendarioFinanceiro;
 })();
