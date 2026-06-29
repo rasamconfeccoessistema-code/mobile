@@ -46,6 +46,8 @@
         --radius-sm: 12px;
         --shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
         --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        --payment-pending: #ffc107;
+        --payment-paid: #4caf50;
       }
 
       * {
@@ -671,10 +673,10 @@
 
       .list-item {
         display: flex;
-        align-items: center;
-        padding: 10px 14px;
+        flex-direction: column;
+        padding: 10px 12px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        gap: 10px;
+        gap: 6px;
         transition: var(--transition);
         cursor: pointer;
         animation: listItemFade 0.4s ease forwards;
@@ -735,18 +737,25 @@
       .list-item .item-title {
         font-size: 13px;
         font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
       }
       .list-item .item-sub {
         font-size: 10px;
         color: var(--gray-dark);
         margin-top: 1px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 8px;
       }
       .list-item .item-right {
-        text-align: right;
-        flex-shrink: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: flex-end;
+        margin-top: 4px;
       }
       .list-item .item-value {
         font-size: 14px;
@@ -759,6 +768,18 @@
         border-radius: 20px;
         display: inline-block;
         transition: var(--transition);
+      }
+
+      /* Badges de pagamento */
+      .payment-badge-pendente {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffe082;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+      }
+      .payment-badge-pago {
+        background: rgba(76, 175, 80, 0.2);
+        color: #a5d6a7;
+        border: 1px solid rgba(76, 175, 80, 0.3);
       }
 
       .badge-status-pago {
@@ -805,13 +826,9 @@
         background: rgba(255, 82, 82, 0.2);
         color: #ff8a80;
       }
-      .badge-status-ativa {
-        background: rgba(212, 160, 23, 0.2);
-        color: var(--gold-light);
-      }
-      .badge-status-quitada {
-        background: rgba(76, 175, 80, 0.2);
-        color: #a5d6a7;
+      .badge-status-aguardando_pagamento {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffe082;
       }
 
       .item-vencido {
@@ -1085,6 +1102,14 @@
       .btn-action-ghost {
         background: rgba(255, 255, 255, 0.1);
         color: var(--gray);
+      }
+      .btn-action-payment {
+        background: rgba(76, 175, 80, 0.15);
+        color: #a5d6a7;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+      }
+      .btn-action-payment:hover {
+        background: rgba(76, 175, 80, 0.25);
       }
 
       .btn-primary {
@@ -1495,6 +1520,20 @@
       .status-parcialmente_entregue {
         color: #ff9800;
       }
+      .status-aguardando_pagamento {
+        color: var(--warning);
+      }
+      .status-pago {
+        color: var(--success);
+      }
+
+      /* Payment status badges */
+      .payment-status-pendente {
+        color: var(--warning);
+      }
+      .payment-status-pago {
+        color: var(--success);
+      }
 
       /* ===== RESPONSIVIDADE ===== */
       @media (max-width: 420px) {
@@ -1548,7 +1587,7 @@
           border-radius: 16px;
         }
         .list-item {
-          padding: 8px 12px;
+          padding: 8px 10px;
         }
         .list-item .item-title {
           font-size: 12px;
@@ -1557,6 +1596,10 @@
           font-size: 0.5rem;
           padding: 2px 8px;
           max-width: 80px;
+        }
+        .btn-action {
+          font-size: 0.55rem;
+          padding: 3px 8px;
         }
       }
 
@@ -1994,7 +2037,7 @@
         </div>
 
         <!-- ============================================================
-            ABA: PRODUÇÃO (COM CRUD COMPLETO E AUTENTICAÇÃO)
+            ABA: PRODUÇÃO (COM CRUD COMPLETO E CONTROLE DE PAGAMENTO)
             ============================================================ -->
         <div class="tab-content" id="tab-producao">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -2016,11 +2059,11 @@
             <div class="kpi-card">
               <div class="kpi-label">Costurados</div>
               <div class="kpi-value success" id="prodCosturados">-</div>
-              <div class="kpi-detail">aguardando revisão</div>
+              <div class="kpi-detail">aguardando entrega</div>
             </div>
           </div>
 
-          <!-- Cards adicionais: Atrasados e Entregues Hoje -->
+          <!-- Cards adicionais: Atrasados, Aguardando Pagamento e Pago -->
           <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
             <div class="kpi-card">
               <div class="kpi-label">⚠️ Atrasados</div>
@@ -2028,9 +2071,23 @@
               <div class="kpi-detail">prazo vencido</div>
             </div>
             <div class="kpi-card">
+              <div class="kpi-label">🔄 Aguardando Pagto</div>
+              <div class="kpi-value warning" id="prodAguardandoPagto">-</div>
+              <div class="kpi-detail">lotes entregues não pagos</div>
+            </div>
+          </div>
+
+          <!-- Cards adicionais: Entregues Hoje e Pagos -->
+          <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
+            <div class="kpi-card">
               <div class="kpi-label">✅ Entregues Hoje</div>
               <div class="kpi-value success" id="prodEntreguesHoje">-</div>
               <div class="kpi-detail">lotes enviados</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">💰 Pagos</div>
+              <div class="kpi-value" id="prodPagos">-</div>
+              <div class="kpi-detail">lotes recebidos</div>
             </div>
           </div>
 
@@ -2179,7 +2236,7 @@
         </div>
 
         <!-- ============================================================
-            ABA: DÍVIDAS - MODO LEITURA COM VISUAL PREMIUM (CORRIGIDA)
+            ABA: DÍVIDAS - MODO LEITURA COM VISUAL PREMIUM
             ============================================================ -->
         <div class="tab-content" id="tab-dividas">
           <div class="tab-section-title">
@@ -2214,7 +2271,7 @@
             </div>
           </div>
 
-          <!-- Lista de dívidas - CORRIGIDA PARA EXIBIR O CREDOR -->
+          <!-- Lista de dívidas -->
           <div class="big-card" style="padding: 14px 16px">
             <div
               style="
@@ -2295,7 +2352,7 @@
       (function () {
         "use strict";
 
-        console.log("🚀 App do Gestor - Redesign Premium completo (RH sem ponto, Dívidas corrigida)");
+        console.log("🚀 App do Gestor - Controle de Pagamento Integrado");
 
         // ============================================================
         // SUPABASE
@@ -2350,14 +2407,12 @@
               const session = JSON.parse(dados);
               const agora = Date.now();
 
-              // Verifica se a sessão ainda é válida (dentro dos 5 minutos)
               if (session.timestamp && (agora - session.timestamp) < SESSION_DURATION) {
                 usuarioAutenticado = session.usuario;
                 console.log(`✅ Sessão ativa para: ${usuarioAutenticado.email}`);
                 atualizarIndicadorSessao();
                 return true;
               } else {
-                // Sessão expirada
                 localStorage.removeItem('gestor_session');
                 console.log('⏰ Sessão expirada');
                 usuarioAutenticado = null;
@@ -2381,7 +2436,6 @@
           localStorage.setItem('gestor_session', JSON.stringify(session));
           usuarioAutenticado = usuario;
 
-          // Configura timeout para expirar automaticamente
           if (sessionTimeout) {
             clearTimeout(sessionTimeout);
           }
@@ -2422,7 +2476,6 @@
             }
 
             if (data && data.user) {
-              // Salva a sessão
               salvarSessao({
                 id: data.user.id,
                 email: data.user.email,
@@ -2442,7 +2495,6 @@
 
         // ==== VERIFICAR SE O USUÁRIO ESTÁ AUTENTICADO ====
         function isAutenticado() {
-          // Recarrega a sessão se necessário
           if (!usuarioAutenticado) {
             carregarSessao();
           }
@@ -2478,7 +2530,6 @@
         // ==== MODAL DE LOGIN (APENAS PARA AÇÕES QUE ESCREVEM) ====
         function abrirModalLogin(acao) {
           return new Promise((resolve) => {
-            // Se já está autenticado, executa imediatamente
             if (isAutenticado()) {
               resolve({ success: true, usuario: usuarioAutenticado });
               return;
@@ -2520,16 +2571,13 @@
               </div>
             `;
 
-            // Abre o modal
             openModal('🔐 Autenticação Necessária', html);
 
-            // Evento de cancelar
             document.getElementById('cancelarLoginModal')?.addEventListener('click', () => {
               document.getElementById('modalContainer').innerHTML = '';
               resolve({ success: false, error: 'Ação cancelada pelo usuário' });
             });
 
-            // Evento de confirmar
             document.getElementById('confirmarLoginModal')?.addEventListener('click', async function() {
               const email = document.getElementById('modalLoginEmail').value.trim();
               const senha = document.getElementById('modalLoginSenha').value.trim();
@@ -2559,7 +2607,6 @@
               }
             });
 
-            // Permitir Enter nos campos
             document.getElementById('modalLoginEmail')?.addEventListener('keydown', (e) => {
               if (e.key === 'Enter') {
                 document.getElementById('modalLoginSenha')?.focus();
@@ -2590,6 +2637,16 @@
           }
         }
 
+        function formatDateTime(iso) {
+          if (!iso) return "-";
+          try {
+            const d = new Date(iso);
+            return d.toLocaleString("pt-BR");
+          } catch {
+            return iso;
+          }
+        }
+
         function formatCurrency(v) {
           if (v === null || v === undefined) v = 0;
           return new Intl.NumberFormat("pt-BR", {
@@ -2607,6 +2664,8 @@
             entregue: "Entregue",
             cancelado: "Cancelado",
             parcialmente_entregue: "Parcialmente Entregue",
+            aguardando_pagamento: "Aguardando Pagamento",
+            pago: "Pago"
           };
           return map[s] || s || "-";
         }
@@ -2650,6 +2709,18 @@
           return "badge-status-" + s;
         }
 
+        function getPaymentStatusLabel(status) {
+          const labels = {
+            pendente: '⏳ Pendente',
+            pago: '💰 Pago'
+          };
+          return labels[status] || status || '⏳ Pendente';
+        }
+
+        function getPaymentStatusClass(status) {
+          return 'payment-badge-' + (status || 'pendente');
+        }
+
         // ============================================================
         // MODAL FUNCTIONS
         // ============================================================
@@ -2677,6 +2748,21 @@
             .addEventListener("click", (e) => {
               if (e.target.id === "modalOverlay") container.innerHTML = "";
             });
+
+          // Adiciona footer se não existir
+          setTimeout(() => {
+            if (!document.querySelector('#modalContainer .modal-footer')) {
+              const footer = document.createElement('div');
+              footer.className = 'modal-footer';
+              footer.style.cssText =
+                'padding: 12px 20px; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: flex-end; gap: 8px;';
+              footer.innerHTML = `<button class="btn btn-primary" id="modalCloseFooter"><i class="ph ph-check"></i> Fechar</button>`;
+              document.querySelector('#modalContainer .modal-sheet').appendChild(footer);
+              document.getElementById('modalCloseFooter')?.addEventListener('click', () => {
+                document.getElementById('modalContainer').innerHTML = '';
+              });
+            }
+          }, 50);
         }
 
         function showFeedback(title, message, type = "info", callback = null) {
@@ -2781,6 +2867,109 @@
         }
 
         // ============================================================
+        // FUNÇÃO PARA BUSCAR CATEGORIA DE RECEITA
+        // ============================================================
+        async function obterCategoriaReceitaVenda() {
+          let { data: categoria } = await supabase
+            .from("chart_of_accounts")
+            .select("id")
+            .eq("type", "receita")
+            .ilike("name", "%venda%")
+            .limit(1)
+            .maybeSingle();
+
+          if (!categoria) {
+            const { data: qualquerReceita } = await supabase
+              .from("chart_of_accounts")
+              .select("id")
+              .eq("type", "receita")
+              .limit(1)
+              .maybeSingle();
+            if (qualquerReceita) categoria = qualquerReceita;
+          }
+
+          if (!categoria) {
+            console.warn("Nenhuma categoria de receita encontrada.");
+            return null;
+          }
+          return categoria.id;
+        }
+
+        // ============================================================
+        // FUNÇÃO PARA CRIAR/ATUALIZAR CONTA A RECEBER
+        // ============================================================
+        async function criarContaReceber(osId, valorTotal, descricao, dataReferencia, clienteNome, statusOS) {
+          const { data: contaExistente } = await supabase
+            .from("financial_transactions")
+            .select("id")
+            .eq("service_order_id", osId)
+            .eq("type", "receber")
+            .maybeSingle();
+
+          const categoriaId = await obterCategoriaReceitaVenda();
+          if (!categoriaId) return;
+
+          const dueDate = new Date(dataReferencia);
+          dueDate.setDate(dueDate.getDate() + 30);
+          const dueDateStr = dueDate.toISOString().split("T")[0];
+
+          if (contaExistente) {
+            await supabase
+              .from("financial_transactions")
+              .update({
+                amount: valorTotal,
+                description: descricao,
+                due_date: dueDateStr,
+                notes: `Referente ao lote. Status: ${statusOS}`,
+              })
+              .eq("id", contaExistente.id);
+          } else {
+            await supabase.from("financial_transactions").insert({
+              type: "receber",
+              amount: valorTotal,
+              description: descricao,
+              date: new Date().toISOString().split("T")[0],
+              due_date: dueDateStr,
+              status: "pendente",
+              category_id: categoriaId,
+              service_order_id: osId,
+              notes: `Gerado do lote. Cliente: ${clienteNome}`,
+            });
+          }
+        }
+
+        // ============================================================
+        // FUNÇÃO PARA ATUALIZAR CONTA A RECEBER (PAGO/PENDENTE)
+        // ============================================================
+        async function atualizarContaReceber(osId, status, paymentDate, paymentMethod) {
+          const { data: conta } = await supabase
+            .from("financial_transactions")
+            .select("id")
+            .eq("service_order_id", osId)
+            .eq("type", "receber")
+            .maybeSingle();
+
+          if (!conta) return;
+
+          const updateData = {
+            status: status === 'pago' ? 'pago' : 'pendente'
+          };
+
+          if (status === 'pago') {
+            updateData.payment_date = paymentDate || new Date().toISOString().split('T')[0];
+            updateData.payment_method = paymentMethod || null;
+          } else {
+            updateData.payment_date = null;
+            updateData.payment_method = null;
+          }
+
+          await supabase
+            .from("financial_transactions")
+            .update(updateData)
+            .eq("id", conta.id);
+        }
+
+        // ============================================================
         // VARIÁVEIS GLOBAIS
         // ============================================================
         let abaAtual = "geral";
@@ -2797,13 +2986,356 @@
         const scrollTopBtn = $("scrollTopBtn");
 
         // ============================================================
-        // CRUD DE LOTES (APENAS NA ABA PRODUÇÃO) COM AUTENTICAÇÃO
+        // FUNÇÃO PARA VISUALIZAR LOTE (MODAL COMPLETO)
+        // ============================================================
+        window.visualizarLote = async function(id) {
+          const { data: lote, error } = await supabase
+            .from("service_orders")
+            .select(`
+              *, 
+              customers(company_name, trade_name, contact_name, phone)
+            `)
+            .eq("id", id)
+            .single();
+
+          if (error || !lote) {
+            showFeedback('Erro', 'Lote não encontrado.', 'error');
+            return;
+          }
+
+          const { data: items } = await supabase
+            .from("service_order_items")
+            .select("*")
+            .eq("service_order_id", id)
+            .order("size");
+
+          const { data: sewingRecords } = await supabase
+            .from("sewing_records")
+            .select(`
+              *, 
+              employees(full_name),
+              service_order_items!inner(service_order_id)
+            `)
+            .eq("service_order_items.service_order_id", id)
+            .order("start_time", { ascending: false })
+            .limit(10);
+
+          const totalPecas = items?.length
+            ? items.reduce((sum, i) => sum + i.quantity, 0)
+            : lote.total_quantity;
+
+          const valorTotal = lote.total || totalPecas * lote.unit_price;
+          const cliente = lote.customers?.trade_name || lote.customers?.company_name || '-';
+          const atrasado = new Date(lote.expected_delivery) < new Date() && !['pago', 'cancelado'].includes(lote.status);
+          const paymentStatus = lote.payment_status || 'pendente';
+          const paymentStatusLabel = getPaymentStatusLabel(paymentStatus);
+          const paymentStatusClass = paymentStatus === 'pago' ? 'payment-status-pago' : 'payment-status-pendente';
+
+          // Grade de tamanhos
+          let itemsHtml = '';
+          if (items && items.length > 0) {
+            itemsHtml = `
+              <div style="overflow-x:auto; margin-top:8px;">
+                <table style="width:100%; font-size:0.7rem; border-collapse:collapse;">
+                  <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <th style="text-align:left;padding:4px;">Tamanho</th>
+                    <th style="text-align:center;padding:4px;">Solic.</th>
+                    <th style="text-align:center;padding:4px;">Cost.</th>
+                    <th style="text-align:center;padding:4px;">Entr.</th>
+                    <th style="text-align:center;padding:4px;">Pend.</th>
+                  </tr></thead>
+                  <tbody>
+                    ${items.map(item => `
+                      <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <td style="padding:4px;"><strong>${item.size}</strong></td>
+                        <td style="text-align:center;padding:4px;">${item.quantity}</td>
+                        <td style="text-align:center;padding:4px;">${item.sewn_quantity || 0}</td>
+                        <td style="text-align:center;padding:4px;">${item.delivered_quantity || 0}</td>
+                        <td style="text-align:center;padding:4px;">${item.quantity - (item.delivered_quantity || 0)}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          }
+
+          // Registros de costura
+          let costuraHtml = '';
+          if (sewingRecords && sewingRecords.length > 0) {
+            costuraHtml = `
+              <div style="margin-top:8px;">
+                <strong style="font-size:0.75rem;">Apontamentos de Costura:</strong>
+                <div style="overflow-x:auto; margin-top:4px;">
+                  <table style="width:100%; font-size:0.65rem; border-collapse:collapse;">
+                    <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                      <th style="text-align:left;padding:4px;">Data</th>
+                      <th style="text-align:left;padding:4px;">Funcionário</th>
+                      <th style="text-align:center;padding:4px;">Peças</th>
+                      <th style="text-align:center;padding:4px;">Defeitos</th>
+                    </tr></thead>
+                    <tbody>
+                      ${sewingRecords.map(r => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                          <td style="padding:4px;">${formatDateTime(r.start_time)}</td>
+                          <td style="padding:4px;">${r.employees?.full_name || '-'}</td>
+                          <td style="text-align:center;padding:4px;">${r.pieces_sewn}</td>
+                          <td style="text-align:center;padding:4px;">${r.defects || 0}</td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            `;
+          }
+
+          const progresso = totalPecas > 0 ? Math.round(((items?.reduce((s, i) => s + (i.sewn_quantity || 0), 0) || 0) / totalPecas) * 100) : 0;
+
+          const html = `
+            <div style="display:grid; gap:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                <h4 style="color:var(--gold-light); margin:0; font-size:1rem;">${lote.order_number}</h4>
+                <span class="status-badge status-${lote.status}" style="font-size:0.65rem;">${formatStatus(lote.status)}</span>
+                ${atrasado ? '<span style="color:var(--error);font-size:0.7rem;"><i class="ph ph-warning"></i> Atrasado</span>' : ''}
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; font-size:0.7rem;">
+                <span class="payment-badge ${getPaymentStatusClass(paymentStatus)}" style="font-size:0.65rem;">
+                  ${paymentStatusLabel}
+                </span>
+                ${paymentStatus === 'pago' && lote.payment_date ? `<span style="color:var(--gray);font-size:0.65rem;">Pagto: ${formatDate(lote.payment_date)}</span>` : ''}
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; font-size:0.75rem;">
+                <div><strong>Cliente:</strong> ${cliente}</div>
+                <div><strong>Produto:</strong> ${lote.product_description || '-'}</div>
+                <div><strong>Referência:</strong> ${lote.product_reference || '-'}</div>
+                <div><strong>Peças:</strong> ${totalPecas}</div>
+                <div><strong>Valor Unit:</strong> ${formatCurrency(lote.unit_price)}</div>
+                <div><strong>Total:</strong> ${formatCurrency(valorTotal)}</div>
+                <div><strong>Recebimento:</strong> ${formatDate(lote.received_date)}</div>
+                <div><strong>Entrega:</strong> ${formatDate(lote.expected_delivery)}</div>
+              </div>
+              <div style="width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden;">
+                <div style="width:${progresso}%; height:100%; background:linear-gradient(90deg, var(--gold), var(--pink)); border-radius:2px; transition:width 0.5s ease;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--gray);">
+                <span>Progresso: ${progresso}% costurado</span>
+                <span>${items?.reduce((s, i) => s + (i.sewn_quantity || 0), 0) || 0}/${totalPecas} peças</span>
+              </div>
+              ${lote.notes ? `<div style="font-size:0.7rem;color:var(--gray);"><strong>Obs:</strong> ${lote.notes}</div>` : ''}
+              ${itemsHtml}
+              ${costuraHtml}
+            </div>
+          `;
+
+          openModal(`📋 ${lote.order_number}`, html);
+        };
+
+        // ============================================================
+        // REGISTRAR COSTURA PARCIAL
+        // ============================================================
+        window.registrarCosturaParcial = async function(id) {
+          const { data: os, error } = await supabase
+            .from('service_orders')
+            .select('id, order_number, total_quantity, status')
+            .eq('id', id)
+            .single();
+
+          if (error || !os) {
+            showFeedback('Erro', 'OS não encontrada.', 'error');
+            return;
+          }
+
+          const { data: items } = await supabase
+            .from('service_order_items')
+            .select('*')
+            .eq('service_order_id', id)
+            .order('size');
+
+          if (!items || items.length === 0) {
+            showFeedback('Erro', 'Esta OS não possui grade de tamanhos cadastrada.', 'error');
+            return;
+          }
+
+          const { data: funcionarios } = await supabase
+            .from('employees')
+            .select('id, full_name')
+            .eq('active', true)
+            .order('full_name');
+
+          const optsFuncionarios = funcionarios?.length
+            ? funcionarios.map((f) => `<option value="${f.id}">${f.full_name}</option>`).join('')
+            : '<option value="">Nenhum funcionário cadastrado</option>';
+
+          let gradeFields = '';
+          items.forEach((item) => {
+            const restante = item.quantity - (item.sewn_quantity || 0);
+            gradeFields += `
+              <div style="border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+                  <strong style="font-size:0.8rem;">Tamanho: ${item.size}</strong>
+                  <span style="font-size:0.65rem; color:var(--gray);">Solic.: ${item.quantity} | Cost.: ${item.sewn_quantity || 0} | Rest.: ${restante}</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.6rem; color:var(--gray);">Qtd Costurada Agora</label>
+                    <input type="number" min="0" max="${restante}" class="form-input costura-qtd-item" data-item-id="${item.id}" value="0" style="padding:6px 8px; font-size:0.75rem;">
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:0.6rem; color:var(--gray);">Defeitos</label>
+                    <input type="number" min="0" class="form-input costura-defeitos-item" data-item-id="${item.id}" value="0" style="padding:6px 8px; font-size:0.75rem;">
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+
+          const formHtml = `
+            <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:12px; margin-bottom:12px;">
+              <p style="font-size:0.8rem;"><strong>OS:</strong> ${os.order_number}</p>
+              <p style="font-size:0.8rem;"><strong>Total de peças:</strong> ${os.total_quantity}</p>
+              <p style="font-size:0.8rem;"><strong>Status atual:</strong> <span class="status-badge status-${os.status}" style="font-size:0.65rem;">${formatStatus(os.status)}</span></p>
+            </div>
+            <h4 style="font-size:0.85rem; margin-bottom:8px;"><i class="ph ph-thread"></i> Informar Produção</h4>
+            ${gradeFields}
+            <div class="form-group" style="margin-top:8px;">
+              <label style="font-size:0.65rem; color:var(--gray);">Funcionário</label>
+              <select id="costuraFuncionario" class="form-select" style="padding:6px 8px; font-size:0.75rem;">
+                <option value="">Selecione o funcionário...</option>
+                ${optsFuncionarios}
+              </select>
+            </div>
+            <div class="form-group">
+              <label style="font-size:0.65rem; color:var(--gray);">Máquina (opcional)</label>
+              <input id="costuraMaquina" class="form-input" placeholder="Ex: Máquina 01, Overloque..." style="padding:6px 8px; font-size:0.75rem;">
+            </div>
+          `;
+
+          openModal('Registrar Costura Parcial', formHtml);
+          document.getElementById('modalContainer').querySelector('.modal-header h2').innerHTML = '<i class="ph ph-thread"></i> Registrar Costura Parcial';
+
+          document.getElementById('modalContainer').querySelector('.modal-footer')?.remove();
+
+          const footer = document.createElement('div');
+          footer.className = 'modal-footer';
+          footer.innerHTML = `
+            <button class="btn btn-ghost" id="cancelarCostura"><i class="ph ph-x"></i> Cancelar</button>
+            <button class="btn btn-primary" id="salvarCostura"><i class="ph ph-check-circle"></i> Salvar</button>
+          `;
+          document.getElementById('modalContainer').querySelector('.modal-sheet').appendChild(footer);
+
+          document.getElementById('cancelarCostura')?.addEventListener('click', () => {
+            document.getElementById('modalContainer').innerHTML = '';
+          });
+
+          document.getElementById('salvarCostura')?.addEventListener('click', async function() {
+            const funcionarioId = document.getElementById('costuraFuncionario')?.value || null;
+            const maquina = document.getElementById('costuraMaquina')?.value?.trim() || null;
+
+            let totalCosturadoAgora = 0;
+            const updates = [];
+            const records = [];
+
+            document.querySelectorAll('.costura-qtd-item').forEach((input) => {
+              const itemId = input.dataset.itemId;
+              const qtd = parseInt(input.value) || 0;
+              const defeitosInput = document.querySelector(`.costura-defeitos-item[data-item-id="${itemId}"]`);
+              const defeitos = parseInt(defeitosInput?.value) || 0;
+
+              if (qtd > 0) {
+                totalCosturadoAgora += qtd;
+                updates.push({ id: itemId, qtd, defeitos });
+                records.push({
+                  service_order_item_id: itemId,
+                  employee_id: funcionarioId,
+                  pieces_sewn: qtd,
+                  defects: defeitos,
+                  machine_id: maquina,
+                  start_time: new Date().toISOString(),
+                });
+              }
+            });
+
+            if (totalCosturadoAgora === 0) {
+              showFeedback('Aviso', 'Informe pelo menos uma quantidade costurada.', 'warning');
+              return;
+            }
+
+            const loginResult = await abrirModalLogin('registrar costura parcial');
+            if (!loginResult.success) {
+              showFeedback('Ação cancelada', 'Você precisa estar autenticado.', 'warning');
+              return;
+            }
+
+            try {
+              for (const u of updates) {
+                const item = items.find((i) => i.id === u.id);
+                const novaQtdCosturada = (item.sewn_quantity || 0) + u.qtd;
+                await supabase
+                  .from('service_order_items')
+                  .update({ sewn_quantity: novaQtdCosturada })
+                  .eq('id', u.id);
+              }
+
+              if (records.length > 0) {
+                await supabase.from('sewing_records').insert(records);
+              }
+
+              const { data: itemsAtualizados } = await supabase
+                .from('service_order_items')
+                .select('sewn_quantity, quantity')
+                .eq('service_order_id', id);
+
+              const totalCosturado = itemsAtualizados
+                ? itemsAtualizados.reduce((sum, i) => sum + (i.sewn_quantity || 0), 0)
+                : 0;
+
+              let sugestaoConcluir = false;
+              if (totalCosturado >= os.total_quantity && os.status !== 'costurado') {
+                sugestaoConcluir = true;
+              }
+
+              document.getElementById('modalContainer').innerHTML = '';
+
+              if (sugestaoConcluir) {
+                openModal('Costura Concluída', `<p>O total de peças costuradas (<strong>${totalCosturado}</strong>) atingiu ou ultrapassou a quantidade do lote (<strong>${os.total_quantity}</strong>).</p><p>Deseja marcar o lote como <strong>Costurado</strong>?</p>`);
+                document.getElementById('modalContainer').querySelector('.modal-footer')?.remove();
+                const footer2 = document.createElement('div');
+                footer2.className = 'modal-footer';
+                footer2.innerHTML = `
+                  <button class="btn btn-ghost" id="depoisCostura"><i class="ph ph-clock"></i> Depois</button>
+                  <button class="btn btn-primary" id="concluirCosturaAgora"><i class="ph ph-check-circle"></i> Concluir</button>
+                `;
+                document.getElementById('modalContainer').querySelector('.modal-sheet').appendChild(footer2);
+
+                document.getElementById('depoisCostura')?.addEventListener('click', () => {
+                  document.getElementById('modalContainer').innerHTML = '';
+                  showFeedback('Sucesso', 'Costura registrada com sucesso!', 'success', () => carregarDados());
+                });
+
+                document.getElementById('concluirCosturaAgora')?.addEventListener('click', async () => {
+                  await supabase.from('service_orders').update({ status: 'costurado' }).eq('id', id);
+                  document.getElementById('modalContainer').innerHTML = '';
+                  showFeedback('Sucesso', 'Costura registrada e lote marcado como Costurado!', 'success', () => carregarDados());
+                });
+              } else {
+                showFeedback('Sucesso', `${totalCosturadoAgora} peça(s) registrada(s)! Total costurado: ${totalCosturado}/${os.total_quantity}`, 'success', () => carregarDados());
+              }
+            } catch (error) {
+              console.error('Erro ao registrar costura:', error);
+              showFeedback('Erro', 'Falha ao registrar costura.', 'error');
+            }
+          });
+        };
+
+        // ============================================================
+        // CRUD DE LOTES COM CONTROLE DE PAGAMENTO INTEGRADO
         // ============================================================
 
         // 1. NOVO LOTE
         document.getElementById('btnNovoLote')?.addEventListener('click', function() {
           const html = `
-            <div style="display: grid; gap: 12px;">
+            <div style="display: grid; gap: 10px;">
               <div class="form-group">
                 <label>Cliente *</label>
                 <input id="novoLoteCliente" class="form-input" placeholder="Nome do cliente">
@@ -2812,7 +3344,11 @@
                 <label>Produto *</label>
                 <input id="novoLoteProduto" class="form-input" placeholder="Descrição do produto">
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label>Referência do Produto *</label>
+                <input id="novoLoteReferencia" class="form-input" placeholder="Ex: JEANS-001, CALCA-2024">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="form-group">
                   <label>Quantidade *</label>
                   <input id="novoLoteQtd" type="number" class="form-input" placeholder="Ex: 500">
@@ -2822,7 +3358,7 @@
                   <input id="novoLotePreco" type="number" step="0.01" class="form-input" placeholder="Ex: 15.00">
                 </div>
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="form-group">
                   <label>Data Recebimento</label>
                   <input id="novoLoteRecebimento" type="date" class="form-input" value="${todayISO()}">
@@ -2852,18 +3388,18 @@
           document.getElementById('salvarNovoLote')?.addEventListener('click', async function() {
             const cliente = document.getElementById('novoLoteCliente').value.trim();
             const produto = document.getElementById('novoLoteProduto').value.trim();
+            const referencia = document.getElementById('novoLoteReferencia').value.trim();
             const qtd = parseInt(document.getElementById('novoLoteQtd').value);
             const preco = parseFloat(document.getElementById('novoLotePreco').value);
             const recebimento = document.getElementById('novoLoteRecebimento').value;
             const prazo = document.getElementById('novoLotePrazo').value;
             const obs = document.getElementById('novoLoteObs').value.trim() || null;
 
-            if (!cliente || !produto || !qtd || !preco || !recebimento || !prazo) {
+            if (!cliente || !produto || !referencia || !qtd || !preco || !recebimento || !prazo) {
               showFeedback('Erro', 'Preencha todos os campos obrigatórios.', 'error');
               return;
             }
 
-            // 🔒 Pede autenticação antes de salvar
             const loginResult = await abrirModalLogin('cadastrar novo lote');
 
             if (!loginResult.success) {
@@ -2871,9 +3407,7 @@
               return;
             }
 
-            // Se chegou aqui, está autenticado! Executa a ação
             try {
-              // Verifica se o cliente existe ou cria um novo
               let clienteId = null;
               const { data: clientes } = await supabase
                 .from('customers')
@@ -2884,7 +3418,6 @@
               if (clientes && clientes.length > 0) {
                 clienteId = clientes[0].id;
               } else {
-                // Cria cliente rapidamente
                 const { data: novoCliente } = await supabase
                   .from('customers')
                   .insert({ company_name: cliente, trade_name: cliente, active: true })
@@ -2906,11 +3439,13 @@
                 .insert({
                   customer_id: clienteId,
                   product_description: produto,
+                  product_reference: referencia,
                   total_quantity: qtd,
                   unit_price: preco,
                   received_date: recebimento,
                   expected_delivery: prazo,
                   status: 'recebido',
+                  payment_status: 'pendente',
                   notes: obs,
                   order_number: orderNumber,
                   total: total
@@ -2920,7 +3455,6 @@
 
               if (error) throw error;
 
-              // Cria item único para a OS
               await supabase
                 .from('service_order_items')
                 .insert({
@@ -2932,7 +3466,7 @@
                 });
 
               document.getElementById('modalContainer').innerHTML = '';
-              showFeedback('Sucesso', `Lote ${orderNumber} criado por ${loginResult.usuario.email}!`, 'success');
+              showFeedback('Sucesso', `Lote ${orderNumber} criado com referência ${referencia}!`, 'success');
               carregarDados();
 
             } catch (error) {
@@ -2944,7 +3478,6 @@
 
         // ==== INICIAR COSTURA ====
         window.iniciarCosturaLote = async function(id, orderNumber) {
-          // 🔒 Pede autenticação
           const loginResult = await abrirModalLogin('iniciar costura');
 
           if (!loginResult.success) {
@@ -2973,7 +3506,6 @@
 
         // ==== FINALIZAR COSTURA ====
         window.finalizarCosturaLote = async function(id, orderNumber) {
-          // 🔒 Pede autenticação
           const loginResult = await abrirModalLogin('finalizar costura');
 
           if (!loginResult.success) {
@@ -2989,7 +3521,7 @@
 
             if (error) throw error;
 
-            showFeedback('Sucesso', `Lote ${orderNumber} finalizado! (por ${loginResult.usuario.email})`, 'success');
+            showFeedback('Sucesso', `Lote ${orderNumber} costurado! Aguardando entrega.`, 'success');
             carregarDados();
           } catch (error) {
             console.error('Erro ao finalizar costura:', error);
@@ -2997,11 +3529,100 @@
           }
         };
 
+        // ==== MARCAR LOTE COMO ENTREGUE (GERA CONTA A RECEBER) ====
+        window.marcarEntregue = async function(id, orderNumber) {
+          const loginResult = await abrirModalLogin('marcar lote como entregue');
+
+          if (!loginResult.success) {
+            showFeedback('Ação cancelada', 'Você precisa estar autenticado.', 'warning');
+            return;
+          }
+
+          try {
+            const { data: lote } = await supabase
+              .from('service_orders')
+              .select('*, customers(company_name, trade_name)')
+              .eq('id', id)
+              .single();
+
+            if (!lote) {
+              showFeedback('Erro', 'Lote não encontrado.', 'error');
+              return;
+            }
+
+            const valorTotal = lote.total_quantity * lote.unit_price;
+            const clienteNome = lote.customers?.trade_name || lote.customers?.company_name || 'Cliente';
+            const descricao = `Lote ${lote.order_number} - ${lote.product_description || ''} - Ref: ${lote.product_reference || ''}`;
+
+            // Atualiza status para entregue (mantém payment_status como pendente)
+            const { error } = await supabase
+              .from('service_orders')
+              .update({
+                status: 'entregue',
+                payment_status: 'pendente',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', id);
+
+            if (error) throw error;
+
+            // Cria conta a receber
+            await criarContaReceber(
+              id,
+              valorTotal,
+              descricao,
+              lote.received_date || todayISO(),
+              clienteNome,
+              'entregue'
+            );
+
+            showFeedback('Sucesso', `Lote ${orderNumber} entregue! Conta a receber gerada.`, 'success');
+            carregarDados();
+          } catch (error) {
+            console.error('Erro ao marcar como entregue:', error);
+            showFeedback('Erro', 'Falha ao marcar lote como entregue.', 'error');
+          }
+        };
+
+        // ==== MARCAR LOTE COMO PAGO (VIA EDIÇÃO) ====
+        window.marcarPago = async function(id, orderNumber) {
+          const loginResult = await abrirModalLogin('marcar lote como pago');
+
+          if (!loginResult.success) {
+            showFeedback('Ação cancelada', 'Você precisa estar autenticado.', 'warning');
+            return;
+          }
+
+          try {
+            const dataPag = new Date().toISOString().split('T')[0];
+
+            // Atualiza status de pagamento do lote
+            const { error } = await supabase
+              .from('service_orders')
+              .update({
+                payment_status: 'pago',
+                payment_date: dataPag,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', id);
+
+            if (error) throw error;
+
+            // Atualiza conta a receber para pago
+            await atualizarContaReceber(id, 'pago', dataPag, null);
+
+            showFeedback('Sucesso', `Lote ${orderNumber} marcado como pago!`, 'success');
+            carregarDados();
+          } catch (error) {
+            console.error('Erro ao marcar como pago:', error);
+            showFeedback('Erro', 'Falha ao marcar lote como pago.', 'error');
+          }
+        };
+
         // ==== CANCELAR LOTE ====
         window.cancelarLote = async function(id, orderNumber) {
           if (!confirm(`Cancelar o lote ${orderNumber}?`)) return;
 
-          // 🔒 Pede autenticação
           const loginResult = await abrirModalLogin('cancelar lote');
 
           if (!loginResult.success) {
@@ -3029,7 +3650,6 @@
         window.excluirLote = async function(id, orderNumber) {
           if (!confirm(`Excluir permanentemente o lote ${orderNumber}? Esta ação não pode ser desfeita.`)) return;
 
-          // 🔒 Pede autenticação (ação mais crítica, pede confirmação extra)
           const loginResult = await abrirModalLogin('excluir lote permanentemente');
 
           if (!loginResult.success) {
@@ -3037,11 +3657,9 @@
             return;
           }
 
-          // Confirmação extra para exclusão
           if (!confirm(`⚠️ Confirme novamente: Excluir ${orderNumber} permanentemente?`)) return;
 
           try {
-            // Remove itens, registros de costura e envios primeiro
             await supabase.from('service_order_items').delete().eq('service_order_id', id);
             await supabase.from('sewing_records').delete().eq('service_order_item.service_order_id', id);
             await supabase.from('shipments').delete().eq('service_order_id', id);
@@ -3061,9 +3679,8 @@
           }
         };
 
-        // ==== EDITAR LOTE ====
+        // ==== EDITAR LOTE (COM CONTROLE DE PAGAMENTO INTEGRADO) ====
         window.editarLote = async function(id) {
-          // Busca dados atuais
           const { data: lote, error: fetchError } = await supabase
             .from('service_orders')
             .select('*')
@@ -3075,7 +3692,6 @@
             return;
           }
 
-          // 🔒 Pede autenticação
           const loginResult = await abrirModalLogin('editar lote');
 
           if (!loginResult.success) {
@@ -3084,30 +3700,44 @@
           }
 
           const html = `
-            <div style="display: grid; gap: 12px;">
-              <h4 style="color: var(--gold-light);">Editar Lote ${lote.order_number}</h4>
+            <div style="display: grid; gap: 10px;">
+              <h4 style="color: var(--gold-light); font-size:0.9rem;">Editar Lote ${lote.order_number}</h4>
+              <div class="form-group">
+                <label>Cliente</label>
+                <input id="editCliente" class="form-input" value="${lote.customers?.trade_name || lote.customers?.company_name || ''}" readonly style="opacity:0.7; background:rgba(255,255,255,0.02);">
+              </div>
               <div class="form-group">
                 <label>Produto</label>
-                <input id="editLoteProduto" class="form-input" value="${lote.product_description || ''}">
+                <input id="editProduto" class="form-input" value="${lote.product_description || ''}">
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label>Referência</label>
+                <input id="editReferencia" class="form-input" value="${lote.product_reference || ''}">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="form-group">
                   <label>Quantidade</label>
-                  <input id="editLoteQtd" type="number" class="form-input" value="${lote.total_quantity}">
+                  <input id="editQtd" type="number" class="form-input" value="${lote.total_quantity}">
                 </div>
                 <div class="form-group">
                   <label>Valor Unitário</label>
-                  <input id="editLotePreco" type="number" step="0.01" class="form-input" value="${lote.unit_price}">
+                  <input id="editPreco" type="number" step="0.01" class="form-input" value="${lote.unit_price}">
                 </div>
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="form-group">
-                  <label>Prazo Entrega</label>
-                  <input id="editLotePrazo" type="date" class="form-input" value="${lote.expected_delivery}">
+                  <label>Data Recebimento</label>
+                  <input id="editRecebimento" type="date" class="form-input" value="${lote.received_date || ''}">
                 </div>
                 <div class="form-group">
-                  <label>Status</label>
-                  <select id="editLoteStatus" class="form-select">
+                  <label>Prazo Entrega</label>
+                  <input id="editPrazo" type="date" class="form-input" value="${lote.expected_delivery || ''}">
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                  <label>Status de Produção</label>
+                  <select id="editStatus" class="form-select">
                     <option value="recebido" ${lote.status === 'recebido' ? 'selected' : ''}>Recebido</option>
                     <option value="em_costura" ${lote.status === 'em_costura' ? 'selected' : ''}>Em Costura</option>
                     <option value="costurado" ${lote.status === 'costurado' ? 'selected' : ''}>Costurado</option>
@@ -3115,33 +3745,80 @@
                     <option value="cancelado" ${lote.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
                   </select>
                 </div>
+                <div class="form-group">
+                  <label>Status de Pagamento</label>
+                  <select id="editPagamento" class="form-select">
+                    <option value="pendente" ${lote.payment_status === 'pendente' || !lote.payment_status ? 'selected' : ''}>⏳ Pendente</option>
+                    <option value="pago" ${lote.payment_status === 'pago' ? 'selected' : ''}>✅ Pago</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" id="camposPagamento" style="${lote.payment_status === 'pago' ? '' : 'display:none;'}">
+                <div class="form-group">
+                  <label>Data de Pagamento</label>
+                  <input id="editDataPagamento" type="date" class="form-input" value="${lote.payment_date || todayISO()}">
+                </div>
+                <div class="form-group">
+                  <label>Forma de Pagamento</label>
+                  <select id="editFormaPagamento" class="form-select">
+                    <option value="">Selecione...</option>
+                    <option value="PIX" ${lote.payment_method === 'PIX' ? 'selected' : ''}>PIX</option>
+                    <option value="Boleto" ${lote.payment_method === 'Boleto' ? 'selected' : ''}>Boleto</option>
+                    <option value="Transferência" ${lote.payment_method === 'Transferência' ? 'selected' : ''}>Transferência</option>
+                    <option value="Dinheiro" ${lote.payment_method === 'Dinheiro' ? 'selected' : ''}>Dinheiro</option>
+                    <option value="Cartão" ${lote.payment_method === 'Cartão' ? 'selected' : ''}>Cartão</option>
+                  </select>
+                </div>
               </div>
               <div class="form-group">
                 <label>Observações</label>
-                <textarea id="editLoteObs" class="form-input" rows="2">${lote.notes || ''}</textarea>
+                <textarea id="editObs" class="form-input" rows="2">${lote.notes || ''}</textarea>
               </div>
               <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);">
-                <button class="btn-ghost" id="cancelarEditLote" style="padding: 8px 16px;">Cancelar</button>
-                <button class="btn-primary" id="salvarEditLote" style="padding: 8px 20px;">Salvar</button>
+                <button class="btn-ghost" id="cancelarEdit" style="padding: 8px 16px;">Cancelar</button>
+                <button class="btn-primary" id="salvarEdit" style="padding: 8px 20px;">Salvar</button>
               </div>
             </div>
           `;
 
           openModal('Editar Lote', html);
 
-          document.getElementById('cancelarEditLote')?.addEventListener('click', () => {
+          // Mostrar/esconder campos de pagamento baseado no status selecionado
+          document.getElementById('editPagamento')?.addEventListener('change', function() {
+            const campos = document.getElementById('camposPagamento');
+            if (this.value === 'pago') {
+              campos.style.display = 'grid';
+              if (!document.getElementById('editDataPagamento').value) {
+                document.getElementById('editDataPagamento').value = todayISO();
+              }
+            } else {
+              campos.style.display = 'none';
+            }
+          });
+
+          // Se já estiver pago, mostrar campos
+          if (lote.payment_status === 'pago') {
+            document.getElementById('camposPagamento').style.display = 'grid';
+          }
+
+          document.getElementById('cancelarEdit')?.addEventListener('click', () => {
             document.getElementById('modalContainer').innerHTML = '';
           });
 
-          document.getElementById('salvarEditLote')?.addEventListener('click', async function() {
-            const produto = document.getElementById('editLoteProduto').value.trim();
-            const qtd = parseInt(document.getElementById('editLoteQtd').value);
-            const preco = parseFloat(document.getElementById('editLotePreco').value);
-            const prazo = document.getElementById('editLotePrazo').value;
-            const status = document.getElementById('editLoteStatus').value;
-            const obs = document.getElementById('editLoteObs').value.trim() || null;
+          document.getElementById('salvarEdit')?.addEventListener('click', async function() {
+            const produto = document.getElementById('editProduto').value.trim();
+            const referencia = document.getElementById('editReferencia').value.trim();
+            const qtd = parseInt(document.getElementById('editQtd').value);
+            const preco = parseFloat(document.getElementById('editPreco').value);
+            const recebimento = document.getElementById('editRecebimento').value;
+            const prazo = document.getElementById('editPrazo').value;
+            const status = document.getElementById('editStatus').value;
+            const paymentStatus = document.getElementById('editPagamento').value;
+            const dataPagamento = document.getElementById('editDataPagamento').value || null;
+            const formaPagamento = document.getElementById('editFormaPagamento').value || null;
+            const obs = document.getElementById('editObs').value.trim() || null;
 
-            if (!produto || !qtd || !preco || !prazo) {
+            if (!produto || !referencia || !qtd || !preco || !recebimento || !prazo) {
               showFeedback('Erro', 'Preencha todos os campos obrigatórios.', 'error');
               return;
             }
@@ -3149,24 +3826,40 @@
             const total = qtd * preco;
 
             try {
+              // Atualizar lote
+              const updateData = {
+                product_description: produto,
+                product_reference: referencia,
+                total_quantity: qtd,
+                unit_price: preco,
+                received_date: recebimento,
+                expected_delivery: prazo,
+                status: status,
+                payment_status: paymentStatus,
+                notes: obs,
+                total: total
+              };
+
+              if (paymentStatus === 'pago') {
+                updateData.payment_date = dataPagamento || todayISO();
+                updateData.payment_method = formaPagamento;
+              } else {
+                updateData.payment_date = null;
+                updateData.payment_method = null;
+              }
+
               const { error } = await supabase
                 .from('service_orders')
-                .update({
-                  product_description: produto,
-                  total_quantity: qtd,
-                  unit_price: preco,
-                  expected_delivery: prazo,
-                  status: status,
-                  notes: obs,
-                  total: total
-                })
+                .update(updateData)
                 .eq('id', id);
 
               if (error) throw error;
 
+              // Atualizar conta a receber
+              await atualizarContaReceber(id, paymentStatus, dataPagamento, formaPagamento);
+
               document.getElementById('modalContainer').innerHTML = '';
-              showFeedback('Sucesso', `Lote ${lote.order_number} atualizado por ${loginResult.usuario.email}!`, 'success');
-              carregarDados();
+              showFeedback('Sucesso', `Lote ${lote.order_number} atualizado!`, 'success', () => carregarDados());
             } catch (error) {
               console.error('Erro ao editar lote:', error);
               showFeedback('Erro', 'Falha ao editar lote: ' + error.message, 'error');
@@ -3175,144 +3868,7 @@
         };
 
         // ============================================================
-        // ABRIR MODAL CONTA (FINANCEIRO - MODO LEITURA)
-        // ============================================================
-        window.abrirModalConta = function (id) {
-          const evento = dados.eventosFinanceiros?.find((e) => e.id === id);
-          if (!evento) {
-            showFeedback('Erro', 'Conta não encontrada.', 'error');
-            return;
-          }
-
-          const isPagar = evento.tipo === 'pagar';
-          const vencido =
-            evento.status === 'pendente' &&
-            new Date(evento.vencimento) < new Date();
-          const pago = evento.status === 'pago' || evento.status === 'recebido';
-
-          let statusText = '';
-          let statusColor = '';
-          if (pago) {
-            statusText = '✅ Pago';
-            statusColor = 'var(--success)';
-          } else if (vencido) {
-            statusText = '🔴 Vencido';
-            statusColor = 'var(--error)';
-          } else {
-            statusText = '🟡 Pendente';
-            statusColor = 'var(--warning)';
-          }
-
-          let parcelasHtml = '';
-          if (evento.isParcela && evento.parcela_original) {
-            parcelasHtml = `
-                        <div class="info-row"><span class="label">Parcela</span><span class="value">${evento.numero_parcela}/${evento.total_parcelas}</span></div>
-                        ${evento.interest_paid ? `<div class="info-row"><span class="label">Juros pagos</span><span class="value">${formatCurrency(evento.interest_paid)}</span></div>` : ""}
-                        ${evento.late_fee_paid ? `<div class="info-row"><span class="label">Multa paga</span><span class="value">${formatCurrency(evento.late_fee_paid)}</span></div>` : ""}
-                    `;
-          }
-
-          const html = `
-                    <div style="margin-bottom:16px;">
-                        <h3 style="font-size:1.1rem;color:var(--gold-light);">${evento.descricao}</h3>
-                        <p style="color:var(--gray);font-size:0.85rem;">${evento.categoria || "Sem categoria"}</p>
-                        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
-                    </div>
-                    <div class="info-row"><span class="label">Valor</span><span class="value gold">${formatCurrency(evento.valor)}</span></div>
-                    <div class="info-row"><span class="label">Vencimento</span><span class="value">${formatDate(evento.vencimento)}</span></div>
-                    <div class="info-row"><span class="label">Tipo</span><span class="value ${isPagar ? 'danger' : 'success'}">${isPagar ? 'A Pagar' : 'A Receber'}</span></div>
-                    ${evento.payment_method ? `<div class="info-row"><span class="label">Forma de Pagamento</span><span class="value">${evento.payment_method}</span></div>` : ""}
-                    ${parcelasHtml}
-                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${evento.id}</div>
-                    </div>
-                `;
-
-          openModal('Detalhes da Conta', html);
-        };
-
-        // ============================================================
-        // ABRIR MODAL FUNCIONÁRIO (RH - MODO LEITURA)
-        // ============================================================
-        function abrirModalFuncionario(func, ferias) {
-          const emFerias = (ferias || []).find(
-            (f) => f.employee_id === func.id,
-          );
-          const fotoHtml = func.photo_url
-            ? `<img src="${func.photo_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">`
-            : `<div style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--pink-dark),var(--gold-dark));color:#fff;">${getInitials(func.full_name)}</div>`;
-
-          let feriasHtml =
-            '<div class="info-row"><span class="label">Férias</span><span class="value">Nenhuma férias em andamento</span></div>';
-          if (emFerias) {
-            const dataRetorno = getProximoDiaUtil(emFerias.end_date);
-            feriasHtml = `
-                        <div class="info-row"><span class="label">Férias</span><span class="value gold">🟡 Em andamento</span></div>
-                        <div class="info-row"><span class="label">Período</span><span class="value">${formatDate(emFerias.start_date)} a ${formatDate(emFerias.end_date)}</span></div>
-                        <div class="info-row"><span class="label">Retorno</span><span class="value success">${formatDate(dataRetorno.toISOString())}</span></div>
-                    `;
-          }
-
-          const html = `
-                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);">
-                        ${fotoHtml}
-                        <div>
-                            <h3 style="font-size:1.1rem;">${func.full_name}</h3>
-                            <p style="color:var(--gold-light);font-size:0.85rem;">${func.role || "Sem função"}</p>
-                            <p style="font-size:0.75rem;color:${func.active ? 'var(--success)' : 'var(--error)'};">${func.active ? '🟢 Ativo' : '🔴 Inativo'}</p>
-                        </div>
-                    </div>
-                    <div class="info-row"><span class="label">CPF</span><span class="value">${func.cpf || "-"}</span></div>
-                    <div class="info-row"><span class="label">Celular</span><span class="value">${func.phone_cell || "-"}</span></div>
-                    <div class="info-row"><span class="label">E-mail</span><span class="value">${func.email_personal || "-"}</span></div>
-                    <div class="info-row"><span class="label">Contrato</span><span class="value">${func.contract_type === "clt" ? "CLT" : "Diarista"}</span></div>
-                    <div class="info-row"><span class="label">Salário</span><span class="value gold">${func.contract_type === "clt" ? formatCurrency(func.monthly_salary) : formatCurrency(func.daily_rate) + "/dia"}</span></div>
-                    <div class="info-row"><span class="label">Admissão</span><span class="value">${formatDate(func.admission_date)}</span></div>
-                    ${feriasHtml}
-                    ${func.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${func.notes}</span></div>` : ""}
-                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${func.id}</div>
-                    </div>
-                `;
-
-          openModal(func.full_name, html);
-        }
-
-        // ============================================================
-        // ABRIR MODAL DÍVIDA (MODO LEITURA - CORRIGIDO)
-        // ============================================================
-        function abrirModalDivida(div) {
-          const total = div.total_amount || 0;
-          const pago = div.paid_amount || 0;
-          const percentual = total > 0 ? Math.round((pago / total) * 100) : 0;
-          const restante = total - pago;
-
-          let statusText = div.status === 'quitada' ? '✅ Quitada' : '🟡 Ativa';
-          let statusColor =
-            div.status === 'quitada' ? 'var(--success)' : 'var(--gold-light)';
-
-          const html = `
-                    <div style="margin-bottom:16px;">
-                        <h3 style="font-size:1.1rem;color:var(--gold-light);">${div.credor || "Credor não informado"}</h3>
-                        <p style="color:var(--gray);font-size:0.85rem;">${div.description || "Sem descrição"}</p>
-                        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
-                    </div>
-                    <div class="info-row"><span class="label">Valor Total</span><span class="value gold">${formatCurrency(total)}</span></div>
-                    <div class="info-row"><span class="label">Valor Pago</span><span class="value success">${formatCurrency(pago)}</span></div>
-                    <div class="info-row"><span class="label">Saldo Restante</span><span class="value ${restante > 0 ? 'danger' : 'success'}">${formatCurrency(restante)}</span></div>
-                    <div class="info-row"><span class="label">Progresso</span><span class="value">${percentual}%</span></div>
-                    ${div.next_due_date ? `<div class="info-row"><span class="label">Próximo Vencimento</span><span class="value">${formatDate(div.next_due_date)}</span></div>` : ""}
-                    ${div.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${div.notes}</span></div>` : ""}
-                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${div.id}</div>
-                    </div>
-                `;
-
-          openModal(div.credor || 'Dívida', html);
-        }
-
-        // ============================================================
-        // RENDERIZAR LISTA DE LOTES COM AÇÕES
+        // RENDERIZAR LISTA DE LOTES (COM STATUS DE PAGAMENTO)
         // ============================================================
         function renderizarProducao(dados) {
           const { osAtivas, emCostura, costurados } = dados;
@@ -3320,13 +3876,15 @@
           document.getElementById('prodEmCostura').textContent = emCostura;
           document.getElementById('prodCosturados').textContent = costurados;
 
-          // Calcular atrasados e entregues hoje
           const hoje = new Date();
           const atrasados = osAtivas.filter(o => {
             if (!o.expected_delivery) return false;
             const prazo = new Date(o.expected_delivery);
-            return prazo < hoje && !['entregue', 'cancelado'].includes(o.status);
+            return prazo < hoje && !['cancelado'].includes(o.status);
           }).length;
+
+          const aguardandoPagto = osAtivas.filter(o => o.status === 'entregue' && o.payment_status !== 'pago').length;
+          const pagos = osAtivas.filter(o => o.payment_status === 'pago').length;
 
           const entreguesHoje = osAtivas.filter(o => {
             if (!o.updated_at) return false;
@@ -3335,7 +3893,9 @@
           }).length;
 
           document.getElementById('prodAtrasados').textContent = atrasados;
+          document.getElementById('prodAguardandoPagto').textContent = aguardandoPagto;
           document.getElementById('prodEntreguesHoje').textContent = entreguesHoje;
+          document.getElementById('prodPagos').textContent = pagos;
 
           const container = document.getElementById('listaProducao');
           document.getElementById('totalLotes').textContent = (osAtivas || []).length + ' lotes';
@@ -3345,7 +3905,7 @@
               .sort((a, b) => new Date(a.expected_delivery) - new Date(b.expected_delivery))
               .map((os) => {
                 const cliente = os.customers?.trade_name || os.customers?.company_name || '-';
-                const atrasado = new Date(os.expected_delivery) < new Date();
+                const atrasado = new Date(os.expected_delivery) < new Date() && !['cancelado'].includes(os.status);
                 const statusIcons = {
                   'recebido': 'ph-inbox',
                   'em_costura': 'ph-sewing-needle',
@@ -3355,55 +3915,113 @@
                   'parcialmente_entregue': 'ph-package'
                 };
 
+                const paymentStatus = os.payment_status || 'pendente';
+                const paymentLabel = getPaymentStatusLabel(paymentStatus);
+                const paymentClass = paymentStatus === 'pago' ? 'payment-badge-pago' : 'payment-badge-pendente';
+
+                const prog = dados.progressoMap?.[os.id] || {
+                  total: os.total_quantity,
+                  costurado: 0,
+                  entregue: 0
+                };
+                const percentCosturado = prog.total > 0 ? Math.round((prog.costurado / prog.total) * 100) : 0;
+                const percentEntregue = prog.total > 0 ? Math.round((prog.entregue / prog.total) * 100) : 0;
+
+                const progressoHtml = `
+                  <div style="font-size:0.6rem; color:var(--gray); margin-top:2px;">
+                    <div style="display:flex; gap:12px;">
+                      <span>${prog.costurado}/${prog.total} cost.</span>
+                      <span>${prog.entregue}/${prog.total} entr.</span>
+                    </div>
+                    <div style="height:3px; background:rgba(255,255,255,0.1); border-radius:2px; margin:2px 0;">
+                      <div style="height:100%; width:${percentCosturado}%; background:var(--gold); border-radius:2px; transition:width 0.5s ease;"></div>
+                    </div>
+                    <div style="height:3px; background:rgba(255,255,255,0.1); border-radius:2px; margin:2px 0;">
+                      <div style="height:100%; width:${percentEntregue}%; background:var(--pink); border-radius:2px; transition:width 0.5s ease;"></div>
+                    </div>
+                  </div>
+                `;
+
+                const valorTotal = os.total_quantity * os.unit_price;
+
                 // Ações disponíveis por status
                 let botoes = '';
                 if (os.status === 'recebido') {
                   botoes = `
                     <button class="btn-action btn-action-primary" onclick="iniciarCosturaLote('${os.id}', '${os.order_number}')"><i class="ph ph-play"></i> Iniciar</button>
                     <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')"><i class="ph ph-pencil-simple"></i></button>
+                    <button class="btn-action btn-action-ghost" onclick="visualizarLote('${os.id}')"><i class="ph ph-eye"></i></button>
                     <button class="btn-action btn-action-danger" onclick="excluirLote('${os.id}', '${os.order_number}')"><i class="ph ph-trash"></i></button>
                   `;
                 } else if (os.status === 'em_costura') {
                   botoes = `
+                    <button class="btn-action btn-action-ghost" onclick="registrarCosturaParcial('${os.id}')"><i class="ph ph-thread"></i> Registrar</button>
                     <button class="btn-action btn-action-success" onclick="finalizarCosturaLote('${os.id}', '${os.order_number}')"><i class="ph ph-check-circle"></i> Finalizar</button>
                     <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')"><i class="ph ph-pencil-simple"></i></button>
+                    <button class="btn-action btn-action-ghost" onclick="visualizarLote('${os.id}')"><i class="ph ph-eye"></i></button>
                     <button class="btn-action btn-action-warning" onclick="cancelarLote('${os.id}', '${os.order_number}')"><i class="ph ph-x-circle"></i></button>
                   `;
                 } else if (os.status === 'costurado') {
                   botoes = `
-                    <span style="font-size: 0.6rem; color: var(--success);"><i class="ph ph-check-circle"></i> Concluído</span>
+                    <button class="btn-action btn-action-success" onclick="marcarEntregue('${os.id}', '${os.order_number}')"><i class="ph ph-truck"></i> Entregar</button>
                     <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')"><i class="ph ph-pencil-simple"></i></button>
+                    <button class="btn-action btn-action-ghost" onclick="visualizarLote('${os.id}')"><i class="ph ph-eye"></i></button>
                     <button class="btn-action btn-action-warning" onclick="cancelarLote('${os.id}', '${os.order_number}')"><i class="ph ph-x-circle"></i></button>
                   `;
+                } else if (os.status === 'entregue') {
+                  if (paymentStatus === 'pendente') {
+                    botoes = `
+                      <button class="btn-action btn-action-payment" onclick="marcarPago('${os.id}', '${os.order_number}')"><i class="ph ph-currency-dollar"></i> Marcar como Pago</button>
+                      <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')"><i class="ph ph-pencil-simple"></i></button>
+                      <button class="btn-action btn-action-ghost" onclick="visualizarLote('${os.id}')"><i class="ph ph-eye"></i></button>
+                    `;
+                  } else {
+                    botoes = `
+                      <span style="font-size:0.6rem; color:var(--success);"><i class="ph ph-check-circle"></i> Recebido</span>
+                      <button class="btn-action btn-action-ghost" onclick="editarLote('${os.id}')"><i class="ph ph-pencil-simple"></i></button>
+                      <button class="btn-action btn-action-ghost" onclick="visualizarLote('${os.id}')"><i class="ph ph-eye"></i></button>
+                    `;
+                  }
                 } else if (os.status === 'cancelado') {
                   botoes = `
-                    <span style="font-size: 0.6rem; color: var(--error);"><i class="ph ph-x-circle"></i> Cancelado</span>
+                    <span style="font-size:0.6rem; color:var(--error);"><i class="ph ph-x-circle"></i> Cancelado</span>
+                    <button class="btn-action btn-action-ghost" onclick="visualizarLote('${os.id}')"><i class="ph ph-eye"></i></button>
                     <button class="btn-action btn-action-danger" onclick="excluirLote('${os.id}', '${os.order_number}')"><i class="ph ph-trash"></i></button>
                   `;
                 } else {
-                  botoes = `<span style="font-size: 0.6rem; color: var(--gray);">${formatStatus(os.status)}</span>`;
+                  botoes = `<span style="font-size:0.6rem; color:var(--gray);">${formatStatus(os.status)}</span>`;
                 }
 
+                const referencia = os.product_reference ? ` · Ref: ${os.product_reference}` : '';
+
                 return `
-                  <div class="list-item ${atrasado ? 'item-vencido' : ''}" style="display: flex; flex-direction: column; align-items: stretch; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.03); gap: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div class="list-item ${atrasado ? 'item-vencido' : ''}" style="display: flex; flex-direction: column; align-items: stretch; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); gap: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                       <div style="flex: 1; min-width: 0;">
-                        <div class="item-title" style="font-size: 14px; font-weight: 600; color: ${atrasado ? 'var(--error)' : 'var(--white)'};">
+                        <div class="item-title" style="font-size: 13px; font-weight: 600; color: ${atrasado ? 'var(--error)' : 'var(--white)'};">
                           ${os.order_number}
-                          <span style="font-size: 0.6rem; color: var(--gray); margin-left: 6px;">
+                          <span style="font-size:0.55rem; color:var(--gray); margin-left:4px;">
                             <i class="ph ${statusIcons[os.status] || 'ph-circle'}"></i>
                             ${formatStatus(os.status)}
                           </span>
+                          <span class="payment-badge ${paymentClass}" style="font-size:0.55rem; margin-left:4px;">
+                            ${paymentLabel}
+                          </span>
                         </div>
-                        <div class="item-sub" style="font-size: 11px; color: var(--gray-dark); margin-top: 2px;">
-                          ${cliente} · ${os.total_quantity || 0} peças · R$ ${(os.unit_price || 0).toFixed(2)}/un
+                        <div class="item-sub" style="font-size: 10px; color: var(--gray-dark); margin-top: 1px;">
+                          ${cliente} · ${os.total_quantity || 0} peças · R$ ${(os.unit_price || 0).toFixed(2)}/un${referencia}
                           ${os.expected_delivery ? ` · Entrega: ${formatDate(os.expected_delivery)}` : ''}
                           ${atrasado ? ' ⚠️ Atrasado' : ''}
                         </div>
-                        ${os.notes ? `<div style="font-size: 10px; color: var(--gray); margin-top: 2px;">📝 ${os.notes}</div>` : ''}
+                        ${progressoHtml}
+                        <div style="font-size:0.6rem; color:var(--gray-dark); margin-top:2px;">
+                          Total: ${formatCurrency(valorTotal)}
+                          ${paymentStatus === 'pago' && os.payment_date ? ` · Pago em: ${formatDate(os.payment_date)}` : ''}
+                        </div>
+                        ${os.notes ? `<div style="font-size:0.55rem; color:var(--gray); margin-top:2px;">📝 ${os.notes}</div>` : ''}
                       </div>
                     </div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; margin-top: 4px;">
                       ${botoes}
                     </div>
                   </div>
@@ -3550,7 +4168,6 @@
           document.getElementById("finTotalReceber").textContent =
             formatCurrency(totalReceber);
 
-          // Calcular saldo do mês e contas vencidas
           let saldoMes = 0;
           let contasVencidas = 0;
           const hoje = new Date();
@@ -3694,7 +4311,144 @@
         }
 
         // ============================================================
-        // RENDERIZAR - ABA DÍVIDAS (MODO LEITURA - CORRIGIDO)
+        // ABRIR MODAL FUNCIONÁRIO (RH - MODO LEITURA)
+        // ============================================================
+        function abrirModalFuncionario(func, ferias) {
+          const emFerias = (ferias || []).find(
+            (f) => f.employee_id === func.id,
+          );
+          const fotoHtml = func.photo_url
+            ? `<img src="${func.photo_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">`
+            : `<div style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--pink-dark),var(--gold-dark));color:#fff;">${getInitials(func.full_name)}</div>`;
+
+          let feriasHtml =
+            '<div class="info-row"><span class="label">Férias</span><span class="value">Nenhuma férias em andamento</span></div>';
+          if (emFerias) {
+            const dataRetorno = getProximoDiaUtil(emFerias.end_date);
+            feriasHtml = `
+                        <div class="info-row"><span class="label">Férias</span><span class="value gold">🟡 Em andamento</span></div>
+                        <div class="info-row"><span class="label">Período</span><span class="value">${formatDate(emFerias.start_date)} a ${formatDate(emFerias.end_date)}</span></div>
+                        <div class="info-row"><span class="label">Retorno</span><span class="value success">${formatDate(dataRetorno.toISOString())}</span></div>
+                    `;
+          }
+
+          const html = `
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+                        ${fotoHtml}
+                        <div>
+                            <h3 style="font-size:1.1rem;">${func.full_name}</h3>
+                            <p style="color:var(--gold-light);font-size:0.85rem;">${func.role || "Sem função"}</p>
+                            <p style="font-size:0.75rem;color:${func.active ? 'var(--success)' : 'var(--error)'};">${func.active ? '🟢 Ativo' : '🔴 Inativo'}</p>
+                        </div>
+                    </div>
+                    <div class="info-row"><span class="label">CPF</span><span class="value">${func.cpf || "-"}</span></div>
+                    <div class="info-row"><span class="label">Celular</span><span class="value">${func.phone_cell || "-"}</span></div>
+                    <div class="info-row"><span class="label">E-mail</span><span class="value">${func.email_personal || "-"}</span></div>
+                    <div class="info-row"><span class="label">Contrato</span><span class="value">${func.contract_type === "clt" ? "CLT" : "Diarista"}</span></div>
+                    <div class="info-row"><span class="label">Salário</span><span class="value gold">${func.contract_type === "clt" ? formatCurrency(func.monthly_salary) : formatCurrency(func.daily_rate) + "/dia"}</span></div>
+                    <div class="info-row"><span class="label">Admissão</span><span class="value">${formatDate(func.admission_date)}</span></div>
+                    ${feriasHtml}
+                    ${func.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${func.notes}</span></div>` : ""}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${func.id}</div>
+                    </div>
+                `;
+
+          openModal(func.full_name, html);
+        }
+
+        // ============================================================
+        // ABRIR MODAL CONTA (FINANCEIRO - MODO LEITURA)
+        // ============================================================
+        window.abrirModalConta = function (id) {
+          const evento = dados.eventosFinanceiros?.find((e) => e.id === id);
+          if (!evento) {
+            showFeedback('Erro', 'Conta não encontrada.', 'error');
+            return;
+          }
+
+          const isPagar = evento.tipo === 'pagar';
+          const vencido =
+            evento.status === 'pendente' &&
+            new Date(evento.vencimento) < new Date();
+          const pago = evento.status === 'pago' || evento.status === 'recebido';
+
+          let statusText = '';
+          let statusColor = '';
+          if (pago) {
+            statusText = '✅ Pago';
+            statusColor = 'var(--success)';
+          } else if (vencido) {
+            statusText = '🔴 Vencido';
+            statusColor = 'var(--error)';
+          } else {
+            statusText = '🟡 Pendente';
+            statusColor = 'var(--warning)';
+          }
+
+          let parcelasHtml = '';
+          if (evento.isParcela && evento.parcela_original) {
+            parcelasHtml = `
+                        <div class="info-row"><span class="label">Parcela</span><span class="value">${evento.numero_parcela}/${evento.total_parcelas}</span></div>
+                        ${evento.interest_paid ? `<div class="info-row"><span class="label">Juros pagos</span><span class="value">${formatCurrency(evento.interest_paid)}</span></div>` : ""}
+                        ${evento.late_fee_paid ? `<div class="info-row"><span class="label">Multa paga</span><span class="value">${formatCurrency(evento.late_fee_paid)}</span></div>` : ""}
+                    `;
+          }
+
+          const html = `
+                    <div style="margin-bottom:16px;">
+                        <h3 style="font-size:1.1rem;color:var(--gold-light);">${evento.descricao}</h3>
+                        <p style="color:var(--gray);font-size:0.85rem;">${evento.categoria || "Sem categoria"}</p>
+                        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
+                    </div>
+                    <div class="info-row"><span class="label">Valor</span><span class="value gold">${formatCurrency(evento.valor)}</span></div>
+                    <div class="info-row"><span class="label">Vencimento</span><span class="value">${formatDate(evento.vencimento)}</span></div>
+                    <div class="info-row"><span class="label">Tipo</span><span class="value ${isPagar ? 'danger' : 'success'}">${isPagar ? 'A Pagar' : 'A Receber'}</span></div>
+                    ${evento.payment_method ? `<div class="info-row"><span class="label">Forma de Pagamento</span><span class="value">${evento.payment_method}</span></div>` : ""}
+                    ${parcelasHtml}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${evento.id}</div>
+                    </div>
+                `;
+
+          openModal('Detalhes da Conta', html);
+        }
+
+        // ============================================================
+        // ABRIR MODAL DÍVIDA (MODO LEITURA)
+        // ============================================================
+        function abrirModalDivida(div) {
+          const total = div.total_amount || 0;
+          const pago = div.paid_amount || 0;
+          const percentual = total > 0 ? Math.round((pago / total) * 100) : 0;
+          const restante = total - pago;
+
+          let statusText = div.status === 'quitada' ? '✅ Quitada' : '🟡 Ativa';
+          let statusColor =
+            div.status === 'quitada' ? 'var(--success)' : 'var(--gold-light)';
+
+          const html = `
+                    <div style="margin-bottom:16px;">
+                        <h3 style="font-size:1.1rem;color:var(--gold-light);">${div.credor || "Credor não informado"}</h3>
+                        <p style="color:var(--gray);font-size:0.85rem;">${div.description || "Sem descrição"}</p>
+                        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
+                    </div>
+                    <div class="info-row"><span class="label">Valor Total</span><span class="value gold">${formatCurrency(total)}</span></div>
+                    <div class="info-row"><span class="label">Valor Pago</span><span class="value success">${formatCurrency(pago)}</span></div>
+                    <div class="info-row"><span class="label">Saldo Restante</span><span class="value ${restante > 0 ? 'danger' : 'success'}">${formatCurrency(restante)}</span></div>
+                    <div class="info-row"><span class="label">Progresso</span><span class="value">${percentual}%</span></div>
+                    ${div.next_due_date ? `<div class="info-row"><span class="label">Próximo Vencimento</span><span class="value">${formatDate(div.next_due_date)}</span></div>` : ""}
+                    ${div.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${div.notes}</span></div>` : ""}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${div.id}</div>
+                    </div>
+                `;
+
+          openModal(div.credor || 'Dívida', html);
+        }
+
+        // ============================================================
+        // RENDERIZAR - ABA DÍVIDAS (MODO LEITURA)
         // ============================================================
         function renderizarDividas(dados) {
           const { dividas, totalDividas, saldoDevedor } = dados;
@@ -3721,8 +4475,6 @@
                 const pago = d.paid_amount || 0;
                 const percentual =
                   total > 0 ? Math.round((pago / total) * 100) : 0;
-
-                // CORRIGIDO: Agora exibe corretamente o credor
                 const credor = d.credor || d.creditor || "Credor não informado";
                 const descricao = d.description || d.notes || "-";
                 const statusClass = d.status === "quitada" ? "quitada" : "ativa";
@@ -3773,8 +4525,9 @@
             let queryOS = supabase
               .from("service_orders")
               .select(`
-                id, order_number, product_description,
-                total_quantity, unit_price, status, expected_delivery, received_date, notes, updated_at,
+                id, order_number, product_description, product_reference,
+                total_quantity, unit_price, status, payment_status, payment_date, payment_method,
+                expected_delivery, received_date, notes, updated_at,
                 customers(company_name, trade_name)
               `)
               .order("created_at", { ascending: false });
@@ -3782,10 +4535,36 @@
             const { data: todasOS, error: errOs } = await queryOS;
             if (errOs) console.error("❌ Erro OS:", errOs);
 
-            // Filtra ativas para os cards
-            const osAtivas = (todasOS || []).filter(o => !['entregue', 'cancelado'].includes(o.status));
+            const osAtivas = (todasOS || []).filter(o => !['cancelado'].includes(o.status));
+
+            // Buscar progresso (itens)
+            const osIds = osAtivas.map((o) => o.id);
+            let progressoMap = {};
+            if (osIds.length > 0) {
+              const { data: items } = await supabase
+                .from('service_order_items')
+                .select('service_order_id, quantity, sewn_quantity, delivered_quantity')
+                .in('service_order_id', osIds);
+              if (items) {
+                items.forEach((item) => {
+                  if (!progressoMap[item.service_order_id]) {
+                    progressoMap[item.service_order_id] = {
+                      total: 0,
+                      costurado: 0,
+                      entregue: 0
+                    };
+                  }
+                  progressoMap[item.service_order_id].total += item.quantity;
+                  progressoMap[item.service_order_id].costurado += item.sewn_quantity || 0;
+                  progressoMap[item.service_order_id].entregue += item.delivered_quantity || 0;
+                });
+              }
+            }
+
             const emCostura = osAtivas.filter(o => o.status === 'em_costura').length;
             const costurados = osAtivas.filter(o => o.status === 'costurado').length;
+
+            dados.progressoMap = progressoMap;
 
             // ============================================================
             // 2. FINANCEIRO
@@ -3947,20 +4726,15 @@
               totalDividas: totalDividas || 0,
               saldoDevedor: saldoDevedor || 0,
               mesRange: mesRange,
+              progressoMap: progressoMap || {},
             };
 
-            // ============================================================
-            // RENDERIZA TODAS AS ABAS
-            // ============================================================
             renderizarGeral(dados);
             renderizarProducao(dados);
             renderizarFinanceiro(dados);
             renderizarRH(dados);
             renderizarDividas(dados);
 
-            // ============================================================
-            // BADGES
-            // ============================================================
             $("tabBadgeProd").textContent = (osAtivas || []).length;
             $("tabBadgeProd").style.display =
               (osAtivas || []).length > 0 ? "flex" : "none";
@@ -4094,7 +4868,6 @@
         // INICIALIZAÇÃO
         // ============================================================
         document.addEventListener("DOMContentLoaded", async function () {
-          // Tenta carregar sessão existente
           carregarSessao();
           mostrarAba("geral");
           await carregarDados();
@@ -4106,9 +4879,13 @@
         window.abrirModalConta = window.abrirModalConta;
         window.iniciarCosturaLote = window.iniciarCosturaLote;
         window.finalizarCosturaLote = window.finalizarCosturaLote;
+        window.marcarEntregue = window.marcarEntregue;
+        window.marcarPago = window.marcarPago;
         window.cancelarLote = window.cancelarLote;
         window.excluirLote = window.excluirLote;
         window.editarLote = window.editarLote;
+        window.visualizarLote = window.visualizarLote;
+        window.registrarCosturaParcial = window.registrarCosturaParcial;
       })();
     </script>
   </body>
