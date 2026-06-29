@@ -1,13 +1,13 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // JavaScript completo para o aplicativo do gestor
-// VERSÃO 2.13 - FINANCEIRO COM VISÃO PREMIUM EM CARDS
+// VERSÃO 2.15 - FINANCEIRO COM SELEÇÃO INTELIGENTE DE PARCELAS
 // ============================================================
 
 (function () {
   "use strict";
 
-  console.log("🚀 App do Gestor - Versão 2.13 com Financeiro Premium em Cards");
+  console.log("🚀 App do Gestor - Versão 2.15 com seleção inteligente de parcelas");
 
   // ============================================================
   // SUPABASE
@@ -95,13 +95,11 @@
       clearTimeout(sessionTimeout);
     }
     sessionTimeout = setTimeout(() => {
-      console.log(
-        "⏰ Sessão expirada automaticamente após 30 minutos de inatividade",
-      );
+      console.log("⏰ Sessão expirada automaticamente após 30 minutos de inatividade");
       localStorage.removeItem("gestor_session");
       usuarioAutenticado = null;
       atualizarIndicadorSessao();
-
+      
       if (!loginModalAberto) {
         showFeedback(
           "Sessão expirada",
@@ -109,14 +107,12 @@
           "warning",
           () => {
             abrirModalLoginObrigatorio("continuar usando o app");
-          },
+          }
         );
       }
     }, SESSION_DURATION);
 
-    console.log(
-      `💾 Sessão salva para: ${usuario.email} (expira em 30 minutos)`,
-    );
+    console.log(`💾 Sessão salva para: ${usuario.email} (expira em 30 minutos)`);
     atualizarIndicadorSessao();
   }
 
@@ -128,18 +124,16 @@
         timestamp: Date.now(),
       };
       localStorage.setItem("gestor_session", JSON.stringify(session));
-
+      
       if (sessionTimeout) {
         clearTimeout(sessionTimeout);
       }
       sessionTimeout = setTimeout(() => {
-        console.log(
-          "⏰ Sessão expirada automaticamente após 30 minutos de inatividade",
-        );
+        console.log("⏰ Sessão expirada automaticamente após 30 minutos de inatividade");
         localStorage.removeItem("gestor_session");
         usuarioAutenticado = null;
         atualizarIndicadorSessao();
-
+        
         if (!loginModalAberto) {
           showFeedback(
             "Sessão expirada",
@@ -147,11 +141,11 @@
             "warning",
             () => {
               abrirModalLoginObrigatorio("continuar usando o app");
-            },
+            }
           );
         }
       }, SESSION_DURATION);
-
+      
       console.log("🔄 Sessão renovada por mais 30 minutos");
     }
   }
@@ -238,12 +232,12 @@
   function abrirModalLoginObrigatorio(acao = "acessar o app") {
     return new Promise((resolve) => {
       loginModalAberto = true;
-
+      
       const appContainer = document.querySelector(".app-container");
       if (appContainer) {
         appContainer.style.display = "none";
       }
-
+      
       const overlay = document.createElement("div");
       overlay.id = "loginObrigatorioOverlay";
       overlay.style.cssText = `
@@ -262,7 +256,7 @@
         padding: 20px;
         animation: fadeInOverlay 0.4s ease;
       `;
-
+      
       if (!document.getElementById("loginStyles")) {
         const style = document.createElement("style");
         style.id = "loginStyles";
@@ -302,7 +296,7 @@
         `;
         document.head.appendChild(style);
       }
-
+      
       overlay.innerHTML = `
         <div class="login-modal-sheet" style="
           max-width: 420px; 
@@ -406,14 +400,14 @@
           </div>
         </div>
       `;
-
+      
       const oldOverlay = document.getElementById("loginObrigatorioOverlay");
       if (oldOverlay) {
         oldOverlay.remove();
       }
-
+      
       document.body.appendChild(overlay);
-
+      
       setTimeout(() => {
         const emailInput = document.getElementById("loginObrigatorioEmail");
         if (emailInput) {
@@ -421,31 +415,23 @@
         }
       }, 300);
 
-      document
-        .getElementById("loginObrigatorioEmail")
-        ?.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            document.getElementById("loginObrigatorioSenha")?.focus();
-          }
-        });
-
-      document
-        .getElementById("loginObrigatorioSenha")
-        ?.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            document.getElementById("confirmarLoginObrigatorio")?.click();
-          }
-        });
+      document.getElementById("loginObrigatorioEmail")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          document.getElementById("loginObrigatorioSenha")?.focus();
+        }
+      });
+      
+      document.getElementById("loginObrigatorioSenha")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          document.getElementById("confirmarLoginObrigatorio")?.click();
+        }
+      });
 
       document
         .getElementById("confirmarLoginObrigatorio")
         ?.addEventListener("click", async function () {
-          const email = document
-            .getElementById("loginObrigatorioEmail")
-            .value.trim();
-          const senha = document
-            .getElementById("loginObrigatorioSenha")
-            .value.trim();
+          const email = document.getElementById("loginObrigatorioEmail").value.trim();
+          const senha = document.getElementById("loginObrigatorioSenha").value.trim();
           const statusEl = document.getElementById("loginObrigatorioStatus");
 
           if (!email || !senha) {
@@ -465,21 +451,19 @@
             statusEl.textContent = `✅ Bem-vindo, ${result.usuario.user_metadata?.full_name || email}!`;
             statusEl.style.color = "#4caf50";
 
-            const overlayEl = document.getElementById(
-              "loginObrigatorioOverlay",
-            );
+            const overlayEl = document.getElementById("loginObrigatorioOverlay");
             if (overlayEl) {
               overlayEl.remove();
             }
             loginModalAberto = false;
-
+            
             const appContainer = document.querySelector(".app-container");
             if (appContainer) {
               appContainer.style.display = "flex";
             }
 
             carregarDados();
-
+            
             resolve({ success: true, usuario: usuarioAutenticado });
           } else {
             statusEl.textContent = `❌ ${result.error || "Erro ao fazer login"}`;
@@ -601,19 +585,12 @@
   // ============================================================
   function setupActivityDetection() {
     const events = [
-      "click",
-      "touchstart",
-      "touchmove",
-      "scroll",
-      "keydown",
-      "input",
-      "change",
-      "focus",
-      "blur",
+      'click', 'touchstart', 'touchmove', 'scroll', 'keydown', 
+      'input', 'change', 'focus', 'blur'
     ];
-
+    
     let activityTimer = null;
-
+    
     const handleActivity = () => {
       if (isAutenticado()) {
         renovarSessao();
@@ -621,14 +598,12 @@
         activityTimer = setTimeout(() => {}, 5000);
       }
     };
-
-    events.forEach((event) => {
+    
+    events.forEach(event => {
       document.addEventListener(event, handleActivity, { passive: true });
     });
-
-    console.log(
-      "🔄 Detector de atividade configurado - sessão será renovada com interação",
-    );
+    
+    console.log("🔄 Detector de atividade configurado - sessão será renovada com interação");
   }
 
   // ============================================================
@@ -1694,8 +1669,9 @@
             "novoLoteRecebimento",
           ).value;
           const prazo = document.getElementById("novoLotePrazo").value;
-          const obs =
-            document.getElementById("novoLoteObs").value.trim() || null;
+          const obs = document
+            .getElementById("novoLoteObs")
+            .value.trim() || null;
 
           if (
             !cliente ||
@@ -2037,13 +2013,11 @@
       `;
 
       openModal("⚠️ Ação Bloqueada", htmlBloqueio);
-
-      document
-        .getElementById("btnEntendiCancelar")
-        ?.addEventListener("click", () => {
-          document.getElementById("modalContainer").innerHTML = "";
-        });
-
+      
+      document.getElementById("btnEntendiCancelar")?.addEventListener("click", () => {
+        document.getElementById("modalContainer").innerHTML = "";
+      });
+      
       return;
     }
 
@@ -2071,10 +2045,8 @@
           .from("financial_transactions")
           .delete()
           .eq("id", conta.id);
-
-        console.log(
-          `✅ Conta a receber removida por cancelamento: ${conta.id}`,
-        );
+        
+        console.log(`✅ Conta a receber removida por cancelamento: ${conta.id}`);
       }
 
       const { error } = await supabase
@@ -2131,13 +2103,11 @@
         `;
 
         openModal("⚠️ Ação Bloqueada", htmlBloqueio);
-
-        document
-          .getElementById("btnEntendiExcluir")
-          ?.addEventListener("click", () => {
-            document.getElementById("modalContainer").innerHTML = "";
-          });
-
+        
+        document.getElementById("btnEntendiExcluir")?.addEventListener("click", () => {
+          document.getElementById("modalContainer").innerHTML = "";
+        });
+        
         return;
       }
 
@@ -2175,97 +2145,88 @@
               <i class="ph ph-trash"></i> Excluir
             </button>
           </div>
-          ${
-            conta && conta.status === "pendente"
-              ? `
+          ${conta && conta.status === "pendente" ? `
             <p style="color: var(--gray-dark); font-size: 0.7rem; margin-top: 12px;">
               <i class="ph ph-currency-circle-dollar"></i> Conta a receber de ${formatCurrency(conta.amount)} será removida
             </p>
-          `
-              : ""
-          }
+          ` : ""}
         </div>
       `;
 
       openModal("⚠️ Confirmar Exclusão", htmlConfirmacao);
 
-      document
-        .getElementById("btnCancelarExclusao")
-        ?.addEventListener("click", () => {
+      document.getElementById("btnCancelarExclusao")?.addEventListener("click", () => {
+        document.getElementById("modalContainer").innerHTML = "";
+      });
+
+      document.getElementById("btnConfirmarExclusao")?.addEventListener("click", async function() {
+        this.disabled = true;
+        this.innerHTML = '<i class="ph ph-spinner spinning"></i> Excluindo...';
+
+        const loginResult = await abrirModalLogin("excluir lote");
+        if (!loginResult.success) {
           document.getElementById("modalContainer").innerHTML = "";
-        });
+          showFeedback(
+            "Ação cancelada",
+            "Você precisa estar autenticado.",
+            "warning",
+          );
+          return;
+        }
 
-      document
-        .getElementById("btnConfirmarExclusao")
-        ?.addEventListener("click", async function () {
-          this.disabled = true;
-          this.innerHTML =
-            '<i class="ph ph-spinner spinning"></i> Excluindo...';
+        try {
+          if (conta) {
+            await supabase
+              .from("financial_installments")
+              .delete()
+              .eq("transaction_id", conta.id);
 
-          const loginResult = await abrirModalLogin("excluir lote");
-          if (!loginResult.success) {
-            document.getElementById("modalContainer").innerHTML = "";
-            showFeedback(
-              "Ação cancelada",
-              "Você precisa estar autenticado.",
-              "warning",
-            );
-            return;
+            await supabase
+              .from("financial_transactions")
+              .delete()
+              .eq("id", conta.id);
+            
+            console.log(`✅ Conta a receber removida: ${conta.id}`);
           }
 
-          try {
-            if (conta) {
-              await supabase
-                .from("financial_installments")
-                .delete()
-                .eq("transaction_id", conta.id);
+          const { data: items } = await supabase
+            .from("service_order_items")
+            .select("id")
+            .eq("service_order_id", id);
 
+          if (items && items.length > 0) {
+            for (const item of items) {
               await supabase
-                .from("financial_transactions")
+                .from("sewing_records")
                 .delete()
-                .eq("id", conta.id);
-
-              console.log(`✅ Conta a receber removida: ${conta.id}`);
+                .eq("service_order_item_id", item.id);
             }
-
-            const { data: items } = await supabase
+            await supabase
               .from("service_order_items")
-              .select("id")
-              .eq("service_order_id", id);
-
-            if (items && items.length > 0) {
-              for (const item of items) {
-                await supabase
-                  .from("sewing_records")
-                  .delete()
-                  .eq("service_order_item_id", item.id);
-              }
-              await supabase
-                .from("service_order_items")
-                .delete()
-                .eq("service_order_id", id);
-            }
-
-            await supabase
-              .from("shipments")
               .delete()
               .eq("service_order_id", id);
+          }
 
-            await supabase
-              .from("material_consumption")
-              .delete()
-              .eq("service_order_id", id);
+          await supabase
+            .from("shipments")
+            .delete()
+            .eq("service_order_id", id);
 
-            const { error } = await supabase
-              .from("service_orders")
-              .delete()
-              .eq("id", id);
+          await supabase
+            .from("material_consumption")
+            .delete()
+            .eq("service_order_id", id);
 
-            if (error) throw error;
+          const { error } = await supabase
+            .from("service_orders")
+            .delete()
+            .eq("id", id);
 
-            document.getElementById("modalContainer").innerHTML = "";
+          if (error) throw error;
 
-            const htmlSucesso = `
+          document.getElementById("modalContainer").innerHTML = "";
+
+          const htmlSucesso = `
             <div style="text-align: center; padding: 20px 0;">
               <div style="font-size: 3rem; margin-bottom: 12px;">✅</div>
               <h3 style="color: var(--success);">Lote Excluído!</h3>
@@ -2279,25 +2240,20 @@
             </div>
           `;
 
-            openModal("✅ Sucesso", htmlSucesso);
-            document
-              .getElementById("btnOkSucesso")
-              ?.addEventListener("click", () => {
-                document.getElementById("modalContainer").innerHTML = "";
-                carregarDados();
-              });
-
-            setTimeout(() => carregarDados(), 500);
-          } catch (error) {
-            console.error("Erro ao excluir lote:", error);
+          openModal("✅ Sucesso", htmlSucesso);
+          document.getElementById("btnOkSucesso")?.addEventListener("click", () => {
             document.getElementById("modalContainer").innerHTML = "";
-            showFeedback(
-              "Erro",
-              "Falha ao excluir lote: " + error.message,
-              "error",
-            );
-          }
-        });
+            carregarDados();
+          });
+
+          setTimeout(() => carregarDados(), 500);
+
+        } catch (error) {
+          console.error("Erro ao excluir lote:", error);
+          document.getElementById("modalContainer").innerHTML = "";
+          showFeedback("Erro", "Falha ao excluir lote: " + error.message, "error");
+        }
+      });
     } catch (error) {
       console.error("Erro ao excluir lote:", error);
       showFeedback("Erro", "Falha ao excluir lote.", "error");
@@ -2620,28 +2576,26 @@
   // ============================================================
   function renderizarProducao(dados) {
     console.log("📊 renderizarProducao chamada com dados:", dados);
-
+    
     const { osAtivas } = dados;
 
     const hoje = new Date();
-
+    
     const emCostura = osAtivas.filter((o) => o.status === "em_costura").length;
     const costurados = osAtivas.filter((o) => o.status === "costurado").length;
     const recebidos = osAtivas.filter((o) => o.status === "recebido").length;
     const emRevisao = osAtivas.filter((o) => o.status === "em_revisao").length;
     const entregues = osAtivas.filter((o) => o.status === "entregue").length;
     const cancelados = osAtivas.filter((o) => o.status === "cancelado").length;
-
+    
     const atrasados = osAtivas.filter((o) => {
       if (!o.expected_delivery) return false;
       const prazo = new Date(o.expected_delivery);
-      return (
-        prazo < hoje && !["entregue", "cancelado", "pago"].includes(o.status)
-      );
+      return prazo < hoje && !["entregue", "cancelado", "pago"].includes(o.status);
     }).length;
 
     const aguardandoPagto = osAtivas.filter(
-      (o) => o.status === "entregue" && o.payment_status !== "pago",
+      (o) => o.status === "entregue" && o.payment_status !== "pago"
     ).length;
 
     const pagos = osAtivas.filter((o) => o.payment_status === "pago").length;
@@ -2666,7 +2620,7 @@
       atrasados,
       aguardandoPagto,
       pagos,
-      entreguesHoje,
+      entreguesHoje
     });
 
     const elEmCostura = document.getElementById("prodEmCostura");
@@ -2685,7 +2639,7 @@
 
     const container = document.getElementById("listaProducao");
     const totalEl = document.getElementById("totalLotes");
-
+    
     if (totalEl) {
       totalEl.textContent = (osAtivas || []).length + " lotes";
     }
@@ -2977,22 +2931,478 @@
   }
 
   // ============================================================
+  // FUNÇÃO PARA ABRIR MODAL DE BAIXA DE PARCELAS (COM SELEÇÃO INTELIGENTE)
+  // ============================================================
+  window.abrirBaixaParcelas = async function (transactionId) {
+    console.log("📋 abrirBaixaParcelas chamado para:", transactionId);
+    
+    try {
+      const { data: transacao, error: transError } = await supabase
+        .from("financial_transactions")
+        .select(`
+          id, description, type, amount, 
+          financial_installments(id, numero_parcela, valor, vencimento, status, payment_date)
+        `)
+        .eq("id", transactionId)
+        .single();
+
+      if (transError || !transacao) {
+        showFeedback("Erro", "Transação não encontrada.", "error");
+        return;
+      }
+
+      const parcelas = transacao.financial_installments || [];
+      
+      if (parcelas.length === 0) {
+        await baixarLancamento(transactionId);
+        return;
+      }
+
+      const hoje = new Date();
+      const hojeISO = todayISO();
+      const mesAtual = hoje.getMonth();
+      const anoAtual = hoje.getFullYear();
+      
+      // Filtrar parcelas pendentes
+      const parcelasPendentes = parcelas.filter(p => p.status !== "pago");
+      
+      if (parcelasPendentes.length === 0) {
+        showFeedback("Aviso", "Todas as parcelas já foram pagas.", "info");
+        return;
+      }
+
+      const totalPendente = parcelasPendentes.reduce((sum, p) => sum + parseFloat(p.valor), 0);
+
+      // ============================================================
+      // 🔥 SELEÇÃO INTELIGENTE:
+      // - Marca apenas parcelas vencidas E parcelas do mês atual
+      // - Parcelas já pagas ficam desabilitadas
+      // ============================================================
+      let parcelasHtml = parcelasPendentes.map((p) => {
+        const dataVenc = new Date(p.vencimento);
+        const isVencida = dataVenc < hoje;
+        const isMesAtual = dataVenc.getMonth() === mesAtual && dataVenc.getFullYear() === anoAtual;
+        const isPaga = p.status === "pago";
+        
+        // Só seleciona se for vencida OU do mês atual (e não estiver paga)
+        const deveSelecionar = (isVencida || isMesAtual) && !isPaga;
+        
+        return `
+          <div style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            background: ${isVencida ? "rgba(255,82,82,0.08)" : isMesAtual ? "rgba(255,193,7,0.08)" : "rgba(255,255,255,0.02)"};
+            border-radius: 10px;
+            border-left: 3px solid ${isVencida ? "var(--error)" : isMesAtual ? "var(--warning)" : "var(--gold-light)"};
+          ">
+            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+              <input type="checkbox" class="parcela-checkbox" 
+                     data-id="${p.id}" 
+                     data-valor="${p.valor}"
+                     ${deveSelecionar ? 'checked' : ''}
+                     style="width: 18px; height: 18px; accent-color: var(--gold-light); cursor: pointer;">
+              <div>
+                <div style="font-weight: 600; font-size: 0.9rem;">
+                  Parcela ${p.numero_parcela}ª
+                  ${isVencida ? '<span style="color: var(--error); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-warning"></i> Vencida</span>' : ''}
+                  ${isMesAtual && !isVencida ? '<span style="color: var(--warning); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-clock"></i> Mês atual</span>' : ''}
+                </div>
+                <div style="font-size: 0.7rem; color: var(--gray);">
+                  Vence: ${formatDate(p.vencimento)}
+                </div>
+              </div>
+            </div>
+            <div style="font-weight: 700; color: ${isVencida ? "var(--error)" : isMesAtual ? "var(--warning)" : "var(--white)"};">
+              ${formatCurrency(p.valor)}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const loginResult = await abrirModalLogin("baixar parcelas");
+      if (!loginResult.success) {
+        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        return;
+      }
+
+      const html = `
+        <div style="display: grid; gap: 12px;">
+          <div style="background: rgba(212,160,23,0.06); border-radius: 12px; padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h4 style="margin: 0; color: var(--gold-light); font-size: 1rem;">
+                  ${transacao.description}
+                </h4>
+                <div style="font-size: 0.75rem; color: var(--gray); margin-top: 2px;">
+                  ${parcelasPendentes.length} parcelas pendentes
+                </div>
+                <div style="font-size: 0.65rem; color: var(--warning); margin-top: 2px;">
+                  <i class="ph ph-info"></i> Selecionadas automaticamente: vencidas + mês atual
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 0.7rem; color: var(--gray);">Total Pendente</div>
+                <div style="font-weight: 700; font-size: 1.2rem; color: var(--error);">
+                  ${formatCurrency(totalPendente)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="max-height: 350px; overflow-y: auto; padding-right: 4px;">
+            ${parcelasHtml}
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+              <button class="btn btn-ghost btn-sm" id="selecionarVencidasMesAtual" style="font-size: 0.7rem; background: rgba(255,193,7,0.1);">
+                <i class="ph ph-clock"></i> Vencidas + Mês Atual
+              </button>
+              <button class="btn btn-ghost btn-sm" id="selecionarTodasParcelas" style="font-size: 0.7rem;">
+                <i class="ph ph-check-square"></i> Todas
+              </button>
+              <button class="btn btn-ghost btn-sm" id="desmarcarTodasParcelas" style="font-size: 0.7rem;">
+                <i class="ph ph-square"></i> Desmarcar
+              </button>
+            </div>
+            <div>
+              <span style="font-size: 0.75rem; color: var(--gray);">Selecionadas: </span>
+              <span id="totalSelecionadoParcelas" style="font-weight: 700; color: var(--gold-light);">
+                ${formatCurrency(totalPendente)}
+              </span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; justify-content: flex-end; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <button class="btn btn-ghost" id="cancelarBaixaParcelas" style="padding: 8px 16px;">
+              <i class="ph ph-x-circle"></i> Cancelar
+            </button>
+            <button class="btn btn-primary" id="confirmarBaixaParcelas" style="padding: 8px 20px; background: var(--success);">
+              <i class="ph ph-check-circle"></i> Baixar Selecionadas
+            </button>
+          </div>
+        </div>
+      `;
+
+      openModal("💰 Baixar Parcelas", html);
+
+      function atualizarTotalSelecionado() {
+        const checks = document.querySelectorAll(".parcela-checkbox:checked");
+        let total = 0;
+        checks.forEach(cb => {
+          total += parseFloat(cb.dataset.valor) || 0;
+        });
+        document.getElementById("totalSelecionadoParcelas").textContent = formatCurrency(total);
+      }
+
+      // Botão para selecionar vencidas + mês atual
+      document.getElementById("selecionarVencidasMesAtual")?.addEventListener("click", () => {
+        document.querySelectorAll(".parcela-checkbox").forEach(cb => {
+          const tr = cb.closest('div[style*="border-left"]');
+          if (tr) {
+            const isVencida = tr.style.borderLeftColor === "var(--error)" || tr.style.borderLeftColor === "#ff5252";
+            const isMesAtual = tr.style.borderLeftColor === "var(--warning)" || tr.style.borderLeftColor === "#ffc107";
+            cb.checked = isVencida || isMesAtual;
+          }
+        });
+        atualizarTotalSelecionado();
+      });
+
+      document.getElementById("selecionarTodasParcelas")?.addEventListener("click", () => {
+        document.querySelectorAll(".parcela-checkbox").forEach(cb => cb.checked = true);
+        atualizarTotalSelecionado();
+      });
+
+      document.getElementById("desmarcarTodasParcelas")?.addEventListener("click", () => {
+        document.querySelectorAll(".parcela-checkbox").forEach(cb => cb.checked = false);
+        atualizarTotalSelecionado();
+      });
+
+      document.querySelectorAll(".parcela-checkbox").forEach(cb => {
+        cb.addEventListener("change", atualizarTotalSelecionado);
+      });
+
+      document.getElementById("cancelarBaixaParcelas")?.addEventListener("click", () => {
+        document.getElementById("modalContainer").innerHTML = "";
+      });
+
+      document.getElementById("confirmarBaixaParcelas")?.addEventListener("click", async function() {
+        const checks = document.querySelectorAll(".parcela-checkbox:checked");
+        
+        if (checks.length === 0) {
+          showFeedback("Aviso", "Selecione pelo menos uma parcela.", "warning");
+          return;
+        }
+
+        // ============================================================
+        // CONFIRMAÇÃO ANTES DE BAIXAR (PARA PARCELAS AVULSA OU SELECIONADAS)
+        // ============================================================
+        const totalSelecionado = Array.from(checks).reduce((sum, cb) => sum + parseFloat(cb.dataset.valor), 0);
+        const qtdSelecionadas = checks.length;
+        
+        const confirmHtml = `
+          <div style="text-align: center; padding: 12px 0;">
+            <div style="font-size: 3rem; margin-bottom: 12px;">💳</div>
+            <h3 style="color: var(--gold-light); margin-bottom: 8px;">Confirmar Baixa</h3>
+            <p style="color: var(--gray); font-size: 0.95rem;">
+              Deseja realmente baixar <strong>${qtdSelecionadas}</strong> parcela(s)?
+            </p>
+            <p style="color: var(--gray-dark); font-size: 0.85rem; margin-top: 4px;">
+              Total: <strong style="color: var(--success);">${formatCurrency(totalSelecionado)}</strong>
+            </p>
+            <div style="display: flex; gap: 8px; margin-top: 16px;">
+              <button class="btn btn-ghost" id="cancelarConfirmacaoBaixa" style="flex: 1; padding: 12px;">
+                <i class="ph ph-x-circle"></i> Cancelar
+              </button>
+              <button class="btn btn-primary" id="confirmarBaixaFinal" style="flex: 1; padding: 12px; background: var(--success);">
+                <i class="ph ph-check-circle"></i> Confirmar
+              </button>
+            </div>
+          </div>
+        `;
+
+        // Abrir modal de confirmação
+        const modalContainer = document.getElementById("modalContainer");
+        const modalHtml = `
+          <div class="modal-overlay" id="modalOverlay">
+            <div class="modal-sheet">
+              <div class="handle"></div>
+              <div class="modal-header">
+                <h2><i class="ph ph-currency-circle-dollar"></i> Confirmar Baixa</h2>
+                <button class="btn-close" id="closeModalBtn"><i class="ph ph-x"></i> Fechar</button>
+              </div>
+              <div class="modal-body">${confirmHtml}</div>
+            </div>
+          </div>
+        `;
+        modalContainer.innerHTML = modalHtml;
+
+        document.getElementById("closeModalBtn")?.addEventListener("click", () => {
+          document.getElementById("modalContainer").innerHTML = "";
+        });
+
+        document.getElementById("cancelarConfirmacaoBaixa")?.addEventListener("click", () => {
+          document.getElementById("modalContainer").innerHTML = "";
+        });
+
+        document.getElementById("confirmarBaixaFinal")?.addEventListener("click", async function() {
+          this.disabled = true;
+          this.innerHTML = '<i class="ph ph-spinner spinning"></i> Processando...';
+
+          try {
+            let sucessos = 0;
+            let erros = 0;
+
+            for (const cb of checks) {
+              const parcelaId = cb.dataset.id;
+              const { error } = await supabase
+                .from("financial_installments")
+                .update({ 
+                  status: "pago",
+                  payment_date: new Date().toISOString().split("T")[0]
+                })
+                .eq("id", parcelaId);
+
+              if (error) {
+                console.error("Erro ao baixar parcela:", error);
+                erros++;
+              } else {
+                sucessos++;
+              }
+            }
+
+            const { data: parcelasRestantes } = await supabase
+              .from("financial_installments")
+              .select("status")
+              .eq("transaction_id", transactionId)
+              .neq("status", "pago");
+
+            const todasPagas = !parcelasRestantes || parcelasRestantes.length === 0;
+
+            await supabase
+              .from("financial_transactions")
+              .update({ 
+                status: todasPagas ? "pago" : "pendente",
+                payment_date: todasPagas ? new Date().toISOString().split("T")[0] : null
+              })
+              .eq("id", transactionId);
+
+            document.getElementById("modalContainer").innerHTML = "";
+
+            if (erros === 0) {
+              showFeedback("Sucesso", `${sucessos} parcela(s) baixada(s) com sucesso!`, "success", () => carregarDados());
+            } else {
+              showFeedback("Aviso", `${sucessos} parcela(s) baixada(s), ${erros} erro(s).`, "warning", () => carregarDados());
+            }
+          } catch (error) {
+            console.error("Erro ao baixar parcelas:", error);
+            showFeedback("Erro", "Falha ao baixar parcelas.", "error");
+            document.getElementById("modalContainer").innerHTML = "";
+          }
+        });
+
+        // Fechar modal de confirmação ao clicar fora
+        document.getElementById("modalOverlay")?.addEventListener("click", (e) => {
+          if (e.target.id === "modalOverlay") {
+            document.getElementById("modalContainer").innerHTML = "";
+          }
+        });
+
+      });
+
+    } catch (error) {
+      console.error("Erro ao abrir baixa de parcelas:", error);
+      showFeedback("Erro", "Falha ao carregar parcelas.", "error");
+    }
+  };
+
+  // ============================================================
+  // FUNÇÃO PARA BAIXAR LANÇAMENTO (COM CONFIRMAÇÃO)
+  // ============================================================
+  window.baixarLancamento = async function (transactionId) {
+    console.log("💰 baixarLancamento chamado para:", transactionId);
+    
+    try {
+      const { data: parcelas, error: parcelasError } = await supabase
+        .from("financial_installments")
+        .select("id, status")
+        .eq("transaction_id", transactionId);
+
+      if (parcelasError) {
+        console.error("Erro ao verificar parcelas:", parcelasError);
+      }
+
+      if (parcelas && parcelas.length > 0) {
+        const pendentes = parcelas.filter(p => p.status !== "pago");
+        if (pendentes.length > 0) {
+          await abrirBaixaParcelas(transactionId);
+          return;
+        }
+      }
+
+      // Buscar dados do lançamento para mostrar na confirmação
+      const { data: lancamento, error: lancError } = await supabase
+        .from("financial_transactions")
+        .select("description, amount, due_date, type")
+        .eq("id", transactionId)
+        .single();
+
+      if (lancError || !lancamento) {
+        showFeedback("Erro", "Lançamento não encontrado.", "error");
+        return;
+      }
+
+      const valor = Math.abs(lancamento.amount);
+      const tipo = lancamento.type === "receber" ? "Receber" : "Pagar";
+
+      // ============================================================
+      // MODAL DE CONFIRMAÇÃO PARA LANÇAMENTO AVULSO
+      // ============================================================
+      const confirmHtml = `
+        <div style="text-align: center; padding: 12px 0;">
+          <div style="font-size: 3rem; margin-bottom: 12px;">💳</div>
+          <h3 style="color: var(--gold-light); margin-bottom: 8px;">Confirmar Baixa</h3>
+          <p style="color: var(--gray); font-size: 0.95rem;">
+            Deseja realmente baixar este lançamento?
+          </p>
+          <div style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; margin: 12px 0;">
+            <p style="margin: 4px 0;"><strong>${lancamento.description}</strong></p>
+            <p style="margin: 4px 0; color: var(--gray); font-size: 0.85rem;">
+              ${tipo} • ${formatCurrency(valor)} • Vence: ${formatDate(lancamento.due_date)}
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <button class="btn btn-ghost" id="cancelarConfirmacaoBaixa" style="flex: 1; padding: 12px;">
+              <i class="ph ph-x-circle"></i> Cancelar
+            </button>
+            <button class="btn btn-primary" id="confirmarBaixaFinal" style="flex: 1; padding: 12px; background: var(--success);">
+              <i class="ph ph-check-circle"></i> Confirmar
+            </button>
+          </div>
+        </div>
+      `;
+
+      const modalContainer = document.getElementById("modalContainer");
+      const modalHtml = `
+        <div class="modal-overlay" id="modalOverlay">
+          <div class="modal-sheet">
+            <div class="handle"></div>
+            <div class="modal-header">
+              <h2><i class="ph ph-currency-circle-dollar"></i> Confirmar Baixa</h2>
+              <button class="btn-close" id="closeModalBtn"><i class="ph ph-x"></i> Fechar</button>
+            </div>
+            <div class="modal-body">${confirmHtml}</div>
+          </div>
+        </div>
+      `;
+      modalContainer.innerHTML = modalHtml;
+
+      document.getElementById("closeModalBtn")?.addEventListener("click", () => {
+        document.getElementById("modalContainer").innerHTML = "";
+      });
+
+      document.getElementById("cancelarConfirmacaoBaixa")?.addEventListener("click", () => {
+        document.getElementById("modalContainer").innerHTML = "";
+      });
+
+      document.getElementById("confirmarBaixaFinal")?.addEventListener("click", async function() {
+        this.disabled = true;
+        this.innerHTML = '<i class="ph ph-spinner spinning"></i> Processando...';
+
+        const loginResult = await abrirModalLogin("baixar lançamento");
+        if (!loginResult.success) {
+          document.getElementById("modalContainer").innerHTML = "";
+          showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+          return;
+        }
+
+        try {
+          const dataPag = new Date().toISOString().split("T")[0];
+          
+          const { error } = await supabase
+            .from("financial_transactions")
+            .update({
+              status: "pago",
+              payment_date: dataPag,
+            })
+            .eq("id", transactionId);
+
+          if (error) throw error;
+
+          document.getElementById("modalContainer").innerHTML = "";
+          showFeedback("Sucesso", "Lançamento baixado com sucesso!", "success", () => carregarDados());
+        } catch (error) {
+          console.error("Erro ao baixar lançamento:", error);
+          document.getElementById("modalContainer").innerHTML = "";
+          showFeedback("Erro", "Falha ao baixar lançamento.", "error");
+        }
+      });
+
+      document.getElementById("modalOverlay")?.addEventListener("click", (e) => {
+        if (e.target.id === "modalOverlay") {
+          document.getElementById("modalContainer").innerHTML = "";
+        }
+      });
+
+    } catch (error) {
+      console.error("Erro ao baixar lançamento:", error);
+      showFeedback("Erro", "Falha ao baixar lançamento.", "error");
+    }
+  };
+
+  // ============================================================
   // RENDERIZAR - ABA FINANCEIRO (VISÃO PREMIUM EM CARDS)
   // ============================================================
   function renderizarFinanceiro(dados) {
     const { eventosFinanceiros, totalPagar, totalReceber } = dados;
 
-    console.log(
-      "💰 renderizarFinanceiro chamada com",
-      eventosFinanceiros?.length || 0,
-      "eventos",
-    );
+    console.log("💰 renderizarFinanceiro chamada com", eventosFinanceiros?.length || 0, "eventos");
 
-    // Atualizar cards de resumo
-    document.getElementById("finTotalPagar").textContent =
-      formatCurrency(totalPagar);
-    document.getElementById("finTotalReceber").textContent =
-      formatCurrency(totalReceber);
+    document.getElementById("finTotalPagar").textContent = formatCurrency(totalPagar);
+    document.getElementById("finTotalReceber").textContent = formatCurrency(totalReceber);
 
     let saldoMes = 0;
     let contasVencidas = 0;
@@ -3006,7 +3416,7 @@
       } else {
         saldoMes -= e.valor;
       }
-
+      
       if (e.status === "pago" || e.status === "recebido") {
         contasPagas++;
       } else if (e.status === "pendente" || e.status === "atrasado") {
@@ -3017,8 +3427,7 @@
       }
     }
 
-    document.getElementById("finSaldoMes").textContent =
-      formatCurrency(saldoMes);
+    document.getElementById("finSaldoMes").textContent = formatCurrency(saldoMes);
     document.getElementById("finContasVencidas").textContent = contasVencidas;
 
     const container = document.getElementById("listaFinanceiro");
@@ -3026,7 +3435,6 @@
       (eventosFinanceiros || []).length + " contas";
 
     if (eventosFinanceiros && eventosFinanceiros.length > 0) {
-      // Ordenar por vencimento (mais próximos primeiro)
       const ordenados = [...eventosFinanceiros].sort((a, b) => {
         return new Date(a.vencimento) - new Date(b.vencimento);
       });
@@ -3035,14 +3443,11 @@
         .slice(0, 20)
         .map((e) => {
           const isPagar = e.tipo === "pagar";
-          const vencido =
-            e.status === "pendente" && new Date(e.vencimento) < new Date();
+          const vencido = e.status === "pendente" && new Date(e.vencimento) < new Date();
           const pago = e.status === "pago" || e.status === "recebido";
           const hoje = new Date();
-          const diasFalta = Math.ceil(
-            (new Date(e.vencimento) - hoje) / (1000 * 60 * 60 * 24),
-          );
-
+          const diasFalta = Math.ceil((new Date(e.vencimento) - hoje) / (1000 * 60 * 60 * 24));
+          
           let statusIcon = "";
           let statusColor = "";
           let statusBg = "";
@@ -3074,40 +3479,23 @@
           const sinal = isPagar ? "-" : "+";
           const corValor = isPagar ? "var(--error)" : "var(--success)";
           const tipoLabel = isPagar ? "💰 A Pagar" : "📈 A Receber";
-
+          
           const parcelaInfo = e.isParcela
             ? `Parcela ${e.numero_parcela}/${e.total_parcelas}`
             : "Avulsa";
 
-          // Ícone para categoria
           let catIcon = "ph-file";
           const catLower = (e.categoria || "").toLowerCase();
-          if (catLower.includes("venda") || catLower.includes("faturamento"))
-            catIcon = "ph-shopping-cart";
-          else if (catLower.includes("salário") || catLower.includes("folha"))
-            catIcon = "ph-users";
+          if (catLower.includes("venda") || catLower.includes("faturamento")) catIcon = "ph-shopping-cart";
+          else if (catLower.includes("salário") || catLower.includes("folha")) catIcon = "ph-users";
           else if (catLower.includes("aluguel")) catIcon = "ph-building";
-          else if (catLower.includes("material") || catLower.includes("insumo"))
-            catIcon = "ph-package";
-          else if (catLower.includes("imposto") || catLower.includes("taxa"))
-            catIcon = "ph-receipt";
-          else if (
-            catLower.includes("energia") ||
-            catLower.includes("agua") ||
-            catLower.includes("luz")
-          )
-            catIcon = "ph-lightning";
-          else if (
-            catLower.includes("internet") ||
-            catLower.includes("telefone")
-          )
-            catIcon = "ph-wifi";
+          else if (catLower.includes("material") || catLower.includes("insumo")) catIcon = "ph-package";
+          else if (catLower.includes("imposto") || catLower.includes("taxa")) catIcon = "ph-receipt";
+          else if (catLower.includes("energia") || catLower.includes("agua") || catLower.includes("luz")) catIcon = "ph-lightning";
+          else if (catLower.includes("internet") || catLower.includes("telefone")) catIcon = "ph-wifi";
 
-          const diasRestantes = pago
-            ? "Pago"
-            : vencido
-              ? "Vencido"
-              : `${diasFalta} dias`;
+          const temParcelas = e.isParcela || (e.transacao_original && e.transacao_original.installments === true);
+          const transactionId = e.transaction_id;
 
           return `
             <div class="card-financeiro" 
@@ -3126,9 +3514,8 @@
                  onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';"
                  >
               
-              <!-- Linha 1: Status + Valor -->
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   <span style="
                     background: ${statusBg};
                     color: ${statusColor};
@@ -3162,7 +3549,6 @@
                 </div>
               </div>
 
-              <!-- Linha 2: Descrição e Categoria -->
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
                   <span style="
@@ -3207,7 +3593,6 @@
                 </div>
               </div>
 
-              <!-- Linha 3: Ações rápidas -->
               <div style="
                 display: flex;
                 justify-content: flex-end;
@@ -3215,31 +3600,36 @@
                 margin-top: 8px;
                 padding-top: 8px;
                 border-top: 1px solid rgba(255,255,255,0.04);
+                flex-wrap: wrap;
               ">
-                ${
-                  !pago
-                    ? `
-                  <button class="btn-action btn-action-success" 
-                          onclick="event.stopPropagation(); baixarLancamento('${e.transaction_id}')" 
-                          style="padding:4px 12px; font-size:0.6rem; background:rgba(76,175,80,0.15); color:#a5d6a7; border:1px solid rgba(76,175,80,0.2); border-radius:16px;">
-                    <i class="ph ph-check-circle"></i> Baixar
-                  </button>
-                `
-                    : `
+                ${!pago ? `
+                  ${temParcelas ? `
+                    <button class="btn-action btn-action-primary" 
+                            onclick="event.stopPropagation(); abrirBaixaParcelas('${transactionId}')" 
+                            style="padding:4px 12px; font-size:0.6rem; background:rgba(33,150,243,0.15); color:#64b5f6; border:1px solid rgba(33,150,243,0.2); border-radius:16px;">
+                      <i class="ph ph-receipt"></i> Baixar Parcelas
+                    </button>
+                  ` : `
+                    <button class="btn-action btn-action-success" 
+                            onclick="event.stopPropagation(); baixarLancamento('${transactionId}')" 
+                            style="padding:4px 12px; font-size:0.6rem; background:rgba(76,175,80,0.15); color:#a5d6a7; border:1px solid rgba(76,175,80,0.2); border-radius:16px;">
+                      <i class="ph ph-check-circle"></i> Baixar
+                    </button>
+                  `}
+                ` : `
                   <button class="btn-action btn-action-ghost" 
                           onclick="event.stopPropagation(); abrirModalConta('${e.id}')" 
                           style="padding:4px 12px; font-size:0.6rem;">
                     <i class="ph ph-eye"></i> Detalhes
                   </button>
-                `
-                }
+                `}
                 <button class="btn-action btn-action-ghost" 
-                        onclick="event.stopPropagation(); editarLancamento('${e.transaction_id}')" 
+                        onclick="event.stopPropagation(); editarLancamento('${transactionId}')" 
                         style="padding:4px 12px; font-size:0.6rem;">
                   <i class="ph ph-pencil-simple"></i>
                 </button>
                 <button class="btn-action btn-action-ghost" 
-                        onclick="event.stopPropagation(); excluirLancamento('${e.transaction_id}')" 
+                        onclick="event.stopPropagation(); excluirLancamento('${transactionId}')" 
                         style="padding:4px 12px; font-size:0.6rem; color:var(--error);">
                   <i class="ph ph-trash"></i>
                 </button>
@@ -3260,10 +3650,9 @@
   }
 
   // ============================================================
-  // FUNÇÕES PARA LANÇAMENTOS FINANCEIROS (MANTIDAS)
+  // FUNÇÕES PARA LANÇAMENTOS FINANCEIROS
   // ============================================================
-
-  // Função para abrir modal de conta (mantida)
+  
   window.abrirModalConta = function (id) {
     const evento = dados.eventosFinanceiros?.find((e) => e.id === id);
     if (!evento) {
@@ -3272,8 +3661,7 @@
     }
 
     const isPagar = evento.tipo === "pagar";
-    const vencido =
-      evento.status === "pendente" && new Date(evento.vencimento) < new Date();
+    const vencido = evento.status === "pendente" && new Date(evento.vencimento) < new Date();
     const pago = evento.status === "pago" || evento.status === "recebido";
 
     let statusText = "";
@@ -3317,55 +3705,6 @@
     openModal("Detalhes da Conta", html);
   };
 
-  // Função para baixar lançamento
-  window.baixarLancamento = async function (transactionId) {
-    const { data: t } = await supabase
-      .from("financial_transactions")
-      .select("*")
-      .eq("id", transactionId)
-      .single();
-
-    if (!t) {
-      showFeedback("Erro", "Lançamento não encontrado.", "error");
-      return;
-    }
-
-    const loginResult = await abrirModalLogin("baixar lançamento");
-    if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
-      return;
-    }
-
-    try {
-      const dataPag = new Date().toISOString().split("T")[0];
-
-      const { error } = await supabase
-        .from("financial_transactions")
-        .update({
-          status: "pago",
-          payment_date: dataPag,
-        })
-        .eq("id", transactionId);
-
-      if (error) throw error;
-
-      showFeedback(
-        "Sucesso",
-        "Lançamento baixado com sucesso!",
-        "success",
-        () => carregarDados(),
-      );
-    } catch (error) {
-      console.error("Erro ao baixar lançamento:", error);
-      showFeedback("Erro", "Falha ao baixar lançamento.", "error");
-    }
-  };
-
-  // Função para editar lançamento (simplificada)
   window.editarLancamento = async function (transactionId) {
     const { data: t } = await supabase
       .from("financial_transactions")
@@ -3378,22 +3717,13 @@
       return;
     }
 
-    showFeedback(
-      "Info",
-      "Edição de lançamento em desenvolvimento. Use o sistema web para editar.",
-      "info",
-    );
+    showFeedback("Info", "Edição de lançamento em desenvolvimento. Use o sistema web para editar.", "info");
   };
 
-  // Função para excluir lançamento
   window.excluirLancamento = async function (transactionId) {
     const loginResult = await abrirModalLogin("excluir lançamento");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
 
@@ -3407,9 +3737,7 @@
 
       if (error) throw error;
 
-      showFeedback("Sucesso", "Lançamento excluído!", "success", () =>
-        carregarDados(),
-      );
+      showFeedback("Sucesso", "Lançamento excluído!", "success", () => carregarDados());
     } catch (error) {
       console.error("Erro ao excluir lançamento:", error);
       showFeedback("Erro", "Falha ao excluir lançamento.", "error");
@@ -4105,7 +4433,7 @@
   // ============================================================
   document.addEventListener("DOMContentLoaded", async function () {
     const sessaoValida = carregarSessao();
-
+    
     if (sessaoValida && usuarioAutenticado) {
       console.log("✅ Sessão válida encontrada, carregando app...");
       const appContainer = document.querySelector(".app-container");
@@ -4121,21 +4449,18 @@
       if (appContainer) {
         appContainer.style.display = "none";
       }
-
+      
       await abrirModalLoginObrigatorio("acessar o app");
       setupActivityDetection();
-
-      setInterval(
-        () => {
-          if (isAutenticado()) {
-            renovarSessao();
-            console.log("🔄 Sessão renovada automaticamente (keep-alive)");
-          }
-        },
-        25 * 60 * 1000,
-      );
+      
+      setInterval(() => {
+        if (isAutenticado()) {
+          renovarSessao();
+          console.log("🔄 Sessão renovada automaticamente (keep-alive)");
+        }
+      }, 25 * 60 * 1000);
     }
-
+    
     setInterval(() => {
       if (isAutenticado()) {
         carregarDados();
@@ -4163,4 +4488,5 @@
   window.baixarLancamento = window.baixarLancamento;
   window.editarLancamento = window.editarLancamento;
   window.excluirLancamento = window.excluirLancamento;
+  window.abrirBaixaParcelas = window.abrirBaixaParcelas;
 })();
