@@ -1,13 +1,13 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // JavaScript completo para o aplicativo do gestor
-// VERSÃO 2.16 - FINANCEIRO COM VISÃO EM CALENDÁRIO
+// VERSÃO 2.17 - FINANCEIRO COM VISÃO EM CALENDÁRIO E PARCELAS COMPLETAS
 // ============================================================
 
 (function () {
   "use strict";
 
-  console.log("🚀 App do Gestor - Versão 2.16 com visão em calendário");
+  console.log("🚀 App do Gestor - Versão 2.17 com visão em calendário e parcelas completas");
 
   // ============================================================
   // SUPABASE
@@ -91,9 +91,7 @@
       clearTimeout(sessionTimeout);
     }
     sessionTimeout = setTimeout(() => {
-      console.log(
-        "⏰ Sessão expirada automaticamente após 30 minutos de inatividade",
-      );
+      console.log("⏰ Sessão expirada automaticamente após 30 minutos de inatividade");
       localStorage.removeItem("gestor_session");
       usuarioAutenticado = null;
       atualizarIndicadorSessao();
@@ -104,13 +102,11 @@
           "warning",
           () => {
             abrirModalLoginObrigatorio("continuar usando o app");
-          },
+          }
         );
       }
     }, SESSION_DURATION);
-    console.log(
-      `💾 Sessão salva para: ${usuario.email} (expira em 30 minutos)`,
-    );
+    console.log(`💾 Sessão salva para: ${usuario.email} (expira em 30 minutos)`);
     atualizarIndicadorSessao();
   }
 
@@ -125,9 +121,7 @@
         clearTimeout(sessionTimeout);
       }
       sessionTimeout = setTimeout(() => {
-        console.log(
-          "⏰ Sessão expirada automaticamente após 30 minutos de inatividade",
-        );
+        console.log("⏰ Sessão expirada automaticamente após 30 minutos de inatividade");
         localStorage.removeItem("gestor_session");
         usuarioAutenticado = null;
         atualizarIndicadorSessao();
@@ -138,7 +132,7 @@
             "warning",
             () => {
               abrirModalLoginObrigatorio("continuar usando o app");
-            },
+            }
           );
         }
       }, SESSION_DURATION);
@@ -392,29 +386,21 @@
           emailInput.focus();
         }
       }, 300);
-      document
-        .getElementById("loginObrigatorioEmail")
-        ?.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            document.getElementById("loginObrigatorioSenha")?.focus();
-          }
-        });
-      document
-        .getElementById("loginObrigatorioSenha")
-        ?.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            document.getElementById("confirmarLoginObrigatorio")?.click();
-          }
-        });
+      document.getElementById("loginObrigatorioEmail")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          document.getElementById("loginObrigatorioSenha")?.focus();
+        }
+      });
+      document.getElementById("loginObrigatorioSenha")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          document.getElementById("confirmarLoginObrigatorio")?.click();
+        }
+      });
       document
         .getElementById("confirmarLoginObrigatorio")
         ?.addEventListener("click", async function () {
-          const email = document
-            .getElementById("loginObrigatorioEmail")
-            .value.trim();
-          const senha = document
-            .getElementById("loginObrigatorioSenha")
-            .value.trim();
+          const email = document.getElementById("loginObrigatorioEmail").value.trim();
+          const senha = document.getElementById("loginObrigatorioSenha").value.trim();
           const statusEl = document.getElementById("loginObrigatorioStatus");
           if (!email || !senha) {
             statusEl.textContent = "❌ Preencha email e senha";
@@ -429,9 +415,7 @@
           if (result.success) {
             statusEl.textContent = `✅ Bem-vindo, ${result.usuario.user_metadata?.full_name || email}!`;
             statusEl.style.color = "#4caf50";
-            const overlayEl = document.getElementById(
-              "loginObrigatorioOverlay",
-            );
+            const overlayEl = document.getElementById("loginObrigatorioOverlay");
             if (overlayEl) {
               overlayEl.remove();
             }
@@ -548,15 +532,8 @@
 
   function setupActivityDetection() {
     const events = [
-      "click",
-      "touchstart",
-      "touchmove",
-      "scroll",
-      "keydown",
-      "input",
-      "change",
-      "focus",
-      "blur",
+      'click', 'touchstart', 'touchmove', 'scroll', 'keydown',
+      'input', 'change', 'focus', 'blur'
     ];
     let activityTimer = null;
     const handleActivity = () => {
@@ -566,12 +543,10 @@
         activityTimer = setTimeout(() => {}, 5000);
       }
     };
-    events.forEach((event) => {
+    events.forEach(event => {
       document.addEventListener(event, handleActivity, { passive: true });
     });
-    console.log(
-      "🔄 Detector de atividade configurado - sessão será renovada com interação",
-    );
+    console.log("🔄 Detector de atividade configurado - sessão será renovada com interação");
   }
 
   // ============================================================
@@ -1008,7 +983,7 @@
   let abaAtual = "geral";
   let dados = {};
   let carregando = false;
-  let visualizacaoFinanceiro = "cards"; // 'cards' ou 'calendario'
+  let visualizacaoFinanceiro = "cards";
 
   // ============================================================
   // ELEMENTOS
@@ -1018,6 +993,187 @@
   const refreshIcon = $("refreshIcon");
   const pullIndicator = $("pullIndicator");
   const scrollTopBtn = $("scrollTopBtn");
+
+  // ============================================================
+  // FUNÇÃO PARA BUSCAR PARCELAS DE UMA TRANSAÇÃO
+  // ============================================================
+  async function buscarParcelasDaTransacao(transactionId) {
+    try {
+      const { data, error } = await supabase
+        .from("financial_installments")
+        .select("*")
+        .eq("transaction_id", transactionId)
+        .order("numero_parcela", { ascending: true });
+      if (error) {
+        console.error("Erro ao buscar parcelas:", error);
+        return [];
+      }
+      return data || [];
+    } catch (e) {
+      console.error("Erro ao buscar parcelas:", e);
+      return [];
+    }
+  }
+
+  // ============================================================
+  // FUNÇÃO PARA ABRIR MODAL COM DETALHES COMPLETOS DA CONTA (INCLUINDO PARCELAS)
+  // ============================================================
+  window.abrirModalConta = async function (id) {
+    const evento = dados.eventosFinanceiros?.find((e) => e.id === id);
+    if (!evento) {
+      showFeedback("Erro", "Conta não encontrada.", "error");
+      return;
+    }
+
+    // Se for uma parcela, buscar a transação principal e todas as parcelas
+    const transactionId = evento.transaction_id || id;
+    const transacaoOriginal = evento.transacao_original || null;
+    const isParcelada = evento.isParcela || (transacaoOriginal && transacaoOriginal.installments === true);
+
+    let todasParcelas = [];
+    let parcelasHtml = "";
+
+    if (isParcelada) {
+      todasParcelas = await buscarParcelasDaTransacao(transactionId);
+      
+      if (todasParcelas && todasParcelas.length > 0) {
+        const hoje = new Date();
+        const totalParcelas = todasParcelas.length;
+        const pagas = todasParcelas.filter(p => p.status === "pago").length;
+        const pendentes = totalParcelas - pagas;
+        const totalValor = todasParcelas.reduce((sum, p) => sum + parseFloat(p.valor), 0);
+        const totalPago = todasParcelas.filter(p => p.status === "pago").reduce((sum, p) => sum + parseFloat(p.valor), 0);
+
+        parcelasHtml = `
+          <div style="margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h4 style="margin: 0; color: var(--gold-light); font-size: 0.9rem;">
+                <i class="ph ph-receipt"></i> Parcelas (${pagas}/${totalParcelas})
+              </h4>
+              <div style="font-size: 0.7rem; color: var(--gray);">
+                Total: ${formatCurrency(totalValor)} | Pago: ${formatCurrency(totalPago)}
+              </div>
+            </div>
+            <div style="max-height: 300px; overflow-y: auto;">
+              ${todasParcelas.map((p) => {
+                const isPaga = p.status === "pago";
+                const isVencida = !isPaga && new Date(p.vencimento) < hoje;
+                const isMesAtual = !isPaga && !isVencida && new Date(p.vencimento).getMonth() === hoje.getMonth() && new Date(p.vencimento).getFullYear() === hoje.getFullYear();
+                
+                let statusCor = "var(--gray)";
+                let statusTexto = "⏳ Pendente";
+                let bgCor = "rgba(255,255,255,0.02)";
+                let borderCor = "var(--gray)";
+                
+                if (isPaga) {
+                  statusCor = "var(--success)";
+                  statusTexto = "✅ Paga";
+                  bgCor = "rgba(76,175,80,0.05)";
+                  borderCor = "var(--success)";
+                } else if (isVencida) {
+                  statusCor = "var(--error)";
+                  statusTexto = "🔴 Vencida";
+                  bgCor = "rgba(255,82,82,0.08)";
+                  borderCor = "var(--error)";
+                } else if (isMesAtual) {
+                  statusCor = "var(--warning)";
+                  statusTexto = "🟡 Mês atual";
+                  bgCor = "rgba(255,193,7,0.08)";
+                  borderCor = "var(--warning)";
+                }
+
+                return `
+                  <div style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 8px 12px;
+                    margin-bottom: 4px;
+                    background: ${bgCor};
+                    border-radius: 8px;
+                    border-left: 3px solid ${borderCor};
+                  ">
+                    <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                      <span style="font-weight: 600; font-size: 0.85rem; min-width: 40px;">
+                        ${p.numero_parcela}ª
+                      </span>
+                      <div>
+                        <div style="font-size: 0.75rem; color: var(--gray);">
+                          Vence: ${formatDate(p.vencimento)}
+                          ${p.payment_date ? `• Pago em: ${formatDate(p.payment_date)}` : ''}
+                        </div>
+                        ${p.interest_paid > 0 || p.late_fee_paid > 0 ? `
+                          <div style="font-size: 0.65rem; color: var(--gray-dark);">
+                            ${p.interest_paid > 0 ? `Juros: ${formatCurrency(p.interest_paid)}` : ''}
+                            ${p.late_fee_paid > 0 ? `• Multa: ${formatCurrency(p.late_fee_paid)}` : ''}
+                          </div>
+                        ` : ''}
+                      </div>
+                    </div>
+                    <div style="text-align: right; flex-shrink: 0; margin-left: 12px;">
+                      <div style="font-weight: 700; font-size: 0.9rem;">
+                        ${formatCurrency(p.valor)}
+                      </div>
+                      <div style="font-size: 0.6rem; color: ${statusCor};">
+                        ${statusTexto}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    const isPagar = evento.tipo === "pagar";
+    const vencido = evento.status === "pendente" && new Date(evento.vencimento) < new Date();
+    const pago = evento.status === "pago" || evento.status === "recebido";
+
+    let statusText = "";
+    let statusColor = "";
+    if (pago) {
+      statusText = "✅ Pago";
+      statusColor = "var(--success)";
+    } else if (vencido) {
+      statusText = "🔴 Vencido";
+      statusColor = "var(--error)";
+    } else {
+      statusText = "🟡 Pendente";
+      statusColor = "var(--warning)";
+    }
+
+    let infoParcelas = "";
+    if (isParcelada && todasParcelas.length > 0) {
+      const pagas = todasParcelas.filter(p => p.status === "pago").length;
+      const total = todasParcelas.length;
+      infoParcelas = ` • ${pagas}/${total} parcelas pagas`;
+    }
+
+    const html = `
+      <div style="margin-bottom:16px;">
+        <h3 style="font-size:1.1rem;color:var(--gold-light);">${evento.descricao}</h3>
+        <p style="color:var(--gray);font-size:0.85rem;">${evento.categoria || "Sem categoria"}${infoParcelas}</p>
+        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
+      </div>
+      <div class="info-row"><span class="label">Valor</span><span class="value gold">${formatCurrency(evento.valor)}</span></div>
+      <div class="info-row"><span class="label">Vencimento</span><span class="value">${formatDate(evento.vencimento)}</span></div>
+      <div class="info-row"><span class="label">Tipo</span><span class="value ${isPagar ? "danger" : "success"}">${isPagar ? "A Pagar" : "A Receber"}</span></div>
+      ${evento.payment_method ? `<div class="info-row"><span class="label">Forma de Pagamento</span><span class="value">${evento.payment_method}</span></div>` : ""}
+      ${evento.isParcela ? `
+        <div class="info-row"><span class="label">Parcela</span><span class="value">${evento.numero_parcela}/${evento.total_parcelas}</span></div>
+        ${evento.interest_paid ? `<div class="info-row"><span class="label">Juros pagos</span><span class="value">${formatCurrency(evento.interest_paid)}</span></div>` : ""}
+        ${evento.late_fee_paid ? `<div class="info-row"><span class="label">Multa paga</span><span class="value">${formatCurrency(evento.late_fee_paid)}</span></div>` : ""}
+      ` : ""}
+      ${parcelasHtml}
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${evento.id}</div>
+      </div>
+    `;
+
+    openModal("Detalhes da Conta", html);
+  };
 
   // ============================================================
   // FUNÇÃO PARA VISUALIZAR LOTE
@@ -1576,8 +1732,9 @@
             "novoLoteRecebimento",
           ).value;
           const prazo = document.getElementById("novoLotePrazo").value;
-          const obs =
-            document.getElementById("novoLoteObs").value.trim() || null;
+          const obs = document
+            .getElementById("novoLoteObs")
+            .value.trim() || null;
           if (
             !cliente ||
             !produto ||
@@ -1878,11 +2035,9 @@
         </div>
       `;
       openModal("⚠️ Ação Bloqueada", htmlBloqueio);
-      document
-        .getElementById("btnEntendiCancelar")
-        ?.addEventListener("click", () => {
-          document.getElementById("modalContainer").innerHTML = "";
-        });
+      document.getElementById("btnEntendiCancelar")?.addEventListener("click", () => {
+        document.getElementById("modalContainer").innerHTML = "";
+      });
       return;
     }
     if (!confirm(`Cancelar o lote ${orderNumber}?`)) return;
@@ -1905,9 +2060,7 @@
           .from("financial_transactions")
           .delete()
           .eq("id", conta.id);
-        console.log(
-          `✅ Conta a receber removida por cancelamento: ${conta.id}`,
-        );
+        console.log(`✅ Conta a receber removida por cancelamento: ${conta.id}`);
       }
       const { error } = await supabase
         .from("service_orders")
@@ -1958,11 +2111,9 @@
           </div>
         `;
         openModal("⚠️ Ação Bloqueada", htmlBloqueio);
-        document
-          .getElementById("btnEntendiExcluir")
-          ?.addEventListener("click", () => {
-            document.getElementById("modalContainer").innerHTML = "";
-          });
+        document.getElementById("btnEntendiExcluir")?.addEventListener("click", () => {
+          document.getElementById("modalContainer").innerHTML = "";
+        });
         return;
       }
       let mensagemAdicional = "";
@@ -1998,82 +2149,73 @@
               <i class="ph ph-trash"></i> Excluir
             </button>
           </div>
-          ${
-            conta && conta.status === "pendente"
-              ? `
+          ${conta && conta.status === "pendente" ? `
             <p style="color: var(--gray-dark); font-size: 0.7rem; margin-top: 12px;">
               <i class="ph ph-currency-circle-dollar"></i> Conta a receber de ${formatCurrency(conta.amount)} será removida
             </p>
-          `
-              : ""
-          }
+          ` : ""}
         </div>
       `;
       openModal("⚠️ Confirmar Exclusão", htmlConfirmacao);
-      document
-        .getElementById("btnCancelarExclusao")
-        ?.addEventListener("click", () => {
+      document.getElementById("btnCancelarExclusao")?.addEventListener("click", () => {
+        document.getElementById("modalContainer").innerHTML = "";
+      });
+      document.getElementById("btnConfirmarExclusao")?.addEventListener("click", async function() {
+        this.disabled = true;
+        this.innerHTML = '<i class="ph ph-spinner spinning"></i> Excluindo...';
+        const loginResult = await abrirModalLogin("excluir lote");
+        if (!loginResult.success) {
           document.getElementById("modalContainer").innerHTML = "";
-        });
-      document
-        .getElementById("btnConfirmarExclusao")
-        ?.addEventListener("click", async function () {
-          this.disabled = true;
-          this.innerHTML =
-            '<i class="ph ph-spinner spinning"></i> Excluindo...';
-          const loginResult = await abrirModalLogin("excluir lote");
-          if (!loginResult.success) {
-            document.getElementById("modalContainer").innerHTML = "";
-            showFeedback(
-              "Ação cancelada",
-              "Você precisa estar autenticado.",
-              "warning",
-            );
-            return;
+          showFeedback(
+            "Ação cancelada",
+            "Você precisa estar autenticado.",
+            "warning",
+          );
+          return;
+        }
+        try {
+          if (conta) {
+            await supabase
+              .from("financial_installments")
+              .delete()
+              .eq("transaction_id", conta.id);
+            await supabase
+              .from("financial_transactions")
+              .delete()
+              .eq("id", conta.id);
+            console.log(`✅ Conta a receber removida: ${conta.id}`);
           }
-          try {
-            if (conta) {
+          const { data: items } = await supabase
+            .from("service_order_items")
+            .select("id")
+            .eq("service_order_id", id);
+          if (items && items.length > 0) {
+            for (const item of items) {
               await supabase
-                .from("financial_installments")
+                .from("sewing_records")
                 .delete()
-                .eq("transaction_id", conta.id);
-              await supabase
-                .from("financial_transactions")
-                .delete()
-                .eq("id", conta.id);
-              console.log(`✅ Conta a receber removida: ${conta.id}`);
+                .eq("service_order_item_id", item.id);
             }
-            const { data: items } = await supabase
+            await supabase
               .from("service_order_items")
-              .select("id")
-              .eq("service_order_id", id);
-            if (items && items.length > 0) {
-              for (const item of items) {
-                await supabase
-                  .from("sewing_records")
-                  .delete()
-                  .eq("service_order_item_id", item.id);
-              }
-              await supabase
-                .from("service_order_items")
-                .delete()
-                .eq("service_order_id", id);
-            }
-            await supabase
-              .from("shipments")
               .delete()
               .eq("service_order_id", id);
-            await supabase
-              .from("material_consumption")
-              .delete()
-              .eq("service_order_id", id);
-            const { error } = await supabase
-              .from("service_orders")
-              .delete()
-              .eq("id", id);
-            if (error) throw error;
-            document.getElementById("modalContainer").innerHTML = "";
-            const htmlSucesso = `
+          }
+          await supabase
+            .from("shipments")
+            .delete()
+            .eq("service_order_id", id);
+          await supabase
+            .from("material_consumption")
+            .delete()
+            .eq("service_order_id", id);
+          const { error } = await supabase
+            .from("service_orders")
+            .delete()
+            .eq("id", id);
+          if (error) throw error;
+          document.getElementById("modalContainer").innerHTML = "";
+          const htmlSucesso = `
             <div style="text-align: center; padding: 20px 0;">
               <div style="font-size: 3rem; margin-bottom: 12px;">✅</div>
               <h3 style="color: var(--success);">Lote Excluído!</h3>
@@ -2086,24 +2228,18 @@
               </button>
             </div>
           `;
-            openModal("✅ Sucesso", htmlSucesso);
-            document
-              .getElementById("btnOkSucesso")
-              ?.addEventListener("click", () => {
-                document.getElementById("modalContainer").innerHTML = "";
-                carregarDados();
-              });
-            setTimeout(() => carregarDados(), 500);
-          } catch (error) {
-            console.error("Erro ao excluir lote:", error);
+          openModal("✅ Sucesso", htmlSucesso);
+          document.getElementById("btnOkSucesso")?.addEventListener("click", () => {
             document.getElementById("modalContainer").innerHTML = "";
-            showFeedback(
-              "Erro",
-              "Falha ao excluir lote: " + error.message,
-              "error",
-            );
-          }
-        });
+            carregarDados();
+          });
+          setTimeout(() => carregarDados(), 500);
+        } catch (error) {
+          console.error("Erro ao excluir lote:", error);
+          document.getElementById("modalContainer").innerHTML = "";
+          showFeedback("Erro", "Falha ao excluir lote: " + error.message, "error");
+        }
+      });
     } catch (error) {
       console.error("Erro ao excluir lote:", error);
       showFeedback("Erro", "Falha ao excluir lote.", "error");
@@ -2405,12 +2541,10 @@
     const atrasados = osAtivas.filter((o) => {
       if (!o.expected_delivery) return false;
       const prazo = new Date(o.expected_delivery);
-      return (
-        prazo < hoje && !["entregue", "cancelado", "pago"].includes(o.status)
-      );
+      return prazo < hoje && !["entregue", "cancelado", "pago"].includes(o.status);
     }).length;
     const aguardandoPagto = osAtivas.filter(
-      (o) => o.status === "entregue" && o.payment_status !== "pago",
+      (o) => o.status === "entregue" && o.payment_status !== "pago"
     ).length;
     const pagos = osAtivas.filter((o) => o.payment_status === "pago").length;
     const entreguesHoje = osAtivas.filter((o) => {
@@ -2432,7 +2566,7 @@
       atrasados,
       aguardandoPagto,
       pagos,
-      entreguesHoje,
+      entreguesHoje
     });
     const elEmCostura = document.getElementById("prodEmCostura");
     const elCosturados = document.getElementById("prodCosturados");
@@ -2729,12 +2863,10 @@
     try {
       const { data: transacao, error: transError } = await supabase
         .from("financial_transactions")
-        .select(
-          `
+        .select(`
           id, description, type, amount, 
           financial_installments(id, numero_parcela, valor, vencimento, status, payment_date)
-        `,
-        )
+        `)
         .eq("id", transactionId)
         .single();
       if (transError || !transacao) {
@@ -2750,25 +2882,19 @@
       const hojeISO = todayISO();
       const mesAtual = hoje.getMonth();
       const anoAtual = hoje.getFullYear();
-      const parcelasPendentes = parcelas.filter((p) => p.status !== "pago");
+      const parcelasPendentes = parcelas.filter(p => p.status !== "pago");
       if (parcelasPendentes.length === 0) {
         showFeedback("Aviso", "Todas as parcelas já foram pagas.", "info");
         return;
       }
-      const totalPendente = parcelasPendentes.reduce(
-        (sum, p) => sum + parseFloat(p.valor),
-        0,
-      );
-      let parcelasHtml = parcelasPendentes
-        .map((p) => {
-          const dataVenc = new Date(p.vencimento);
-          const isVencida = dataVenc < hoje;
-          const isMesAtual =
-            dataVenc.getMonth() === mesAtual &&
-            dataVenc.getFullYear() === anoAtual;
-          const isPaga = p.status === "pago";
-          const deveSelecionar = (isVencida || isMesAtual) && !isPaga;
-          return `
+      const totalPendente = parcelasPendentes.reduce((sum, p) => sum + parseFloat(p.valor), 0);
+      let parcelasHtml = parcelasPendentes.map((p) => {
+        const dataVenc = new Date(p.vencimento);
+        const isVencida = dataVenc < hoje;
+        const isMesAtual = dataVenc.getMonth() === mesAtual && dataVenc.getFullYear() === anoAtual;
+        const isPaga = p.status === "pago";
+        const deveSelecionar = (isVencida || isMesAtual) && !isPaga;
+        return `
           <div style="
             display: flex;
             align-items: center;
@@ -2783,13 +2909,13 @@
               <input type="checkbox" class="parcela-checkbox" 
                      data-id="${p.id}" 
                      data-valor="${p.valor}"
-                     ${deveSelecionar ? "checked" : ""}
+                     ${deveSelecionar ? 'checked' : ''}
                      style="width: 18px; height: 18px; accent-color: var(--gold-light); cursor: pointer;">
               <div>
                 <div style="font-weight: 600; font-size: 0.9rem;">
                   Parcela ${p.numero_parcela}ª
-                  ${isVencida ? '<span style="color: var(--error); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-warning"></i> Vencida</span>' : ""}
-                  ${isMesAtual && !isVencida ? '<span style="color: var(--warning); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-clock"></i> Mês atual</span>' : ""}
+                  ${isVencida ? '<span style="color: var(--error); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-warning"></i> Vencida</span>' : ''}
+                  ${isMesAtual && !isVencida ? '<span style="color: var(--warning); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-clock"></i> Mês atual</span>' : ''}
                 </div>
                 <div style="font-size: 0.7rem; color: var(--gray);">
                   Vence: ${formatDate(p.vencimento)}
@@ -2801,15 +2927,10 @@
             </div>
           </div>
         `;
-        })
-        .join("");
+      }).join("");
       const loginResult = await abrirModalLogin("baixar parcelas");
       if (!loginResult.success) {
-        showFeedback(
-          "Ação cancelada",
-          "Você precisa estar autenticado.",
-          "warning",
-        );
+        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
         return;
       }
       const html = `
@@ -2874,71 +2995,45 @@
       function atualizarTotalSelecionado() {
         const checks = document.querySelectorAll(".parcela-checkbox:checked");
         let total = 0;
-        checks.forEach((cb) => {
+        checks.forEach(cb => {
           total += parseFloat(cb.dataset.valor) || 0;
         });
-        document.getElementById("totalSelecionadoParcelas").textContent =
-          formatCurrency(total);
+        document.getElementById("totalSelecionadoParcelas").textContent = formatCurrency(total);
       }
-      document
-        .getElementById("selecionarVencidasMesAtual")
-        ?.addEventListener("click", () => {
-          document.querySelectorAll(".parcela-checkbox").forEach((cb) => {
-            const tr = cb.closest('div[style*="border-left"]');
-            if (tr) {
-              const isVencida =
-                tr.style.borderLeftColor === "var(--error)" ||
-                tr.style.borderLeftColor === "#ff5252";
-              const isMesAtual =
-                tr.style.borderLeftColor === "var(--warning)" ||
-                tr.style.borderLeftColor === "#ffc107";
-              cb.checked = isVencida || isMesAtual;
-            }
-          });
-          atualizarTotalSelecionado();
+      document.getElementById("selecionarVencidasMesAtual")?.addEventListener("click", () => {
+        document.querySelectorAll(".parcela-checkbox").forEach(cb => {
+          const tr = cb.closest('div[style*="border-left"]');
+          if (tr) {
+            const isVencida = tr.style.borderLeftColor === "var(--error)" || tr.style.borderLeftColor === "#ff5252";
+            const isMesAtual = tr.style.borderLeftColor === "var(--warning)" || tr.style.borderLeftColor === "#ffc107";
+            cb.checked = isVencida || isMesAtual;
+          }
         });
-      document
-        .getElementById("selecionarTodasParcelas")
-        ?.addEventListener("click", () => {
-          document
-            .querySelectorAll(".parcela-checkbox")
-            .forEach((cb) => (cb.checked = true));
-          atualizarTotalSelecionado();
-        });
-      document
-        .getElementById("desmarcarTodasParcelas")
-        ?.addEventListener("click", () => {
-          document
-            .querySelectorAll(".parcela-checkbox")
-            .forEach((cb) => (cb.checked = false));
-          atualizarTotalSelecionado();
-        });
-      document.querySelectorAll(".parcela-checkbox").forEach((cb) => {
+        atualizarTotalSelecionado();
+      });
+      document.getElementById("selecionarTodasParcelas")?.addEventListener("click", () => {
+        document.querySelectorAll(".parcela-checkbox").forEach(cb => cb.checked = true);
+        atualizarTotalSelecionado();
+      });
+      document.getElementById("desmarcarTodasParcelas")?.addEventListener("click", () => {
+        document.querySelectorAll(".parcela-checkbox").forEach(cb => cb.checked = false);
+        atualizarTotalSelecionado();
+      });
+      document.querySelectorAll(".parcela-checkbox").forEach(cb => {
         cb.addEventListener("change", atualizarTotalSelecionado);
       });
-      document
-        .getElementById("cancelarBaixaParcelas")
-        ?.addEventListener("click", () => {
-          document.getElementById("modalContainer").innerHTML = "";
-        });
-      document
-        .getElementById("confirmarBaixaParcelas")
-        ?.addEventListener("click", async function () {
-          const checks = document.querySelectorAll(".parcela-checkbox:checked");
-          if (checks.length === 0) {
-            showFeedback(
-              "Aviso",
-              "Selecione pelo menos uma parcela.",
-              "warning",
-            );
-            return;
-          }
-          const totalSelecionado = Array.from(checks).reduce(
-            (sum, cb) => sum + parseFloat(cb.dataset.valor),
-            0,
-          );
-          const qtdSelecionadas = checks.length;
-          const confirmHtml = `
+      document.getElementById("cancelarBaixaParcelas")?.addEventListener("click", () => {
+        document.getElementById("modalContainer").innerHTML = "";
+      });
+      document.getElementById("confirmarBaixaParcelas")?.addEventListener("click", async function() {
+        const checks = document.querySelectorAll(".parcela-checkbox:checked");
+        if (checks.length === 0) {
+          showFeedback("Aviso", "Selecione pelo menos uma parcela.", "warning");
+          return;
+        }
+        const totalSelecionado = Array.from(checks).reduce((sum, cb) => sum + parseFloat(cb.dataset.valor), 0);
+        const qtdSelecionadas = checks.length;
+        const confirmHtml = `
           <div style="text-align: center; padding: 12px 0;">
             <div style="font-size: 3rem; margin-bottom: 12px;">💳</div>
             <h3 style="color: var(--gold-light); margin-bottom: 8px;">Confirmar Baixa</h3>
@@ -2958,8 +3053,8 @@
             </div>
           </div>
         `;
-          const modalContainer = document.getElementById("modalContainer");
-          const modalHtml = `
+        const modalContainer = document.getElementById("modalContainer");
+        const modalHtml = `
           <div class="modal-overlay" id="modalOverlay">
             <div class="modal-sheet">
               <div class="handle"></div>
@@ -2971,88 +3066,66 @@
             </div>
           </div>
         `;
-          modalContainer.innerHTML = modalHtml;
-          document
-            .getElementById("closeModalBtn")
-            ?.addEventListener("click", () => {
-              document.getElementById("modalContainer").innerHTML = "";
-            });
-          document
-            .getElementById("cancelarConfirmacaoBaixa")
-            ?.addEventListener("click", () => {
-              document.getElementById("modalContainer").innerHTML = "";
-            });
-          document
-            .getElementById("confirmarBaixaFinal")
-            ?.addEventListener("click", async function () {
-              this.disabled = true;
-              this.innerHTML =
-                '<i class="ph ph-spinner spinning"></i> Processando...';
-              try {
-                let sucessos = 0;
-                let erros = 0;
-                for (const cb of checks) {
-                  const parcelaId = cb.dataset.id;
-                  const { error } = await supabase
-                    .from("financial_installments")
-                    .update({
-                      status: "pago",
-                      payment_date: new Date().toISOString().split("T")[0],
-                    })
-                    .eq("id", parcelaId);
-                  if (error) {
-                    console.error("Erro ao baixar parcela:", error);
-                    erros++;
-                  } else {
-                    sucessos++;
-                  }
-                }
-                const { data: parcelasRestantes } = await supabase
-                  .from("financial_installments")
-                  .select("status")
-                  .eq("transaction_id", transactionId)
-                  .neq("status", "pago");
-                const todasPagas =
-                  !parcelasRestantes || parcelasRestantes.length === 0;
-                await supabase
-                  .from("financial_transactions")
-                  .update({
-                    status: todasPagas ? "pago" : "pendente",
-                    payment_date: todasPagas
-                      ? new Date().toISOString().split("T")[0]
-                      : null,
-                  })
-                  .eq("id", transactionId);
-                document.getElementById("modalContainer").innerHTML = "";
-                if (erros === 0) {
-                  showFeedback(
-                    "Sucesso",
-                    `${sucessos} parcela(s) baixada(s) com sucesso!`,
-                    "success",
-                    () => carregarDados(),
-                  );
-                } else {
-                  showFeedback(
-                    "Aviso",
-                    `${sucessos} parcela(s) baixada(s), ${erros} erro(s).`,
-                    "warning",
-                    () => carregarDados(),
-                  );
-                }
-              } catch (error) {
-                console.error("Erro ao baixar parcelas:", error);
-                showFeedback("Erro", "Falha ao baixar parcelas.", "error");
-                document.getElementById("modalContainer").innerHTML = "";
-              }
-            });
-          document
-            .getElementById("modalOverlay")
-            ?.addEventListener("click", (e) => {
-              if (e.target.id === "modalOverlay") {
-                document.getElementById("modalContainer").innerHTML = "";
-              }
-            });
+        modalContainer.innerHTML = modalHtml;
+        document.getElementById("closeModalBtn")?.addEventListener("click", () => {
+          document.getElementById("modalContainer").innerHTML = "";
         });
+        document.getElementById("cancelarConfirmacaoBaixa")?.addEventListener("click", () => {
+          document.getElementById("modalContainer").innerHTML = "";
+        });
+        document.getElementById("confirmarBaixaFinal")?.addEventListener("click", async function() {
+          this.disabled = true;
+          this.innerHTML = '<i class="ph ph-spinner spinning"></i> Processando...';
+          try {
+            let sucessos = 0;
+            let erros = 0;
+            for (const cb of checks) {
+              const parcelaId = cb.dataset.id;
+              const { error } = await supabase
+                .from("financial_installments")
+                .update({ 
+                  status: "pago",
+                  payment_date: new Date().toISOString().split("T")[0]
+                })
+                .eq("id", parcelaId);
+              if (error) {
+                console.error("Erro ao baixar parcela:", error);
+                erros++;
+              } else {
+                sucessos++;
+              }
+            }
+            const { data: parcelasRestantes } = await supabase
+              .from("financial_installments")
+              .select("status")
+              .eq("transaction_id", transactionId)
+              .neq("status", "pago");
+            const todasPagas = !parcelasRestantes || parcelasRestantes.length === 0;
+            await supabase
+              .from("financial_transactions")
+              .update({ 
+                status: todasPagas ? "pago" : "pendente",
+                payment_date: todasPagas ? new Date().toISOString().split("T")[0] : null
+              })
+              .eq("id", transactionId);
+            document.getElementById("modalContainer").innerHTML = "";
+            if (erros === 0) {
+              showFeedback("Sucesso", `${sucessos} parcela(s) baixada(s) com sucesso!`, "success", () => carregarDados());
+            } else {
+              showFeedback("Aviso", `${sucessos} parcela(s) baixada(s), ${erros} erro(s).`, "warning", () => carregarDados());
+            }
+          } catch (error) {
+            console.error("Erro ao baixar parcelas:", error);
+            showFeedback("Erro", "Falha ao baixar parcelas.", "error");
+            document.getElementById("modalContainer").innerHTML = "";
+          }
+        });
+        document.getElementById("modalOverlay")?.addEventListener("click", (e) => {
+          if (e.target.id === "modalOverlay") {
+            document.getElementById("modalContainer").innerHTML = "";
+          }
+        });
+      });
     } catch (error) {
       console.error("Erro ao abrir baixa de parcelas:", error);
       showFeedback("Erro", "Falha ao carregar parcelas.", "error");
@@ -3073,7 +3146,7 @@
         console.error("Erro ao verificar parcelas:", parcelasError);
       }
       if (parcelas && parcelas.length > 0) {
-        const pendentes = parcelas.filter((p) => p.status !== "pago");
+        const pendentes = parcelas.filter(p => p.status !== "pago");
         if (pendentes.length > 0) {
           await abrirBaixaParcelas(transactionId);
           return;
@@ -3127,62 +3200,44 @@
         </div>
       `;
       modalContainer.innerHTML = modalHtml;
-      document
-        .getElementById("closeModalBtn")
-        ?.addEventListener("click", () => {
+      document.getElementById("closeModalBtn")?.addEventListener("click", () => {
+        document.getElementById("modalContainer").innerHTML = "";
+      });
+      document.getElementById("cancelarConfirmacaoBaixa")?.addEventListener("click", () => {
+        document.getElementById("modalContainer").innerHTML = "";
+      });
+      document.getElementById("confirmarBaixaFinal")?.addEventListener("click", async function() {
+        this.disabled = true;
+        this.innerHTML = '<i class="ph ph-spinner spinning"></i> Processando...';
+        const loginResult = await abrirModalLogin("baixar lançamento");
+        if (!loginResult.success) {
           document.getElementById("modalContainer").innerHTML = "";
-        });
-      document
-        .getElementById("cancelarConfirmacaoBaixa")
-        ?.addEventListener("click", () => {
+          showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+          return;
+        }
+        try {
+          const dataPag = new Date().toISOString().split("T")[0];
+          const { error } = await supabase
+            .from("financial_transactions")
+            .update({
+              status: "pago",
+              payment_date: dataPag,
+            })
+            .eq("id", transactionId);
+          if (error) throw error;
           document.getElementById("modalContainer").innerHTML = "";
-        });
-      document
-        .getElementById("confirmarBaixaFinal")
-        ?.addEventListener("click", async function () {
-          this.disabled = true;
-          this.innerHTML =
-            '<i class="ph ph-spinner spinning"></i> Processando...';
-          const loginResult = await abrirModalLogin("baixar lançamento");
-          if (!loginResult.success) {
-            document.getElementById("modalContainer").innerHTML = "";
-            showFeedback(
-              "Ação cancelada",
-              "Você precisa estar autenticado.",
-              "warning",
-            );
-            return;
-          }
-          try {
-            const dataPag = new Date().toISOString().split("T")[0];
-            const { error } = await supabase
-              .from("financial_transactions")
-              .update({
-                status: "pago",
-                payment_date: dataPag,
-              })
-              .eq("id", transactionId);
-            if (error) throw error;
-            document.getElementById("modalContainer").innerHTML = "";
-            showFeedback(
-              "Sucesso",
-              "Lançamento baixado com sucesso!",
-              "success",
-              () => carregarDados(),
-            );
-          } catch (error) {
-            console.error("Erro ao baixar lançamento:", error);
-            document.getElementById("modalContainer").innerHTML = "";
-            showFeedback("Erro", "Falha ao baixar lançamento.", "error");
-          }
-        });
-      document
-        .getElementById("modalOverlay")
-        ?.addEventListener("click", (e) => {
-          if (e.target.id === "modalOverlay") {
-            document.getElementById("modalContainer").innerHTML = "";
-          }
-        });
+          showFeedback("Sucesso", "Lançamento baixado com sucesso!", "success", () => carregarDados());
+        } catch (error) {
+          console.error("Erro ao baixar lançamento:", error);
+          document.getElementById("modalContainer").innerHTML = "";
+          showFeedback("Erro", "Falha ao baixar lançamento.", "error");
+        }
+      });
+      document.getElementById("modalOverlay")?.addEventListener("click", (e) => {
+        if (e.target.id === "modalOverlay") {
+          document.getElementById("modalContainer").innerHTML = "";
+        }
+      });
     } catch (error) {
       console.error("Erro ao baixar lançamento:", error);
       showFeedback("Erro", "Falha ao baixar lançamento.", "error");
@@ -3193,15 +3248,11 @@
   // FUNÇÃO PARA ALTERNAR VISUALIZAÇÃO DO FINANCEIRO
   // ============================================================
   function alternarVisualizacaoFinanceiro() {
-    visualizacaoFinanceiro =
-      visualizacaoFinanceiro === "cards" ? "calendario" : "cards";
+    visualizacaoFinanceiro = visualizacaoFinanceiro === "cards" ? "calendario" : "cards";
     console.log(`📊 Alternando visualização para: ${visualizacaoFinanceiro}`);
     renderizarFinanceiro(dados);
-
-    // Atualizar botão de toggle
-    const btnToggle = document.getElementById(
-      "btnToggleVisualizacaoFinanceiro",
-    );
+    
+    const btnToggle = document.getElementById("btnToggleVisualizacaoFinanceiro");
     if (btnToggle) {
       if (visualizacaoFinanceiro === "cards") {
         btnToggle.innerHTML = '<i class="ph ph-calendar"></i> Calendário';
@@ -3218,17 +3269,10 @@
   // ============================================================
   function renderizarFinanceiro(dados) {
     const { eventosFinanceiros, totalPagar, totalReceber } = dados;
-    console.log(
-      "💰 renderizarFinanceiro chamada com",
-      eventosFinanceiros?.length || 0,
-      "eventos",
-    );
+    console.log("💰 renderizarFinanceiro chamada com", eventosFinanceiros?.length || 0, "eventos");
 
-    // Atualizar cards de resumo (sempre visíveis)
-    document.getElementById("finTotalPagar").textContent =
-      formatCurrency(totalPagar);
-    document.getElementById("finTotalReceber").textContent =
-      formatCurrency(totalReceber);
+    document.getElementById("finTotalPagar").textContent = formatCurrency(totalPagar);
+    document.getElementById("finTotalReceber").textContent = formatCurrency(totalReceber);
 
     let saldoMes = 0;
     let contasVencidas = 0;
@@ -3252,8 +3296,7 @@
       }
     }
 
-    document.getElementById("finSaldoMes").textContent =
-      formatCurrency(saldoMes);
+    document.getElementById("finSaldoMes").textContent = formatCurrency(saldoMes);
     document.getElementById("finContasVencidas").textContent = contasVencidas;
 
     const container = document.getElementById("listaFinanceiro");
@@ -3263,18 +3306,13 @@
     // ============================================================
     // BOTÃO DE TOGGLE PARA VISUALIZAÇÃO
     // ============================================================
-    let toggleContainer = document.getElementById(
-      "toggleVisualizacaoFinanceiro",
-    );
+    let toggleContainer = document.getElementById("toggleVisualizacaoFinanceiro");
     if (!toggleContainer) {
-      const panelHeader = document.querySelector(
-        "#page-financeiro .panel-header",
-      );
+      const panelHeader = document.querySelector("#tab-financeiro .panel-header");
       if (panelHeader) {
         toggleContainer = document.createElement("div");
         toggleContainer.id = "toggleVisualizacaoFinanceiro";
-        toggleContainer.style.cssText =
-          "display:flex; gap:8px; align-items:center; margin-left:12px;";
+        toggleContainer.style.cssText = "display:flex; gap:8px; align-items:center;";
         const btn = document.createElement("button");
         btn.id = "btnToggleVisualizacaoFinanceiro";
         btn.className = "btn btn-ghost btn-sm";
@@ -3297,9 +3335,6 @@
       }
     }
 
-    // ============================================================
-    // RENDERIZAR CONFORME VISUALIZAÇÃO
-    // ============================================================
     if (visualizacaoFinanceiro === "calendario") {
       renderizarCalendarioFinanceiro(eventosFinanceiros);
       return;
@@ -3317,14 +3352,11 @@
         .slice(0, 20)
         .map((e) => {
           const isPagar = e.tipo === "pagar";
-          const vencido =
-            e.status === "pendente" && new Date(e.vencimento) < new Date();
+          const vencido = e.status === "pendente" && new Date(e.vencimento) < new Date();
           const pago = e.status === "pago" || e.status === "recebido";
           const hoje = new Date();
-          const diasFalta = Math.ceil(
-            (new Date(e.vencimento) - hoje) / (1000 * 60 * 60 * 24),
-          );
-
+          const diasFalta = Math.ceil((new Date(e.vencimento) - hoje) / (1000 * 60 * 60 * 24));
+          
           let statusIcon = "";
           let statusColor = "";
           let statusBg = "";
@@ -3356,38 +3388,22 @@
           const sinal = isPagar ? "-" : "+";
           const corValor = isPagar ? "var(--error)" : "var(--success)";
           const tipoLabel = isPagar ? "💰 A Pagar" : "📈 A Receber";
-
+          
           const parcelaInfo = e.isParcela
             ? `Parcela ${e.numero_parcela}/${e.total_parcelas}`
             : "Avulsa";
 
           let catIcon = "ph-file";
           const catLower = (e.categoria || "").toLowerCase();
-          if (catLower.includes("venda") || catLower.includes("faturamento"))
-            catIcon = "ph-shopping-cart";
-          else if (catLower.includes("salário") || catLower.includes("folha"))
-            catIcon = "ph-users";
+          if (catLower.includes("venda") || catLower.includes("faturamento")) catIcon = "ph-shopping-cart";
+          else if (catLower.includes("salário") || catLower.includes("folha")) catIcon = "ph-users";
           else if (catLower.includes("aluguel")) catIcon = "ph-building";
-          else if (catLower.includes("material") || catLower.includes("insumo"))
-            catIcon = "ph-package";
-          else if (catLower.includes("imposto") || catLower.includes("taxa"))
-            catIcon = "ph-receipt";
-          else if (
-            catLower.includes("energia") ||
-            catLower.includes("agua") ||
-            catLower.includes("luz")
-          )
-            catIcon = "ph-lightning";
-          else if (
-            catLower.includes("internet") ||
-            catLower.includes("telefone")
-          )
-            catIcon = "ph-wifi";
+          else if (catLower.includes("material") || catLower.includes("insumo")) catIcon = "ph-package";
+          else if (catLower.includes("imposto") || catLower.includes("taxa")) catIcon = "ph-receipt";
+          else if (catLower.includes("energia") || catLower.includes("agua") || catLower.includes("luz")) catIcon = "ph-lightning";
+          else if (catLower.includes("internet") || catLower.includes("telefone")) catIcon = "ph-wifi";
 
-          const temParcelas =
-            e.isParcela ||
-            (e.transacao_original &&
-              e.transacao_original.installments === true);
+          const temParcelas = e.isParcela || (e.transacao_original && e.transacao_original.installments === true);
           const transactionId = e.transaction_id;
 
           return `
@@ -3495,35 +3511,27 @@
                 border-top: 1px solid rgba(255,255,255,0.04);
                 flex-wrap: wrap;
               ">
-                ${
-                  !pago
-                    ? `
-                  ${
-                    temParcelas
-                      ? `
+                ${!pago ? `
+                  ${temParcelas ? `
                     <button class="btn-action btn-action-primary" 
                             onclick="event.stopPropagation(); abrirBaixaParcelas('${transactionId}')" 
                             style="padding:4px 12px; font-size:0.6rem; background:rgba(33,150,243,0.15); color:#64b5f6; border:1px solid rgba(33,150,243,0.2); border-radius:16px;">
                       <i class="ph ph-receipt"></i> Baixar Parcelas
                     </button>
-                  `
-                      : `
+                  ` : `
                     <button class="btn-action btn-action-success" 
                             onclick="event.stopPropagation(); baixarLancamento('${transactionId}')" 
                             style="padding:4px 12px; font-size:0.6rem; background:rgba(76,175,80,0.15); color:#a5d6a7; border:1px solid rgba(76,175,80,0.2); border-radius:16px;">
                       <i class="ph ph-check-circle"></i> Baixar
                     </button>
-                  `
-                  }
-                `
-                    : `
+                  `}
+                ` : `
                   <button class="btn-action btn-action-ghost" 
                           onclick="event.stopPropagation(); abrirModalConta('${e.id}')" 
                           style="padding:4px 12px; font-size:0.6rem;">
                     <i class="ph ph-eye"></i> Detalhes
                   </button>
-                `
-                }
+                `}
                 <button class="btn-action btn-action-ghost" 
                         onclick="event.stopPropagation(); editarLancamento('${transactionId}')" 
                         style="padding:4px 12px; font-size:0.6rem;">
@@ -3555,35 +3563,30 @@
   // ============================================================
   function renderizarCalendarioFinanceiro(eventos) {
     const container = document.getElementById("listaFinanceiro");
-
-    // Estado do calendário
+    
     if (!window.calendarioState) {
       const hoje = new Date();
       window.calendarioState = {
         mes: hoje.getMonth(),
         ano: hoje.getFullYear(),
-        diaSelecionado: hoje.getDate(),
+        diaSelecionado: hoje.getDate()
       };
     }
 
     const { mes, ano, diaSelecionado } = window.calendarioState;
 
-    // Navegação do calendário
     const nomeMes = new Date(ano, mes, 1).toLocaleDateString("pt-BR", {
       month: "long",
-      year: "numeric",
+      year: "numeric"
     });
 
-    // Dias da semana
     const diasSemana = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
 
-    // Calcular dias do mês
     const primeiroDia = new Date(ano, mes, 1);
     const ultimoDia = new Date(ano, mes + 1, 0);
     const diasNoMes = ultimoDia.getDate();
     const primeiroDiaSemana = primeiroDia.getDay();
 
-    // Agrupar eventos por dia
     const eventosPorDia = {};
     for (const e of eventos) {
       if (!e.vencimento) continue;
@@ -3597,7 +3600,6 @@
       }
     }
 
-    // Construir grid do calendário
     let calendarioHtml = `
       <div style="background: rgba(255,255,255,0.02); border-radius: 16px; padding: 16px; border: 1px solid rgba(255,255,255,0.06);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -3618,26 +3620,20 @@
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 12px;">
-          ${diasSemana
-            .map(
-              (d) => `
+          ${diasSemana.map(d => `
             <div style="text-align: center; font-size: 0.6rem; color: var(--gray-dark); font-weight: 600; padding: 4px 0;">
               ${d}
             </div>
-          `,
-            )
-            .join("")}
+          `).join("")}
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
     `;
 
-    // Dias vazios antes do primeiro dia
     for (let i = 0; i < primeiroDiaSemana; i++) {
       calendarioHtml += `<div style="opacity: 0.2; padding: 8px; text-align: center; font-size: 0.7rem;">&nbsp;</div>`;
     }
 
-    // Dias do mês
     const hoje = new Date();
     const hojeNum = hoje.getDate();
     const hojeMes = hoje.getMonth();
@@ -3647,27 +3643,17 @@
       const eventosDia = eventosPorDia[dia] || [];
       const temEventos = eventosDia.length > 0;
       const isHoje = dia === hojeNum && mes === hojeMes && ano === hojeAno;
-      const isSelecionado =
-        dia === diaSelecionado &&
-        mes === window.calendarioState.mes &&
-        ano === window.calendarioState.ano;
+      const isSelecionado = dia === diaSelecionado && mes === window.calendarioState.mes && ano === window.calendarioState.ano;
 
-      // Determinar cores do dia
       let corFundo = "transparent";
       let corBorda = "transparent";
       let indicador = "";
       let tooltip = "";
 
       if (temEventos) {
-        const temPago = eventosDia.some(
-          (e) => e.status === "pago" || e.status === "recebido",
-        );
-        const temVencido = eventosDia.some(
-          (e) => e.status === "pendente" && new Date(e.vencimento) < new Date(),
-        );
-        const temPendente = eventosDia.some(
-          (e) => e.status === "pendente" || e.status === "atrasado",
-        );
+        const temPago = eventosDia.some(e => e.status === "pago" || e.status === "recebido");
+        const temVencido = eventosDia.some(e => e.status === "pendente" && new Date(e.vencimento) < new Date());
+        const temPendente = eventosDia.some(e => e.status === "pendente" || e.status === "atrasado");
 
         if (temVencido) {
           corFundo = "rgba(255,82,82,0.12)";
@@ -3695,10 +3681,10 @@
           data-dia="${dia}"
           data-mes="${mes}"
           data-ano="${ano}"
-          onclick="${temEventos ? `selecionarDiaCalendarioFinanceiro(${dia}, ${mes}, ${ano})` : ""}"
+          onclick="${temEventos ? `selecionarDiaCalendarioFinanceiro(${dia}, ${mes}, ${ano})` : ''}"
           style="
             background: ${corFundo};
-            border: ${isSelecionado ? "2px solid var(--gold-light)" : isHoje ? "1px solid rgba(212,160,23,0.3)" : corBorda};
+            border: ${isSelecionado ? '2px solid var(--gold-light)' : isHoje ? '1px solid rgba(212,160,23,0.3)' : corBorda};
             border-radius: 8px;
             padding: 6px 4px;
             text-align: center;
@@ -3706,28 +3692,24 @@
             transition: all 0.2s ease;
             min-height: 48px;
             position: relative;
-            ${isHoje ? "box-shadow: 0 0 12px rgba(212,160,23,0.1);" : ""}
+            ${isHoje ? 'box-shadow: 0 0 12px rgba(212,160,23,0.1);' : ''}
           "
-          ${temEventos ? `title="${tooltip}"` : ""}
+          ${temEventos ? `title="${tooltip}"` : ''}
         >
           <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
             <span style="
               font-size: 0.8rem; 
-              font-weight: ${isHoje ? "700" : "400"};
-              color: ${isHoje ? "var(--gold-light)" : "var(--white)"};
+              font-weight: ${isHoje ? '700' : '400'};
+              color: ${isHoje ? 'var(--gold-light)' : 'var(--white)'};
             ">
               ${dia}
             </span>
-            ${
-              temEventos
-                ? `
+            ${temEventos ? `
               <span style="font-size: 0.55rem; color: var(--gray);">
                 ${indicador} ${eventosDia.length}
               </span>
-            `
-                : ""
-            }
-            ${isHoje ? '<span style="font-size: 0.45rem; color: var(--gold-light);">●</span>' : ""}
+            ` : ''}
+            ${isHoje ? '<span style="font-size: 0.45rem; color: var(--gold-light);">●</span>' : ''}
           </div>
         </div>
       `;
@@ -3744,15 +3726,10 @@
       </div>
     `;
 
-    // Detalhes do dia selecionado
-    const eventosDiaSelecionado = eventos.filter((e) => {
+    const eventosDiaSelecionado = eventos.filter(e => {
       if (!e.vencimento) return false;
       const data = new Date(e.vencimento);
-      return (
-        data.getDate() === diaSelecionado &&
-        data.getMonth() === mes &&
-        data.getFullYear() === ano
-      );
+      return data.getDate() === diaSelecionado && data.getMonth() === mes && data.getFullYear() === ano;
     });
 
     let detalhesHtml = `
@@ -3779,15 +3756,14 @@
           const vB = b.status === "pago" ? 1 : b.status === "pendente" ? 0 : 2;
           return vA - vB;
         })
-        .map((e) => {
+        .map(e => {
           const isPagar = e.tipo === "pagar";
-          const vencido =
-            e.status === "pendente" && new Date(e.vencimento) < new Date();
+          const vencido = e.status === "pendente" && new Date(e.vencimento) < new Date();
           const pago = e.status === "pago" || e.status === "recebido";
           const valor = e.valor || 0;
           const sinal = isPagar ? "-" : "+";
           const corValor = isPagar ? "var(--error)" : "var(--success)";
-
+          
           let statusBadge = "";
           let statusColor = "";
           if (pago) {
@@ -3823,7 +3799,7 @@
                   ${e.descricao}
                 </div>
                 <div style="font-size: 0.65rem; color: var(--gray);">
-                  ${e.categoria || "Sem categoria"} ${e.isParcela ? `• Parcela ${e.numero_parcela}/${e.total_parcelas}` : ""}
+                  ${e.categoria || "Sem categoria"} ${e.isParcela ? `• Parcela ${e.numero_parcela}/${e.total_parcelas}` : ''}
                 </div>
               </div>
               <div style="text-align: right; flex-shrink: 0; margin-left: 12px;">
@@ -3845,51 +3821,42 @@
 
     container.innerHTML = calendarioHtml;
 
-    // ============================================================
-    // EVENTOS DE NAVEGAÇÃO DO CALENDÁRIO
-    // ============================================================
-    document
-      .getElementById("btnMesAnteriorFinanceiro")
-      ?.addEventListener("click", () => {
-        window.calendarioState.mes--;
-        if (window.calendarioState.mes < 0) {
-          window.calendarioState.mes = 11;
-          window.calendarioState.ano--;
-        }
-        renderizarFinanceiro(dados);
-      });
+    document.getElementById("btnMesAnteriorFinanceiro")?.addEventListener("click", () => {
+      window.calendarioState.mes--;
+      if (window.calendarioState.mes < 0) {
+        window.calendarioState.mes = 11;
+        window.calendarioState.ano--;
+      }
+      renderizarFinanceiro(dados);
+    });
 
-    document
-      .getElementById("btnMesProximoFinanceiro")
-      ?.addEventListener("click", () => {
-        window.calendarioState.mes++;
-        if (window.calendarioState.mes > 11) {
-          window.calendarioState.mes = 0;
-          window.calendarioState.ano++;
-        }
-        renderizarFinanceiro(dados);
-      });
+    document.getElementById("btnMesProximoFinanceiro")?.addEventListener("click", () => {
+      window.calendarioState.mes++;
+      if (window.calendarioState.mes > 11) {
+        window.calendarioState.mes = 0;
+        window.calendarioState.ano++;
+      }
+      renderizarFinanceiro(dados);
+    });
 
-    document
-      .getElementById("btnHojeFinanceiro")
-      ?.addEventListener("click", () => {
-        const hoje = new Date();
-        window.calendarioState.mes = hoje.getMonth();
-        window.calendarioState.ano = hoje.getFullYear();
-        window.calendarioState.diaSelecionado = hoje.getDate();
-        renderizarFinanceiro(dados);
-      });
+    document.getElementById("btnHojeFinanceiro")?.addEventListener("click", () => {
+      const hoje = new Date();
+      window.calendarioState.mes = hoje.getMonth();
+      window.calendarioState.ano = hoje.getFullYear();
+      window.calendarioState.diaSelecionado = hoje.getDate();
+      renderizarFinanceiro(dados);
+    });
   }
 
   // ============================================================
   // FUNÇÃO PARA SELECIONAR DIA NO CALENDÁRIO
   // ============================================================
-  window.selecionarDiaCalendarioFinanceiro = function (dia, mes, ano) {
+  window.selecionarDiaCalendarioFinanceiro = function(dia, mes, ano) {
     if (!window.calendarioState) {
       window.calendarioState = {
         mes: new Date().getMonth(),
         ano: new Date().getFullYear(),
-        diaSelecionado: new Date().getDate(),
+        diaSelecionado: new Date().getDate()
       };
     }
     window.calendarioState.diaSelecionado = dia;
@@ -3909,60 +3876,7 @@
   // ============================================================
   // FUNÇÕES PARA LANÇAMENTOS FINANCEIROS
   // ============================================================
-
-  window.abrirModalConta = function (id) {
-    const evento = dados.eventosFinanceiros?.find((e) => e.id === id);
-    if (!evento) {
-      showFeedback("Erro", "Conta não encontrada.", "error");
-      return;
-    }
-
-    const isPagar = evento.tipo === "pagar";
-    const vencido =
-      evento.status === "pendente" && new Date(evento.vencimento) < new Date();
-    const pago = evento.status === "pago" || evento.status === "recebido";
-
-    let statusText = "";
-    let statusColor = "";
-    if (pago) {
-      statusText = "✅ Pago";
-      statusColor = "var(--success)";
-    } else if (vencido) {
-      statusText = "🔴 Vencido";
-      statusColor = "var(--error)";
-    } else {
-      statusText = "🟡 Pendente";
-      statusColor = "var(--warning)";
-    }
-
-    let parcelasHtml = "";
-    if (evento.isParcela && evento.parcela_original) {
-      parcelasHtml = `
-        <div class="info-row"><span class="label">Parcela</span><span class="value">${evento.numero_parcela}/${evento.total_parcelas}</span></div>
-        ${evento.interest_paid ? `<div class="info-row"><span class="label">Juros pagos</span><span class="value">${formatCurrency(evento.interest_paid)}</span></div>` : ""}
-        ${evento.late_fee_paid ? `<div class="info-row"><span class="label">Multa paga</span><span class="value">${formatCurrency(evento.late_fee_paid)}</span></div>` : ""}
-      `;
-    }
-
-    const html = `
-      <div style="margin-bottom:16px;">
-        <h3 style="font-size:1.1rem;color:var(--gold-light);">${evento.descricao}</h3>
-        <p style="color:var(--gray);font-size:0.85rem;">${evento.categoria || "Sem categoria"}</p>
-        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
-      </div>
-      <div class="info-row"><span class="label">Valor</span><span class="value gold">${formatCurrency(evento.valor)}</span></div>
-      <div class="info-row"><span class="label">Vencimento</span><span class="value">${formatDate(evento.vencimento)}</span></div>
-      <div class="info-row"><span class="label">Tipo</span><span class="value ${isPagar ? "danger" : "success"}">${isPagar ? "A Pagar" : "A Receber"}</span></div>
-      ${evento.payment_method ? `<div class="info-row"><span class="label">Forma de Pagamento</span><span class="value">${evento.payment_method}</span></div>` : ""}
-      ${parcelasHtml}
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${evento.id}</div>
-      </div>
-    `;
-
-    openModal("Detalhes da Conta", html);
-  };
-
+  
   window.editarLancamento = async function (transactionId) {
     const { data: t } = await supabase
       .from("financial_transactions")
@@ -3975,21 +3889,13 @@
       return;
     }
 
-    showFeedback(
-      "Info",
-      "Edição de lançamento em desenvolvimento. Use o sistema web para editar.",
-      "info",
-    );
+    showFeedback("Info", "Edição de lançamento em desenvolvimento. Use o sistema web para editar.", "info");
   };
 
   window.excluirLancamento = async function (transactionId) {
     const loginResult = await abrirModalLogin("excluir lançamento");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
 
@@ -4003,9 +3909,7 @@
 
       if (error) throw error;
 
-      showFeedback("Sucesso", "Lançamento excluído!", "success", () =>
-        carregarDados(),
-      );
+      showFeedback("Sucesso", "Lançamento excluído!", "success", () => carregarDados());
     } catch (error) {
       console.error("Erro ao excluir lançamento:", error);
       showFeedback("Erro", "Falha ao excluir lançamento.", "error");
@@ -4701,7 +4605,7 @@
   // ============================================================
   document.addEventListener("DOMContentLoaded", async function () {
     const sessaoValida = carregarSessao();
-
+    
     if (sessaoValida && usuarioAutenticado) {
       console.log("✅ Sessão válida encontrada, carregando app...");
       const appContainer = document.querySelector(".app-container");
@@ -4717,21 +4621,18 @@
       if (appContainer) {
         appContainer.style.display = "none";
       }
-
+      
       await abrirModalLoginObrigatorio("acessar o app");
       setupActivityDetection();
-
-      setInterval(
-        () => {
-          if (isAutenticado()) {
-            renovarSessao();
-            console.log("🔄 Sessão renovada automaticamente (keep-alive)");
-          }
-        },
-        25 * 60 * 1000,
-      );
+      
+      setInterval(() => {
+        if (isAutenticado()) {
+          renovarSessao();
+          console.log("🔄 Sessão renovada automaticamente (keep-alive)");
+        }
+      }, 25 * 60 * 1000);
     }
-
+    
     setInterval(() => {
       if (isAutenticado()) {
         carregarDados();
@@ -4761,6 +4662,6 @@
   window.excluirLancamento = window.excluirLancamento;
   window.abrirBaixaParcelas = window.abrirBaixaParcelas;
   window.alternarVisualizacaoFinanceiro = alternarVisualizacaoFinanceiro;
-  window.selecionarDiaCalendarioFinanceiro =
-    window.selecionarDiaCalendarioFinanceiro;
+  window.selecionarDiaCalendarioFinanceiro = window.selecionarDiaCalendarioFinanceiro;
+  window.buscarParcelasDaTransacao = buscarParcelasDaTransacao;
 })();
