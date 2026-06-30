@@ -615,7 +615,7 @@
             ============================================================ -->
         <div class="tab-content" id="tab-financeiro">
           <!-- ============================================================
-               PANEL HEADER PARA O BOTÃO DE TOGGLE
+               PANEL HEADER PARA O BOTÃO DE TOGGLE E EXPORTAR PDF
                ============================================================ -->
           <div
             class="panel-header"
@@ -635,7 +635,14 @@
               id="toggleVisualizacaoFinanceiro"
               style="display: flex; gap: 8px; align-items: center"
             >
-              <!-- O botão de toggle será inserido aqui pelo JavaScript -->
+              <button
+                class="btn btn-ghost btn-sm"
+                id="btnExportPDFFinanceiro"
+                title="Exportar PDF"
+                style="padding: 4px 12px; font-size: 0.7rem; min-height: 36px"
+              >
+                <i class="ph ph-file-pdf"></i> PDF
+              </button>
             </div>
           </div>
 
@@ -1192,8 +1199,12 @@
     <script src="js/modules/ui.js"></script>
     <script src="js/modules/auth.js"></script>
 
-    <!-- 3. Módulo Dashboard (Geral) -->
+    <!-- 3. Módulos de Abas -->
     <script src="js/modules/dashboard.js"></script>
+    <script src="js/modules/producao.js"></script>
+    <script src="js/modules/financeiro.js"></script>
+    <script src="js/modules/rh.js"></script>
+    <script src="js/modules/dividas.js"></script>
 
     <!-- 4. Ponto de Entrada -->
     <script src="js/main.js"></script>
