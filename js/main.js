@@ -1,8 +1,7 @@
-
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // Ponto de Entrada Principal (main.js)
-// Versão 1.0 - Modular com IIFE
+// Versão 1.4 - Com suporte aos módulos Produção, Financeiro, RH e Dívidas
 // ============================================================
 
 (function (global) {
@@ -14,7 +13,17 @@
   // VERIFICAÇÃO DE DEPENDÊNCIAS
   // ============================================================
 
-  const dependencias = ["Utils", "Supabase", "UI", "Auth", "Dashboard"];
+  const dependencias = [
+    "Utils",
+    "Supabase",
+    "UI",
+    "Auth",
+    "Dashboard",
+    "Producao",
+    "Financeiro",
+    "RH",
+    "Dividas",
+  ];
   const faltando = dependencias.filter((dep) => !global[dep]);
 
   if (faltando.length > 0) {
@@ -60,6 +69,10 @@
   const UI = global.UI;
   const Auth = global.Auth;
   const Dashboard = global.Dashboard;
+  const Producao = global.Producao;
+  const Financeiro = global.Financeiro;
+  const RH = global.RH;
+  const Dividas = global.Dividas;
 
   console.log("✅ Todos os módulos carregados com sucesso.");
 
@@ -117,22 +130,37 @@
     });
 
     // Carregar dados específicos da aba
+    if (aba === "producao") {
+      setTimeout(() => {
+        const periodo = periodState.producao || new Date();
+        if (typeof Producao.carregarProducaoPeriodo === "function") {
+          Producao.carregarProducaoPeriodo(periodo);
+        }
+      }, 100);
+    }
+
+    if (aba === "financeiro") {
+      setTimeout(() => {
+        const periodo = periodState.financeiro || new Date();
+        if (typeof Financeiro.carregarFinanceiroPeriodo === "function") {
+          Financeiro.carregarFinanceiroPeriodo(periodo);
+        }
+      }, 100);
+    }
+
     if (aba === "dividas") {
       setTimeout(() => {
-        if (typeof global.loadGestaoDividas === "function") {
-          global.loadGestaoDividas();
-        } else if (typeof Dashboard.loadGestaoDividas === "function") {
-          Dashboard.loadGestaoDividas();
+        if (typeof Dividas.carregarDividasPeriodo === "function") {
+          Dividas.carregarDividasPeriodo();
         }
       }, 100);
     }
 
     if (aba === "rh") {
       setTimeout(() => {
-        if (typeof global.loadGestaoAfastamentos === "function") {
-          global.loadGestaoAfastamentos();
-        } else if (typeof Dashboard.loadGestaoAfastamentos === "function") {
-          Dashboard.loadGestaoAfastamentos();
+        const periodo = periodState.rh || new Date();
+        if (typeof RH.carregarRHPeriodo === "function") {
+          RH.carregarRHPeriodo(periodo);
         }
       }, 100);
     }
@@ -149,7 +177,7 @@
 
   /**
    * Carrega todos os dados iniciais do Supabase
-   * Utiliza o módulo Dashboard para buscar e renderizar os dados
+   * Utiliza os módulos Dashboard, Producao, Financeiro, RH e Dividas
    */
   async function carregarDadosIniciais() {
     console.log("🔄 Carregando dados iniciais...");
@@ -160,16 +188,47 @@
     }
 
     try {
-      // Usar o módulo Dashboard para carregar dados
+      // Carregar dados do Dashboard (Geral)
       if (typeof Dashboard.carregarDadosIniciais === "function") {
         dados = await Dashboard.carregarDadosIniciais();
         console.log("✅ Dados carregados via Dashboard:", Object.keys(dados));
       } else {
         console.warn("⚠️ Dashboard.carregarDadosIniciais não encontrado");
-        // Fallback: tentar usar a função global
         if (typeof global.carregarDadosIniciais === "function") {
           dados = await global.carregarDadosIniciais();
         }
+      }
+
+      // Carregar dados da Produção se a aba atual for produção
+      if (
+        abaAtual === "producao" &&
+        typeof Producao.carregarProducaoPeriodo === "function"
+      ) {
+        const periodo = periodState.producao || new Date();
+        await Producao.carregarProducaoPeriodo(periodo);
+      }
+
+      // Carregar dados do Financeiro se a aba atual for financeiro
+      if (
+        abaAtual === "financeiro" &&
+        typeof Financeiro.carregarFinanceiroPeriodo === "function"
+      ) {
+        const periodo = periodState.financeiro || new Date();
+        await Financeiro.carregarFinanceiroPeriodo(periodo);
+      }
+
+      // Carregar dados do RH se a aba atual for rh
+      if (abaAtual === "rh" && typeof RH.carregarRHPeriodo === "function") {
+        const periodo = periodState.rh || new Date();
+        await RH.carregarRHPeriodo(periodo);
+      }
+
+      // Carregar dados das Dívidas se a aba atual for dividas
+      if (
+        abaAtual === "dividas" &&
+        typeof Dividas.carregarDividasPeriodo === "function"
+      ) {
+        await Dividas.carregarDividasPeriodo();
       }
 
       // Renderizar a aba atual
@@ -229,8 +288,14 @@
       // RH
       const badgeRH = document.getElementById("tabBadgeRH");
       if (badgeRH) {
-        const ferias = dados.ferias || [];
-        const afastamentos = dados.afastamentos || [];
+        let ferias = dados.ferias || [];
+        let afastamentos = dados.afastamentos || [];
+
+        if (RH.dados) {
+          ferias = RH.dados.ferias || ferias;
+          afastamentos = RH.dados.afastamentos || afastamentos;
+        }
+
         const ativos = afastamentos.filter(
           (a) => a.status !== "encerrado" && new Date(a.end_date) >= new Date(),
         );
@@ -241,16 +306,30 @@
 
       // Dívidas
       const badgeDiv = document.getElementById("tabBadgeDiv");
-      if (badgeDiv && dados.dividas) {
-        const count = dados.dividas.filter(
-          (d) => d.status !== "quitada",
-        ).length;
+      if (badgeDiv) {
+        let dividas = dados.dividas || [];
+        if (Dividas.dados && Dividas.dados.dividas) {
+          dividas = Dividas.dados.dividas;
+        }
+        const count = dividas.filter((d) => d.status !== "quitada").length;
         badgeDiv.textContent = count;
         badgeDiv.style.display = count > 0 ? "flex" : "none";
       }
     } catch (e) {
       console.warn("⚠️ Erro ao atualizar badges:", e);
     }
+  }
+
+  // ============================================================
+  // ATUALIZAR PERIOD DISPLAY
+  // ============================================================
+
+  function atualizarPeriodDisplay(periodo, elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const mes = periodo.toLocaleDateString("pt-BR", { month: "long" });
+    const ano = periodo.getFullYear();
+    el.textContent = `${mes.charAt(0).toUpperCase() + mes.slice(1)} ${ano}`;
   }
 
   // ============================================================
@@ -268,6 +347,26 @@
     // Inicializar autenticação
     if (typeof Auth.init === "function") {
       Auth.init();
+    }
+
+    // Inicializar módulo de Produção
+    if (typeof Producao.init === "function") {
+      Producao.init();
+    }
+
+    // Inicializar módulo de Financeiro
+    if (typeof Financeiro.init === "function") {
+      Financeiro.init();
+    }
+
+    // Inicializar módulo de RH
+    if (typeof RH.init === "function") {
+      RH.init();
+    }
+
+    // Inicializar módulo de Dívidas
+    if (typeof Dividas.init === "function") {
+      Dividas.init();
     }
 
     // Verificar sessão
@@ -515,7 +614,18 @@
     carregarDadosIniciais,
     carregarDados: carregarDadosIniciais,
     atualizarBadges,
+    atualizarPeriodDisplay,
     init: initApp,
+    // Expor referências dos módulos
+    Utils,
+    Supabase,
+    UI,
+    Auth,
+    Dashboard,
+    Producao,
+    Financeiro,
+    RH,
+    Dividas,
   };
 
   console.log("✅ App registrado globalmente como window.App");
