@@ -7,9 +7,7 @@
 (function () {
   "use strict";
 
-  console.log(
-    "🚀 App do Gestor - Versão 3.1 com controle de afastamentos",
-  );
+  console.log("🚀 App do Gestor - Versão 3.1 com controle de afastamentos");
 
   // ============================================================
   // SUPABASE
@@ -914,8 +912,12 @@
       container.innerHTML = "";
     };
 
-    document.getElementById("closeFormModal").addEventListener("click", closeModal);
-    document.getElementById("cancelFormModal").addEventListener("click", closeModal);
+    document
+      .getElementById("closeFormModal")
+      .addEventListener("click", closeModal);
+    document
+      .getElementById("cancelFormModal")
+      .addEventListener("click", closeModal);
     document.getElementById("formOverlay").addEventListener("click", (e) => {
       if (e.target.id === "formOverlay") closeModal();
     });
@@ -926,13 +928,15 @@
       }
     });
 
-    document.getElementById("dynamicForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (typeof onSubmit === "function") {
-        await onSubmit();
-      }
-      closeModal();
-    });
+    document
+      .getElementById("dynamicForm")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (typeof onSubmit === "function") {
+          await onSubmit();
+        }
+        closeModal();
+      });
   }
 
   function getIconForTitle(title) {
@@ -944,7 +948,7 @@
       "Quitar Dívida Completa": "check-square",
       "Simulação de Quitação Antecipada": "chart-line",
       "Renegociar Dívida": "arrows-clockwise",
-      "Anexos": "paperclip",
+      Anexos: "paperclip",
       "Editar Parcelas": "receipt",
       "Confirmar Exclusão": "trash",
       "Novo Afastamento": "plus-circle",
@@ -4414,7 +4418,8 @@
       totalFuncionarios;
     document.getElementById("rhEmFerias").textContent = emFerias;
     document.getElementById("rhEmAfastamento").textContent = emAfastamento;
-    document.getElementById("rhAcidenteTrabalho").textContent = acidenteTrabalho;
+    document.getElementById("rhAcidenteTrabalho").textContent =
+      acidenteTrabalho;
 
     // Renderizar férias (existente)
     const containerFerias = document.getElementById("listaRHFerias");
@@ -4444,7 +4449,9 @@
     }
 
     // Renderizar afastamentos (NOVO)
-    const containerAfastamentos = document.getElementById("listaRHAfastamentos");
+    const containerAfastamentos = document.getElementById(
+      "listaRHAfastamentos",
+    );
     document.getElementById("totalAfastamentos").textContent =
       (afastamentos || []).length + " registros";
 
@@ -4492,7 +4499,7 @@
               <div class="item-main" style="flex:1;min-width:0;">
                 <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${isAcidente ? "color:var(--error);" : ""}">
                   ${func?.full_name || "-"} 
-                  ${isAcidente ? '⚠️' : '🏥'}
+                  ${isAcidente ? "⚠️" : "🏥"}
                 </div>
                 <div class="item-sub" style="font-size:10px;color:var(--gray-dark);margin-top:1px;display:flex;flex-wrap:wrap;gap:4px 8px;">
                   <span>${getLeaveTypeLabel(a.leave_type || a.type)}</span>
@@ -4531,10 +4538,16 @@
             (ff) => ff.employee_id === f.id,
           );
           const emAfastamentoCheck = (afastamentos || []).some(
-            (a) => a.employee_id === f.id && a.status !== "encerrado" && new Date(a.end_date) >= new Date(),
+            (a) =>
+              a.employee_id === f.id &&
+              a.status !== "encerrado" &&
+              new Date(a.end_date) >= new Date(),
           );
           const isAcidente = (afastamentos || []).some(
-            (a) => a.employee_id === f.id && a.work_accident === true && a.status !== "encerrado",
+            (a) =>
+              a.employee_id === f.id &&
+              a.work_accident === true &&
+              a.status !== "encerrado",
           );
 
           let statusClasse = "badge-status-entregue";
@@ -4548,7 +4561,9 @@
           } else if (emAfastamentoCheck) {
             statusClasse = "badge-status-cancelado";
             statusTexto = isAcidente ? "⚠️ Acidente" : "🏥 Afastado";
-            corTitulo = isAcidente ? "color:var(--error);" : "color:var(--warning);";
+            corTitulo = isAcidente
+              ? "color:var(--error);"
+              : "color:var(--warning);";
           }
 
           return `<div class="list-item ${emFeriasCheck ? "item-warning" : emAfastamentoCheck ? "item-vencido" : ""}" data-id="${f.id}" style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);gap:10px;transition:var(--transition);cursor:pointer;">
@@ -4581,7 +4596,10 @@
   function abrirModalFuncionario(func, ferias, afastamentos) {
     const emFerias = (ferias || []).find((f) => f.employee_id === func.id);
     const afastamentoAtivo = (afastamentos || []).find(
-      (a) => a.employee_id === func.id && a.status !== "encerrado" && new Date(a.end_date) >= new Date(),
+      (a) =>
+        a.employee_id === func.id &&
+        a.status !== "encerrado" &&
+        new Date(a.end_date) >= new Date(),
     );
     const fotoHtml = func.photo_url
       ? `<img src="${func.photo_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">`
@@ -4598,21 +4616,21 @@
       `;
     }
 
-    let afastamentoHtml = '';
+    let afastamentoHtml = "";
     if (afastamentoAtivo) {
       const diasRestantes = calcularDiasRestantes(afastamentoAtivo.end_date);
       const isAcidente = afastamentoAtivo.work_accident === true;
       afastamentoHtml = `
         <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; margin-top:8px;">
-          <div style="background:${isAcidente ? 'rgba(255,82,82,0.08)' : 'rgba(255,193,7,0.08)'}; border-radius:8px; padding:12px; border-left:3px solid ${isAcidente ? 'var(--error)' : 'var(--warning)'};">
-            <div class="info-row"><span class="label">Afastamento</span><span class="value ${isAcidente ? 'danger' : 'gold'}">${isAcidente ? '⚠️ Acidente de Trabalho' : '🏥 Em afastamento'}</span></div>
+          <div style="background:${isAcidente ? "rgba(255,82,82,0.08)" : "rgba(255,193,7,0.08)"}; border-radius:8px; padding:12px; border-left:3px solid ${isAcidente ? "var(--error)" : "var(--warning)"};">
+            <div class="info-row"><span class="label">Afastamento</span><span class="value ${isAcidente ? "danger" : "gold"}">${isAcidente ? "⚠️ Acidente de Trabalho" : "🏥 Em afastamento"}</span></div>
             <div class="info-row"><span class="label">Tipo</span><span class="value">${getLeaveTypeLabel(afastamentoAtivo.leave_type || afastamentoAtivo.type)}</span></div>
             <div class="info-row"><span class="label">Período</span><span class="value">${formatDate(afastamentoAtivo.start_date)} a ${formatDate(afastamentoAtivo.end_date)}</span></div>
-            <div class="info-row"><span class="label">Dias restantes</span><span class="value ${diasRestantes <= 3 ? 'danger' : 'success'}">${diasRestantes} dias</span></div>
-            ${afastamentoAtivo.reason ? `<div class="info-row"><span class="label">Motivo</span><span class="value">${afastamentoAtivo.reason}</span></div>` : ''}
-            ${afastamentoAtivo.icd_code ? `<div class="info-row"><span class="label">CID</span><span class="value">${afastamentoAtivo.icd_code}</span></div>` : ''}
-            ${afastamentoAtivo.doctor_name ? `<div class="info-row"><span class="label">Médico</span><span class="value">${afastamentoAtivo.doctor_name}</span></div>` : ''}
-            ${afastamentoAtivo.document_url ? `<div class="info-row"><span class="label">Atestado</span><span class="value"><a href="${afastamentoAtivo.document_url}" target="_blank" style="color:var(--gold-light);">📎 Ver documento</a></span></div>` : ''}
+            <div class="info-row"><span class="label">Dias restantes</span><span class="value ${diasRestantes <= 3 ? "danger" : "success"}">${diasRestantes} dias</span></div>
+            ${afastamentoAtivo.reason ? `<div class="info-row"><span class="label">Motivo</span><span class="value">${afastamentoAtivo.reason}</span></div>` : ""}
+            ${afastamentoAtivo.icd_code ? `<div class="info-row"><span class="label">CID</span><span class="value">${afastamentoAtivo.icd_code}</span></div>` : ""}
+            ${afastamentoAtivo.doctor_name ? `<div class="info-row"><span class="label">Médico</span><span class="value">${afastamentoAtivo.doctor_name}</span></div>` : ""}
+            ${afastamentoAtivo.document_url ? `<div class="info-row"><span class="label">Atestado</span><span class="value"><a href="${afastamentoAtivo.document_url}" target="_blank" style="color:var(--gold-light);">📎 Ver documento</a></span></div>` : ""}
           </div>
         </div>
       `;
@@ -4650,10 +4668,12 @@
   window.abrirModalAfastamento = async function (id) {
     const { data: afastamento, error } = await supabase
       .from("absences")
-      .select(`
+      .select(
+        `
         *,
         employees(full_name, role, phone_cell, email_personal, photo_url)
-      `)
+      `,
+      )
       .eq("id", id)
       .single();
 
@@ -4686,7 +4706,7 @@
 
     const html = `
       <div style="display:grid; gap:12px;">
-        <div style="background:${isAcidente ? 'rgba(255,82,82,0.08)' : 'rgba(255,193,7,0.08)'}; border-radius:12px; padding:16px; display:flex; align-items:center; gap:16px; border-left:4px solid ${statusColor};">
+        <div style="background:${isAcidente ? "rgba(255,82,82,0.08)" : "rgba(255,193,7,0.08)"}; border-radius:12px; padding:16px; display:flex; align-items:center; gap:16px; border-left:4px solid ${statusColor};">
           ${fotoHtml}
           <div>
             <h4 style="margin:0;">${func?.full_name || "Funcionário"}</h4>
@@ -4702,7 +4722,7 @@
           <div><strong><i class="ph ph-tag"></i> Tipo:</strong> ${getLeaveTypeLabel(afastamento.leave_type || afastamento.type)}</div>
           <div><strong><i class="ph ph-calendar"></i> Período:</strong> ${formatDate(afastamento.start_date)} a ${formatDate(afastamento.end_date)}</div>
           <div><strong><i class="ph ph-clock"></i> Dias totais:</strong> ${afastamento.days_off || 0} dias</div>
-          <div><strong><i class="ph ph-hourglass"></i> Dias restantes:</strong> ${diasRestantes > 0 ? diasRestantes : '0'} dias</div>
+          <div><strong><i class="ph ph-hourglass"></i> Dias restantes:</strong> ${diasRestantes > 0 ? diasRestantes : "0"} dias</div>
         </div>
         ${afastamento.reason ? `<div><strong><i class="ph ph-note"></i> Motivo:</strong> ${escapeHtml(afastamento.reason)}</div>` : ""}
         ${afastamento.icd_code ? `<div><strong><i class="ph ph-clipboard"></i> CID:</strong> ${escapeHtml(afastamento.icd_code)}</div>` : ""}
@@ -4711,11 +4731,15 @@
         ${afastamento.document_url ? `<div><strong><i class="ph ph-paperclip"></i> Atestado:</strong> <a href="${afastamento.document_url}" target="_blank" style="color:var(--gold-light);">📎 Ver documento</a></div>` : ""}
         ${afastamento.notes ? `<div><strong><i class="ph ph-info"></i> Observações:</strong> ${escapeHtml(afastamento.notes)}</div>` : ""}
         <div style="margin-top:8px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:8px; justify-content:flex-end;">
-          ${afastamento.status !== "encerrado" ? `
+          ${
+            afastamento.status !== "encerrado"
+              ? `
             <button class="btn-action btn-action-success" onclick="encerrarAfastamento('${afastamento.id}')" style="padding:6px 14px;">
               <i class="ph ph-check-circle"></i> Encerrar
             </button>
-          ` : ""}
+          `
+              : ""
+          }
           <button class="btn-action btn-action-ghost" onclick="editarAfastamento('${afastamento.id}')" style="padding:6px 14px;">
             <i class="ph ph-pencil-simple"></i> Editar
           </button>
@@ -4740,8 +4764,8 @@
           <select id="afastamentoFuncionario" class="form-select" required>
             <option value="">Selecione o funcionário...</option>
             ${(dados.funcionarios || [])
-              .filter(f => f.active === true)
-              .map(f => `<option value="${f.id}">${f.full_name}</option>`)
+              .filter((f) => f.active === true)
+              .map((f) => `<option value="${f.id}">${f.full_name}</option>`)
               .join("")}
           </select>
         </div>
@@ -4801,43 +4825,66 @@
       </div>
     `;
 
-    openFormModal("Novo Afastamento", html, async () => {
-      const employee_id = document.getElementById("afastamentoFuncionario").value;
-      const leave_type = document.getElementById("afastamentoTipo").value;
-      const start_date = document.getElementById("afastamentoInicio").value;
-      const end_date = document.getElementById("afastamentoFim").value;
-      const reason = document.getElementById("afastamentoMotivo").value.trim() || null;
-      const icd_code = document.getElementById("afastamentoCID").value.trim() || null;
-      const doctor_name = document.getElementById("afastamentoMedico").value.trim() || null;
-      const hospital_name = document.getElementById("afastamentoHospital").value.trim() || null;
-      const work_accident = document.getElementById("afastamentoAcidente").checked;
-      const document_url = document.getElementById("afastamentoDocumento").value.trim() || null;
-      const notes = document.getElementById("afastamentoObs").value.trim() || null;
+    openFormModal(
+      "Novo Afastamento",
+      html,
+      async () => {
+        const employee_id = document.getElementById(
+          "afastamentoFuncionario",
+        ).value;
+        const leave_type = document.getElementById("afastamentoTipo").value;
+        const start_date = document.getElementById("afastamentoInicio").value;
+        const end_date = document.getElementById("afastamentoFim").value;
+        const reason =
+          document.getElementById("afastamentoMotivo").value.trim() || null;
+        const icd_code =
+          document.getElementById("afastamentoCID").value.trim() || null;
+        const doctor_name =
+          document.getElementById("afastamentoMedico").value.trim() || null;
+        const hospital_name =
+          document.getElementById("afastamentoHospital").value.trim() || null;
+        const work_accident = document.getElementById(
+          "afastamentoAcidente",
+        ).checked;
+        const document_url =
+          document.getElementById("afastamentoDocumento").value.trim() || null;
+        const notes =
+          document.getElementById("afastamentoObs").value.trim() || null;
 
-      if (!employee_id || !leave_type || !start_date || !end_date) {
-        showFeedback("Erro", "Preencha todos os campos obrigatórios.", "error");
-        return;
-      }
+        if (!employee_id || !leave_type || !start_date || !end_date) {
+          showFeedback(
+            "Erro",
+            "Preencha todos os campos obrigatórios.",
+            "error",
+          );
+          return;
+        }
 
-      if (new Date(end_date) < new Date(start_date)) {
-        showFeedback("Erro", "A data de fim não pode ser anterior à data de início.", "error");
-        return;
-      }
+        if (new Date(end_date) < new Date(start_date)) {
+          showFeedback(
+            "Erro",
+            "A data de fim não pode ser anterior à data de início.",
+            "error",
+          );
+          return;
+        }
 
-      const loginResult = await abrirModalLogin("registrar afastamento");
-      if (!loginResult.success) {
-        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
-        return;
-      }
+        const loginResult = await abrirModalLogin("registrar afastamento");
+        if (!loginResult.success) {
+          showFeedback(
+            "Ação cancelada",
+            "Você precisa estar autenticado.",
+            "warning",
+          );
+          return;
+        }
 
-      // Calcular dias de afastamento
-      const diffTime = Math.abs(new Date(end_date) - new Date(start_date));
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        // Calcular dias de afastamento
+        const diffTime = Math.abs(new Date(end_date) - new Date(start_date));
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
-      try {
-        const { error } = await supabase
-          .from("absences")
-          .insert({
+        try {
+          const { error } = await supabase.from("absences").insert({
             employee_id,
             type: "atestado",
             start_date,
@@ -4853,19 +4900,30 @@
             status: "aprovado",
           });
 
-        if (error) throw error;
+          if (error) throw error;
 
-        showFeedback("Sucesso", "Afastamento registrado com sucesso!", "success", () => {
-          carregarDados();
-          if (abaAtual === "rh") {
-            loadGestaoAfastamentos();
-          }
-        });
-      } catch (error) {
-        console.error("Erro ao registrar afastamento:", error);
-        showFeedback("Erro", `Falha ao registrar afastamento: ${error.message}`, "error");
-      }
-    }, "560px");
+          showFeedback(
+            "Sucesso",
+            "Afastamento registrado com sucesso!",
+            "success",
+            () => {
+              carregarDados();
+              if (abaAtual === "rh") {
+                loadGestaoAfastamentos();
+              }
+            },
+          );
+        } catch (error) {
+          console.error("Erro ao registrar afastamento:", error);
+          showFeedback(
+            "Erro",
+            `Falha ao registrar afastamento: ${error.message}`,
+            "error",
+          );
+        }
+      },
+      "560px",
+    );
   };
 
   // ============================================================
@@ -4876,7 +4934,11 @@
 
     const loginResult = await abrirModalLogin("encerrar afastamento");
     if (!loginResult.success) {
-      showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+      showFeedback(
+        "Ação cancelada",
+        "Você precisa estar autenticado.",
+        "warning",
+      );
       return;
     }
 
@@ -4900,7 +4962,11 @@
       });
     } catch (error) {
       console.error("Erro ao encerrar afastamento:", error);
-      showFeedback("Erro", `Falha ao encerrar afastamento: ${error.message}`, "error");
+      showFeedback(
+        "Erro",
+        `Falha ao encerrar afastamento: ${error.message}`,
+        "error",
+      );
     }
   };
 
@@ -4977,68 +5043,97 @@
       </div>
     `;
 
-    openFormModal("Editar Afastamento", html, async () => {
-      const leave_type = document.getElementById("editAfastamentoTipo").value;
-      const start_date = document.getElementById("editAfastamentoInicio").value;
-      const end_date = document.getElementById("editAfastamentoFim").value;
-      const reason = document.getElementById("editAfastamentoMotivo").value.trim() || null;
-      const icd_code = document.getElementById("editAfastamentoCID").value.trim() || null;
-      const doctor_name = document.getElementById("editAfastamentoMedico").value.trim() || null;
-      const hospital_name = document.getElementById("editAfastamentoHospital").value.trim() || null;
-      const work_accident = document.getElementById("editAfastamentoAcidente").checked;
-      const document_url = document.getElementById("editAfastamentoDocumento").value.trim() || null;
-      const notes = document.getElementById("editAfastamentoObs").value.trim() || null;
+    openFormModal(
+      "Editar Afastamento",
+      html,
+      async () => {
+        const leave_type = document.getElementById("editAfastamentoTipo").value;
+        const start_date = document.getElementById(
+          "editAfastamentoInicio",
+        ).value;
+        const end_date = document.getElementById("editAfastamentoFim").value;
+        const reason =
+          document.getElementById("editAfastamentoMotivo").value.trim() || null;
+        const icd_code =
+          document.getElementById("editAfastamentoCID").value.trim() || null;
+        const doctor_name =
+          document.getElementById("editAfastamentoMedico").value.trim() || null;
+        const hospital_name =
+          document.getElementById("editAfastamentoHospital").value.trim() ||
+          null;
+        const work_accident = document.getElementById(
+          "editAfastamentoAcidente",
+        ).checked;
+        const document_url =
+          document.getElementById("editAfastamentoDocumento").value.trim() ||
+          null;
+        const notes =
+          document.getElementById("editAfastamentoObs").value.trim() || null;
 
-      if (!start_date || !end_date) {
-        showFeedback("Erro", "Preencha as datas de início e fim.", "error");
-        return;
-      }
+        if (!start_date || !end_date) {
+          showFeedback("Erro", "Preencha as datas de início e fim.", "error");
+          return;
+        }
 
-      if (new Date(end_date) < new Date(start_date)) {
-        showFeedback("Erro", "A data de fim não pode ser anterior à data de início.", "error");
-        return;
-      }
+        if (new Date(end_date) < new Date(start_date)) {
+          showFeedback(
+            "Erro",
+            "A data de fim não pode ser anterior à data de início.",
+            "error",
+          );
+          return;
+        }
 
-      const loginResult = await abrirModalLogin("editar afastamento");
-      if (!loginResult.success) {
-        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
-        return;
-      }
+        const loginResult = await abrirModalLogin("editar afastamento");
+        if (!loginResult.success) {
+          showFeedback(
+            "Ação cancelada",
+            "Você precisa estar autenticado.",
+            "warning",
+          );
+          return;
+        }
 
-      const diffTime = Math.abs(new Date(end_date) - new Date(start_date));
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        const diffTime = Math.abs(new Date(end_date) - new Date(start_date));
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
-      try {
-        const { error } = await supabase
-          .from("absences")
-          .update({
-            leave_type,
-            start_date,
-            end_date,
-            days_off: diffDays,
-            reason,
-            icd_code,
-            doctor_name,
-            hospital_name,
-            work_accident,
-            document_url,
-            notes,
-          })
-          .eq("id", id);
+        try {
+          const { error } = await supabase
+            .from("absences")
+            .update({
+              leave_type,
+              start_date,
+              end_date,
+              days_off: diffDays,
+              reason,
+              icd_code,
+              doctor_name,
+              hospital_name,
+              work_accident,
+              document_url,
+              notes,
+            })
+            .eq("id", id);
 
-        if (error) throw error;
+          if (error) throw error;
 
-        showFeedback("Sucesso", "Afastamento atualizado!", "success", () => {
-          carregarDados();
-          if (abaAtual === "rh") {
-            loadGestaoAfastamentos();
-          }
-        });
-      } catch (error) {
-        console.error("Erro ao editar afastamento:", error);
-        showFeedback("Erro", `Falha ao editar afastamento: ${error.message}`, "error");
-      }
-    }, "560px");
+          showFeedback("Sucesso", "Afastamento atualizado!", "success", () => {
+            carregarDados();
+            if (abaAtual === "rh") {
+              loadGestaoAfastamentos();
+            }
+          });
+        } catch (error) {
+          console.error("Erro ao editar afastamento:", error);
+          showFeedback(
+            "Erro",
+            `Falha ao editar afastamento: ${error.message}`,
+            "error",
+          );
+        }
+      },
+      "560px",
+    );
   };
 
   // ============================================================
@@ -5049,15 +5144,16 @@
 
     const loginResult = await abrirModalLogin("excluir afastamento");
     if (!loginResult.success) {
-      showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+      showFeedback(
+        "Ação cancelada",
+        "Você precisa estar autenticado.",
+        "warning",
+      );
       return;
     }
 
     try {
-      const { error } = await supabase
-        .from("absences")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("absences").delete().eq("id", id);
 
       if (error) throw error;
 
@@ -5070,7 +5166,11 @@
       });
     } catch (error) {
       console.error("Erro ao excluir afastamento:", error);
-      showFeedback("Erro", `Falha ao excluir afastamento: ${error.message}`, "error");
+      showFeedback(
+        "Erro",
+        `Falha ao excluir afastamento: ${error.message}`,
+        "error",
+      );
     }
   };
 
@@ -5082,10 +5182,12 @@
       const hoje = todayISO();
       const { data: afastamentos, error } = await supabase
         .from("absences")
-        .select(`
+        .select(
+          `
           *,
           employees(full_name, role, photo_url, phone_cell, email_personal)
-        `)
+        `,
+        )
         .order("start_date", { ascending: false });
 
       if (error) {
@@ -5237,7 +5339,11 @@
       }));
 
       renderizarCardsResumoDividas(dividasComFornecedor || [], parcelasMap);
-      renderizarTabelaDividas(dividasComFornecedor || [], parcelasMap, anexosMap);
+      renderizarTabelaDividas(
+        dividasComFornecedor || [],
+        parcelasMap,
+        anexosMap,
+      );
       renderizarPaginacaoDividas();
       configurarFiltrosDividas();
     } catch (e) {
@@ -5340,7 +5446,8 @@
         const parcelas = parcelasMap[d.id] || [];
         const totalParcelas = parcelas.length;
         const pagas = parcelas.filter((p) => p.paid === true).length;
-        const percentual = totalParcelas > 0 ? (pagas / totalParcelas) * 100 : 0;
+        const percentual =
+          totalParcelas > 0 ? (pagas / totalParcelas) * 100 : 0;
 
         const proximaParcela = parcelas.find((p) => !p.paid);
         const proxVenc = proximaParcela
@@ -5373,7 +5480,8 @@
             ? `<i class="ph ph-paperclip" style="color:var(--gold-light);" title="${anexosCount} anexo(s)"></i>`
             : "-";
 
-        const credorExibicao = d.creditor || d.creditor || "Credor não informado";
+        const credorExibicao =
+          d.creditor || d.creditor || "Credor não informado";
 
         return `
           <div class="list-item" 
@@ -5420,7 +5528,7 @@
               <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                 <div style="flex: 1;">
                   <div style="display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--gray-dark); margin-bottom: 2px;">
-                    <span>Pago: ${formatCurrency(parcelas.filter(p => p.paid).reduce((s, p) => s + parseFloat(p.amount), 0))}</span>
+                    <span>Pago: ${formatCurrency(parcelas.filter((p) => p.paid).reduce((s, p) => s + parseFloat(p.amount), 0))}</span>
                     <span>${percentual.toFixed(0)}%</span>
                   </div>
                   <div style="width:100%; height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden;">
@@ -5441,7 +5549,9 @@
                       style="padding:4px 12px; font-size:0.6rem;">
                 <i class="ph ph-pencil-simple"></i> Editar
               </button>
-              ${d.status !== "quitada" ? `
+              ${
+                d.status !== "quitada"
+                  ? `
                 <button class="btn-action btn-action-success" 
                         onclick="event.stopPropagation(); quitarParcela('${d.id}')" 
                         style="padding:4px 12px; font-size:0.6rem; background:rgba(76,175,80,0.15); color:#a5d6a7; border:1px solid rgba(76,175,80,0.2); border-radius:16px;">
@@ -5452,7 +5562,9 @@
                         style="padding:4px 12px; font-size:0.6rem; background:rgba(33,150,243,0.15); color:#64b5f6; border:1px solid rgba(33,150,243,0.2); border-radius:16px;">
                   <i class="ph ph-check-square"></i> Quitar Tudo
                 </button>
-              ` : ""}
+              `
+                  : ""
+              }
               <button class="btn-action btn-action-ghost" 
                       onclick="event.stopPropagation(); excluirDivida('${d.id}')" 
                       style="padding:4px 12px; font-size:0.6rem; color:var(--error);">
@@ -5637,7 +5749,7 @@
         <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:16px; display:flex; align-items:center; gap:16px;">
           <div style="width:48px; height:48px; background:rgba(212,160,23,0.15); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:var(--gold-light);"><i class="ph ph-warning-circle"></i></div>
           <div><h4 style="margin:0;">${escapeHtml(credorExibicao)}</h4><small style="color:var(--gray);">${formatarTipoDivida(divida.type)}</small></div>
-          <div style="margin-left:auto;"><span class="status-badge status-${divida.status === "quitada" ? "entregue" : "em_costura"}">${divida.status === "quitada" ? '✅ Quitada' : '🟡 Ativa'}</span></div>
+          <div style="margin-left:auto;"><span class="status-badge status-${divida.status === "quitada" ? "entregue" : "em_costura"}">${divida.status === "quitada" ? "✅ Quitada" : "🟡 Ativa"}</span></div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
           <div><strong><i class="ph ph-currency-circle-dollar"></i> Valor Total:</strong> ${formatCurrency(divida.total_amount)}</div>
@@ -5716,7 +5828,11 @@
 
       const loginResult = await abrirModalLogin("criar nova dívida");
       if (!loginResult.success) {
-        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        showFeedback(
+          "Ação cancelada",
+          "Você precisa estar autenticado.",
+          "warning",
+        );
         return;
       }
 
@@ -5748,7 +5864,11 @@
         .single();
 
       if (insertError) {
-        showFeedback("Erro", `Falha ao criar dívida: ${insertError.message}`, "error");
+        showFeedback(
+          "Erro",
+          `Falha ao criar dívida: ${insertError.message}`,
+          "error",
+        );
         return;
       }
 
@@ -5772,12 +5892,21 @@
 
       if (parcelasError) {
         console.error("Erro ao gerar parcelas:", parcelasError);
-        showFeedback("Aviso", "Dívida criada, mas houve falha ao gerar parcelas.", "warning");
+        showFeedback(
+          "Aviso",
+          "Dívida criada, mas houve falha ao gerar parcelas.",
+          "warning",
+        );
       } else {
-        showFeedback("Sucesso", `Dívida com ${numParcelas} parcelas criada!`, "success", () => {
-          loadGestaoDividas();
-          carregarDados();
-        });
+        showFeedback(
+          "Sucesso",
+          `Dívida com ${numParcelas} parcelas criada!`,
+          "success",
+          () => {
+            loadGestaoDividas();
+            carregarDados();
+          },
+        );
       }
     });
   };
@@ -5832,7 +5961,9 @@
     openFormModal("Editar Dívida", formHtml, async () => {
       const creditor = document.getElementById("editCredor").value.trim();
       const type = document.getElementById("editTipo").value;
-      const total_amount = parseFloat(document.getElementById("editTotal").value);
+      const total_amount = parseFloat(
+        document.getElementById("editTotal").value,
+      );
       const status = document.getElementById("editStatus").value;
       const notes = document.getElementById("editObs").value.trim() || null;
 
@@ -5843,7 +5974,11 @@
 
       const loginResult = await abrirModalLogin("editar dívida");
       if (!loginResult.success) {
-        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        showFeedback(
+          "Ação cancelada",
+          "Você precisa estar autenticado.",
+          "warning",
+        );
         return;
       }
 
@@ -5899,35 +6034,43 @@
 
     openModal("Confirmar Exclusão", confirmHtml);
 
-    document.getElementById("cancelarExclusao")?.addEventListener("click", () => {
-      document.getElementById("modalContainer").innerHTML = "";
-    });
-
-    document.getElementById("confirmarExclusao")?.addEventListener("click", async function () {
-      const loginResult = await abrirModalLogin("excluir dívida");
-      if (!loginResult.success) {
+    document
+      .getElementById("cancelarExclusao")
+      ?.addEventListener("click", () => {
         document.getElementById("modalContainer").innerHTML = "";
-        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
-        return;
-      }
+      });
 
-      try {
-        await supabase.from("debt_installments").delete().eq("debt_id", id);
-        await supabase.from("debt_attachments").delete().eq("debt_id", id);
-        const { error } = await supabase.from("debts").delete().eq("id", id);
+    document
+      .getElementById("confirmarExclusao")
+      ?.addEventListener("click", async function () {
+        const loginResult = await abrirModalLogin("excluir dívida");
+        if (!loginResult.success) {
+          document.getElementById("modalContainer").innerHTML = "";
+          showFeedback(
+            "Ação cancelada",
+            "Você precisa estar autenticado.",
+            "warning",
+          );
+          return;
+        }
 
-        if (error) throw error;
+        try {
+          await supabase.from("debt_installments").delete().eq("debt_id", id);
+          await supabase.from("debt_attachments").delete().eq("debt_id", id);
+          const { error } = await supabase.from("debts").delete().eq("id", id);
 
-        document.getElementById("modalContainer").innerHTML = "";
-        showFeedback("Sucesso", "Dívida excluída!", "success", () => {
-          loadGestaoDividas();
-          carregarDados();
-        });
-      } catch (error) {
-        console.error("Erro ao excluir dívida:", error);
-        showFeedback("Erro", "Falha ao excluir dívida.", "error");
-      }
-    });
+          if (error) throw error;
+
+          document.getElementById("modalContainer").innerHTML = "";
+          showFeedback("Sucesso", "Dívida excluída!", "success", () => {
+            loadGestaoDividas();
+            carregarDados();
+          });
+        } catch (error) {
+          console.error("Erro ao excluir dívida:", error);
+          showFeedback("Erro", "Falha ao excluir dívida.", "error");
+        }
+      });
   };
 
   // Quitar parcela
@@ -5959,7 +6102,9 @@
       .map((p) => {
         const diasAtraso = Math.max(
           0,
-          Math.ceil((new Date() - new Date(p.due_date)) / (1000 * 60 * 60 * 24)),
+          Math.ceil(
+            (new Date() - new Date(p.due_date)) / (1000 * 60 * 60 * 24),
+          ),
         );
         const jurosCalc =
           (divida.interest_rate / 100) * p.amount * (diasAtraso / 30);
@@ -6005,9 +6150,12 @@
     openFormModal(`Quitar Parcela - ${divida.creditor}`, formHtml, async () => {
       const parcelaId = document.getElementById("parcelaId").value;
       const dataPag = document.getElementById("dataPagamento").value;
-      const formaPagamento = document.getElementById("formaPagamento").value.trim() || null;
-      const juros = parseFloat(document.getElementById("jurosParcela").value) || 0;
-      const multa = parseFloat(document.getElementById("multaParcela").value) || 0;
+      const formaPagamento =
+        document.getElementById("formaPagamento").value.trim() || null;
+      const juros =
+        parseFloat(document.getElementById("jurosParcela").value) || 0;
+      const multa =
+        parseFloat(document.getElementById("multaParcela").value) || 0;
 
       if (!parcelaId || !dataPag) {
         showFeedback("Erro", "Preencha todos os campos.", "error");
@@ -6016,7 +6164,11 @@
 
       const loginResult = await abrirModalLogin("quitar parcela");
       if (!loginResult.success) {
-        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        showFeedback(
+          "Ação cancelada",
+          "Você precisa estar autenticado.",
+          "warning",
+        );
         return;
       }
 
@@ -6077,7 +6229,10 @@
           .limit(1);
 
         if (!restantes || restantes.length === 0) {
-          await supabase.from("debts").update({ status: "quitada" }).eq("id", id);
+          await supabase
+            .from("debts")
+            .update({ status: "quitada" })
+            .eq("id", id);
         }
 
         showFeedback("Sucesso", "Parcela quitada!", "success", () => {
@@ -6095,8 +6250,10 @@
       if (select) {
         select.addEventListener("change", function () {
           const option = this.options[this.selectedIndex];
-          document.getElementById("jurosParcela").value = option.dataset.juros || "0";
-          document.getElementById("multaParcela").value = option.dataset.multa || "0";
+          document.getElementById("jurosParcela").value =
+            option.dataset.juros || "0";
+          document.getElementById("multaParcela").value =
+            option.dataset.multa || "0";
         });
         select.dispatchEvent(new Event("change"));
       }
@@ -6159,71 +6316,84 @@
 
     openModal("Quitar Dívida", confirmHtml);
 
-    document.getElementById("cancelarQuitacao")?.addEventListener("click", () => {
-      document.getElementById("modalContainer").innerHTML = "";
-    });
-
-    document.getElementById("confirmarQuitacao")?.addEventListener("click", async function () {
-      const loginResult = await abrirModalLogin("quitar dívida");
-      if (!loginResult.success) {
+    document
+      .getElementById("cancelarQuitacao")
+      ?.addEventListener("click", () => {
         document.getElementById("modalContainer").innerHTML = "";
-        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
-        return;
-      }
+      });
 
-      try {
-        const dataPag = todayISO();
+    document
+      .getElementById("confirmarQuitacao")
+      ?.addEventListener("click", async function () {
+        const loginResult = await abrirModalLogin("quitar dívida");
+        if (!loginResult.success) {
+          document.getElementById("modalContainer").innerHTML = "";
+          showFeedback(
+            "Ação cancelada",
+            "Você precisa estar autenticado.",
+            "warning",
+          );
+          return;
+        }
 
-        // Buscar categoria de pagamento
-        const { data: categoria } = await supabase
-          .from("chart_of_accounts")
-          .select("id")
-          .eq("type", "despesa")
-          .ilike("name", "%pagamento%")
-          .limit(1)
-          .maybeSingle();
+        try {
+          const dataPag = todayISO();
 
-        // Quitar todas as parcelas pendentes
-        for (const p of parcelasPendentes) {
+          // Buscar categoria de pagamento
+          const { data: categoria } = await supabase
+            .from("chart_of_accounts")
+            .select("id")
+            .eq("type", "despesa")
+            .ilike("name", "%pagamento%")
+            .limit(1)
+            .maybeSingle();
+
+          // Quitar todas as parcelas pendentes
+          for (const p of parcelasPendentes) {
+            await supabase
+              .from("debt_installments")
+              .update({
+                paid: true,
+                paid_date: dataPag,
+              })
+              .eq("id", p.id);
+          }
+
+          // Atualizar status da dívida
           await supabase
-            .from("debt_installments")
-            .update({
-              paid: true,
-              paid_date: dataPag,
-            })
-            .eq("id", p.id);
+            .from("debts")
+            .update({ status: "quitada" })
+            .eq("id", id);
+
+          // Criar lançamento financeiro consolidado
+          if (categoria) {
+            await supabase.from("financial_transactions").insert({
+              type: "pagar",
+              amount: -valorTotalParcelas,
+              date: dataPag,
+              due_date: dataPag,
+              payment_date: dataPag,
+              status: "pago",
+              description: `Quitação total - ${divida.creditor}`,
+              category_id: categoria.id,
+            });
+          }
+
+          document.getElementById("modalContainer").innerHTML = "";
+          showFeedback(
+            "Sucesso",
+            "Dívida totalmente quitada!",
+            "success",
+            () => {
+              loadGestaoDividas();
+              carregarDados();
+            },
+          );
+        } catch (error) {
+          console.error("Erro ao quitar dívida:", error);
+          showFeedback("Erro", "Falha ao quitar dívida.", "error");
         }
-
-        // Atualizar status da dívida
-        await supabase
-          .from("debts")
-          .update({ status: "quitada" })
-          .eq("id", id);
-
-        // Criar lançamento financeiro consolidado
-        if (categoria) {
-          await supabase.from("financial_transactions").insert({
-            type: "pagar",
-            amount: -valorTotalParcelas,
-            date: dataPag,
-            due_date: dataPag,
-            payment_date: dataPag,
-            status: "pago",
-            description: `Quitação total - ${divida.creditor}`,
-            category_id: categoria.id,
-          });
-        }
-
-        document.getElementById("modalContainer").innerHTML = "";
-        showFeedback("Sucesso", "Dívida totalmente quitada!", "success", () => {
-          loadGestaoDividas();
-          carregarDados();
-        });
-      } catch (error) {
-        console.error("Erro ao quitar dívida:", error);
-        showFeedback("Erro", "Falha ao quitar dívida.", "error");
-      }
-    });
+      });
   };
 
   // ============================================================
@@ -6417,10 +6587,12 @@
       // Buscar afastamentos (NOVO)
       const { data: afastamentos, error: errAbs } = await supabase
         .from("absences")
-        .select(`
+        .select(
+          `
           *,
           employees(full_name, role, photo_url, phone_cell, email_personal)
-        `)
+        `,
+        )
         .order("start_date", { ascending: false });
       if (errAbs) console.error("❌ Erro afastamentos:", errAbs);
 
@@ -6483,8 +6655,15 @@
         (osAtivas || []).length > 0 ? "flex" : "none";
       $("tabBadgeFin").textContent = contasVencidas;
       $("tabBadgeFin").style.display = contasVencidas > 0 ? "flex" : "none";
-      $("tabBadgeRH").textContent = (ferias || []).length + (afastamentos || []).filter(a => a.status !== "encerrado").length;
-      $("tabBadgeRH").style.display = ((ferias || []).length + (afastamentos || []).filter(a => a.status !== "encerrado").length) > 0 ? "flex" : "none";
+      $("tabBadgeRH").textContent =
+        (ferias || []).length +
+        (afastamentos || []).filter((a) => a.status !== "encerrado").length;
+      $("tabBadgeRH").style.display =
+        (ferias || []).length +
+          (afastamentos || []).filter((a) => a.status !== "encerrado").length >
+        0
+          ? "flex"
+          : "none";
       const divAtivas = (dividas || []).filter(
         (d) => d.status !== "quitada",
       ).length;
@@ -6696,5 +6875,4 @@
   window.encerrarAfastamento = window.encerrarAfastamento;
   window.abrirModalAfastamento = window.abrirModalAfastamento;
   window.loadGestaoAfastamentos = loadGestaoAfastamentos;
-
 })();
