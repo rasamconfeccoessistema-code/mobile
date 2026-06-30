@@ -515,11 +515,32 @@
         </div>
 
         <!-- ============================================================
-            ABA: FINANCEIRO - MODO LEITURA COM VISUAL PREMIUM
+            ABA: FINANCEIRO - MODO LEITURA COM VISUAL PREMIUM E CALENDÁRIO
             ============================================================ -->
         <div class="tab-content" id="tab-financeiro">
-          <div class="tab-section-title">
-            <i class="ph ph-currency-circle-dollar"></i> Contas do Mês
+          <!-- ============================================================
+               PANEL HEADER PARA O BOTÃO DE TOGGLE
+               ============================================================ -->
+          <div
+            class="panel-header"
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              flex-wrap: wrap;
+              margin-bottom: 12px;
+            "
+          >
+            <div class="tab-section-title" style="margin-bottom: 0">
+              <i class="ph ph-currency-circle-dollar"></i> Contas do Mês
+            </div>
+            <div
+              class="panel-actions"
+              id="toggleVisualizacaoFinanceiro"
+              style="display: flex; gap: 8px; align-items: center"
+            >
+              <!-- O botão de toggle será inserido aqui pelo JavaScript -->
+            </div>
           </div>
 
           <!-- Cards de resumo com animação -->
@@ -550,7 +571,7 @@
             </div>
           </div>
 
-          <!-- Lista de lançamentos -->
+          <!-- Lista de lançamentos (cards ou calendário) -->
           <div class="big-card" style="padding: 14px 16px">
             <div
               style="
@@ -583,7 +604,7 @@
         </div>
 
         <!-- ============================================================
-            ABA: RH - MODO LEITURA COM VISUAL PREMIUM (SEM PONTO)
+            ABA: RH - COM CONTROLE DE AFASTAMENTOS E FÉRIAS
             ============================================================ -->
         <div class="tab-content" id="tab-rh">
           <div class="tab-section-title">
@@ -602,6 +623,27 @@
               <div class="kpi-value warning" id="rhEmFerias">-</div>
               <div class="kpi-detail">funcionários</div>
             </div>
+          </div>
+
+          <!-- Cards adicionais: Em Afastamento e Acidente de Trabalho -->
+          <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
+            <div class="kpi-card">
+              <div class="kpi-label">Em Afastamento</div>
+              <div class="kpi-value danger" id="rhEmAfastamento">-</div>
+              <div class="kpi-detail">funcionários</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Afastados por Acidente</div>
+              <div class="kpi-value warning" id="rhAcidenteTrabalho">-</div>
+              <div class="kpi-detail">últimos 30 dias</div>
+            </div>
+          </div>
+
+          <!-- Botão Novo Afastamento -->
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+            <button class="btn-primary" id="btnNovoAfastamento" style="padding: 8px 16px; font-size: 0.8rem;">
+              <i class="ph ph-plus-circle"></i> Novo Afastamento
+            </button>
           </div>
 
           <!-- Férias em andamento -->
@@ -631,6 +673,37 @@
               <div class="loading-state">
                 <i class="ph ph-spinner spinning"></i>
                 <p>Carregando férias...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Afastamentos -->
+          <div class="big-card" style="padding: 14px 16px; margin-bottom: 12px">
+            <div
+              style="
+                font-size: 11px;
+                color: var(--gray);
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <i class="ph ph-hospital"></i> Afastamentos
+              <span
+                style="
+                  margin-left: auto;
+                  font-size: 9px;
+                  color: var(--gray-dark);
+                "
+                id="totalAfastamentos"
+                >0 registros</span
+              >
+            </div>
+            <div id="listaRHAfastamentos">
+              <div class="loading-state">
+                <i class="ph ph-spinner spinning"></i>
+                <p>Carregando afastamentos...</p>
               </div>
             </div>
           </div>
@@ -703,6 +776,13 @@
             </div>
           </div>
 
+          <!-- Filtros -->
+          <div class="big-card" style="padding: 12px 16px; margin-bottom: 12px;">
+            <div id="filtrosDividas">
+              <!-- Os filtros serão inseridos pelo JavaScript -->
+            </div>
+          </div>
+
           <!-- Lista de dívidas -->
           <div class="big-card" style="padding: 14px 16px">
             <div
@@ -732,6 +812,14 @@
                 <p>Carregando dívidas...</p>
               </div>
             </div>
+            <div id="paginacaoDividas"></div>
+          </div>
+
+          <!-- Botão Nova Dívida -->
+          <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+            <button class="btn-primary" id="btnNovaDivida" style="padding: 8px 16px; font-size: 0.8rem;">
+              <i class="ph ph-plus-circle"></i> Nova Dívida
+            </button>
           </div>
         </div>
 
