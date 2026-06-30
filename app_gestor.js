@@ -1,13 +1,13 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // JavaScript completo para o aplicativo do gestor
-// VERSÃO 3.1 - COM CONTROLE DE AFASTAMENTOS (ATESTADOS)
+// VERSÃO 4.3 - CORREÇÃO DE CONFLITOS DE CONTAS RECORRENTES
 // ============================================================
 
 (function () {
   "use strict";
 
-  console.log("🚀 App do Gestor - Versão 3.1 com controle de afastamentos");
+  console.log("🚀 App do Gestor - Versão 4.3 com Correção de Recorrências");
 
   // ============================================================
   // SUPABASE
@@ -98,14 +98,15 @@
       usuarioAutenticado = null;
       atualizarIndicadorSessao();
       if (!loginModalAberto) {
-        showFeedback(
+        showToast(
           "Sessão expirada",
           "Sua sessão expirou após 30 minutos de inatividade. Faça login novamente.",
           "warning",
-          () => {
-            abrirModalLoginObrigatorio("continuar usando o app");
-          },
+          5000,
         );
+        setTimeout(() => {
+          abrirModalLoginObrigatorio("continuar usando o app");
+        }, 1000);
       }
     }, SESSION_DURATION);
     console.log(
@@ -132,14 +133,15 @@
         usuarioAutenticado = null;
         atualizarIndicadorSessao();
         if (!loginModalAberto) {
-          showFeedback(
+          showToast(
             "Sessão expirada",
             "Sua sessão expirou após 30 minutos de inatividade. Faça login novamente.",
             "warning",
-            () => {
-              abrirModalLoginObrigatorio("continuar usando o app");
-            },
+            5000,
           );
+          setTimeout(() => {
+            abrirModalLoginObrigatorio("continuar usando o app");
+          }, 1000);
         }
       }, SESSION_DURATION);
       console.log("🔄 Sessão renovada por mais 30 minutos");
@@ -252,7 +254,7 @@
             to { transform: translateY(0); opacity: 1; }
           }
           .login-modal-sheet {
-            animation: slideUpLogin 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideUpLogin 0.4s cubic-bezier(0.32, 0.72, 0, 1);
           }
           #loginObrigatorioOverlay .form-input:focus {
             border-color: #e91e63 !important;
@@ -440,7 +442,7 @@
             if (appContainer) {
               appContainer.style.display = "flex";
             }
-            carregarDados();
+            carregarDadosIniciais();
             resolve({ success: true, usuario: usuarioAutenticado });
           } else {
             statusEl.textContent = `❌ ${result.error || "Erro ao fazer login"}`;
@@ -572,6 +574,59 @@
     console.log(
       "🔄 Detector de atividade configurado - sessão será renovada com interação",
     );
+  }
+
+  // ============================================================
+  // TOAST NOTIFICATIONS (Mobile-first)
+  // ============================================================
+
+  function showToast(title, message, type = "info", duration = 4000) {
+    const container = document.querySelector(".toast-container");
+    if (!container) {
+      const newContainer = document.createElement("div");
+      newContainer.className = "toast-container";
+      document.body.appendChild(newContainer);
+    }
+
+    const icons = {
+      success: "ph-check-circle",
+      error: "ph-warning-circle",
+      warning: "ph-warning",
+      info: "ph-info",
+    };
+
+    const colors = {
+      success: "var(--success)",
+      error: "var(--error)",
+      warning: "var(--warning)",
+      info: "var(--info)",
+    };
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <i class="ph ${icons[type] || icons.info} toast-icon" style="color: ${colors[type] || colors.info};"></i>
+      <div class="toast-content">
+        <div class="toast-title">${title}</div>
+        <div class="toast-message">${message}</div>
+      </div>
+      <button class="toast-close"><i class="ph ph-x"></i></button>
+    `;
+
+    const containerEl = document.querySelector(".toast-container");
+    containerEl.appendChild(toast);
+
+    toast.querySelector(".toast-close").addEventListener("click", () => {
+      removeToast(toast);
+    });
+
+    setTimeout(() => removeToast(toast), duration);
+  }
+
+  function removeToast(toast) {
+    if (!toast) return;
+    toast.classList.add("hide");
+    setTimeout(() => toast.remove(), 300);
   }
 
   // ============================================================
@@ -747,6 +802,18 @@
     };
   }
 
+  function getMonthRangeForDate(date) {
+    const now = new Date(date);
+    const primeiroDia = new Date(now.getFullYear(), now.getMonth(), 1);
+    const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return {
+      inicio: primeiroDia.toISOString().split("T")[0],
+      fim: ultimoDia.toISOString().split("T")[0],
+      mes: now.getMonth() + 1,
+      ano: now.getFullYear(),
+    };
+  }
+
   function getProximoDiaUtil(data) {
     const d = new Date(data);
     d.setDate(d.getDate() + 1);
@@ -796,13 +863,371 @@
   }
 
   // ============================================================
+  // FUNÇÕES PARA CONTAS RECORRENTES (GERAÇÃO DE TRANSAÇÕES)
+  // ============================================================
+
+  async function verificarEGerarRecorrentesPorPeriodo(
+    dataInicio,
+    dataFim,
+    gerarFuturos = true,
+  ) {
+    console.log(
+      `🔄 Verificando contas recorrentes para o período: ${dataInicio} a ${dataFim}`,
+    );
+
+    try {
+      // Buscar todas as contas recorrentes ativas
+      const { data: recorrentes, error: recError } = await supabase
+        .from("recurring_transactions")
+        .select("*")
+        .eq("active", true);
+
+      if (recError) {
+        console.error("❌ Erro ao buscar contas recorrentes:", recError);
+        return;
+      }
+
+      if (!recorrentes || recorrentes.length === 0) {
+        console.log("📭 Nenhuma conta recorrente ativa encontrada.");
+        return;
+      }
+
+      console.log(`📋 ${recorrentes.length} contas recorrentes encontradas.`);
+
+      // Para cada conta recorrente, gerar transações faltantes
+      for (const rec of recorrentes) {
+        await gerarTransacoesRecorrentes(
+          rec,
+          dataInicio,
+          dataFim,
+          gerarFuturos,
+        );
+      }
+
+      console.log("✅ Verificação de contas recorrentes concluída.");
+    } catch (e) {
+      console.error("❌ Erro ao verificar contas recorrentes:", e);
+    }
+  }
+
+  async function gerarTransacoesRecorrentes(
+    rec,
+    dataInicio,
+    dataFim,
+    gerarFuturos = true,
+  ) {
+    try {
+      const dataInicioDate = new Date(dataInicio + "T12:00:00");
+      const dataFimDate = new Date(dataFim + "T12:00:00");
+
+      // Se gerarFuturos for true, gerar também para os próximos 12 meses
+      const dataFimGeracao = new Date(dataFimDate);
+      if (gerarFuturos) {
+        dataFimGeracao.setMonth(dataFimGeracao.getMonth() + 12);
+      }
+
+      // Buscar transações existentes para esta recorrência no período (TODAS, incluindo canceladas)
+      const { data: transacoesExistentes, error: existError } = await supabase
+        .from("financial_transactions")
+        .select("id, due_date, status")
+        .eq("recurring_id", rec.id)
+        .gte("due_date", dataInicio)
+        .lte("due_date", dataFimGeracao.toISOString().split("T")[0]);
+
+      if (existError) {
+        console.error(
+          `❌ Erro ao buscar transações existentes para rec ${rec.id}:`,
+          existError,
+        );
+        return;
+      }
+
+      const datasExistentes = new Set();
+      if (transacoesExistentes) {
+        transacoesExistentes.forEach((t) => {
+          datasExistentes.add(t.due_date);
+        });
+      }
+
+      // Buscar categoria
+      let categoriaId = rec.category_id;
+      if (!categoriaId) {
+        const { data: catPadrao } = await supabase
+          .from("chart_of_accounts")
+          .select("id")
+          .eq("type", rec.type === "pagar" ? "despesa" : "receita")
+          .limit(1)
+          .maybeSingle();
+        if (catPadrao) categoriaId = catPadrao.id;
+        else {
+          const { data: novaCat, error: createCatError } = await supabase
+            .from("chart_of_accounts")
+            .insert({
+              code: `9.9.${Date.now()}`,
+              name: `Geral ${rec.type === "pagar" ? "Despesa" : "Receita"}`,
+              type: rec.type === "pagar" ? "despesa" : "receita",
+              active: true,
+            })
+            .select("id")
+            .single();
+          if (createCatError) {
+            console.error("❌ Erro ao criar categoria:", createCatError);
+            return;
+          }
+          categoriaId = novaCat.id;
+        }
+      }
+
+      // Gerar transações para cada mês
+      const transacoesParaInserir = [];
+      let dataAtual = new Date(dataInicioDate);
+
+      while (dataAtual <= dataFimGeracao) {
+        const ano = dataAtual.getFullYear();
+        const mes = dataAtual.getMonth();
+        const ultimoDiaMes = new Date(ano, mes + 1, 0).getDate();
+        let dia = rec.due_day;
+        if (dia > ultimoDiaMes) dia = ultimoDiaMes;
+
+        const dueDate = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+
+        // Verificar se já existe transação para esta data
+        if (!datasExistentes.has(dueDate)) {
+          transacoesParaInserir.push({
+            type: rec.type,
+            amount:
+              rec.type === "pagar"
+                ? -Math.abs(rec.amount)
+                : Math.abs(rec.amount),
+            date: dueDate,
+            due_date: dueDate,
+            status: "pendente",
+            description: rec.description,
+            account_id: categoriaId,
+            category_id: categoriaId,
+            recurring_id: rec.id,
+            notes: `Gerado automaticamente da conta recorrente (dia ${rec.due_day})`,
+            installments: false,
+            total_installments: 1,
+            entry_amount: 0,
+          });
+        }
+
+        // Avançar para o próximo mês
+        dataAtual.setMonth(dataAtual.getMonth() + 1);
+      }
+
+      if (transacoesParaInserir.length > 0) {
+        console.log(
+          `📝 Criando ${transacoesParaInserir.length} transações para recorrência: ${rec.description}`,
+        );
+
+        // Inserir em lotes usando upsert para evitar conflitos
+        const lote = 50;
+        for (let i = 0; i < transacoesParaInserir.length; i += lote) {
+          const loteAtual = transacoesParaInserir.slice(i, i + lote);
+
+          // Usar upsert com ignoreDuplicates para evitar erro 409
+          const { error: insertError } = await supabase
+            .from("financial_transactions")
+            .upsert(loteAtual, {
+              onConflict: "recurring_id, due_date",
+              ignoreDuplicates: true,
+            });
+
+          if (insertError) {
+            console.error(
+              `❌ Erro ao inserir transações recorrentes (lote ${i}):`,
+              insertError,
+            );
+          } else {
+            console.log(
+              `✅ ${loteAtual.length} transações inseridas/atualizadas para recorrência: ${rec.description}`,
+            );
+          }
+        }
+      } else {
+        console.log(
+          `✅ Nenhuma nova transação necessária para: ${rec.description}`,
+        );
+      }
+    } catch (e) {
+      console.error(`❌ Erro ao gerar transações para rec ${rec.id}:`, e);
+    }
+  }
+
+  async function criarTransacoesParaNovaRecorrente(rec) {
+    try {
+      const hoje = new Date();
+      const mesAtual = hoje.getMonth();
+      const anoAtual = hoje.getFullYear();
+
+      // Criar transações desde o mês atual até 12 meses à frente
+      const dataInicio = new Date(anoAtual, mesAtual, 1);
+      const dataFim = new Date(anoAtual, mesAtual + 12, 0);
+
+      const dataInicioStr = dataInicio.toISOString().split("T")[0];
+      const dataFimStr = dataFim.toISOString().split("T")[0];
+
+      console.log(
+        `📝 Criando transações para nova recorrência de ${dataInicioStr} a ${dataFimStr}`,
+      );
+
+      // Buscar categoria
+      let categoriaId = rec.category_id;
+      if (!categoriaId) {
+        const { data: catPadrao } = await supabase
+          .from("chart_of_accounts")
+          .select("id")
+          .eq("type", rec.type === "pagar" ? "despesa" : "receita")
+          .limit(1)
+          .maybeSingle();
+        if (catPadrao) categoriaId = catPadrao.id;
+        else {
+          const { data: novaCat, error: createCatError } = await supabase
+            .from("chart_of_accounts")
+            .insert({
+              code: `9.9.${Date.now()}`,
+              name: `Geral ${rec.type === "pagar" ? "Despesa" : "Receita"}`,
+              type: rec.type === "pagar" ? "despesa" : "receita",
+              active: true,
+            })
+            .select("id")
+            .single();
+          if (createCatError) {
+            console.error("❌ Erro ao criar categoria:", createCatError);
+            return;
+          }
+          categoriaId = novaCat.id;
+        }
+      }
+
+      const transacoesParaInserir = [];
+      let dataAtual = new Date(dataInicio);
+
+      while (dataAtual <= dataFim) {
+        const ano = dataAtual.getFullYear();
+        const mes = dataAtual.getMonth();
+        const ultimoDiaMes = new Date(ano, mes + 1, 0).getDate();
+        let dia = rec.due_day;
+        if (dia > ultimoDiaMes) dia = ultimoDiaMes;
+
+        const dueDate = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+
+        transacoesParaInserir.push({
+          type: rec.type,
+          amount:
+            rec.type === "pagar" ? -Math.abs(rec.amount) : Math.abs(rec.amount),
+          date: dueDate,
+          due_date: dueDate,
+          status: "pendente",
+          description: rec.description,
+          account_id: categoriaId,
+          category_id: categoriaId,
+          recurring_id: rec.id,
+          notes: `Gerado automaticamente da conta recorrente (dia ${rec.due_day})`,
+          installments: false,
+          total_installments: 1,
+          entry_amount: 0,
+        });
+
+        dataAtual.setMonth(dataAtual.getMonth() + 1);
+      }
+
+      if (transacoesParaInserir.length > 0) {
+        // Usar upsert com ignoreDuplicates para evitar conflitos
+        const { error: insertError } = await supabase
+          .from("financial_transactions")
+          .upsert(transacoesParaInserir, {
+            onConflict: "recurring_id, due_date",
+            ignoreDuplicates: true,
+          });
+
+        if (insertError) {
+          console.error(
+            "❌ Erro ao inserir transações para nova recorrência:",
+            insertError,
+          );
+        } else {
+          console.log(
+            `✅ ${transacoesParaInserir.length} transações criadas para nova recorrência: ${rec.description}`,
+          );
+        }
+      }
+    } catch (e) {
+      console.error("❌ Erro ao criar transações para nova recorrência:", e);
+    }
+  }
+
+  // ============================================================
+  // SELETOR DE PERÍODO
+  // ============================================================
+
+  const periodState = {
+    producao: new Date(),
+    financeiro: new Date(),
+    rh: new Date(),
+  };
+
+  function getPeriodDisplay(date) {
+    return date.toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric",
+    });
+  }
+
+  function updatePeriodDisplay(aba) {
+    const display = document.getElementById(
+      `periodDisplay${capitalizeFirst(aba)}`,
+    );
+    if (display) {
+      display.textContent = getPeriodDisplay(periodState[aba]);
+    }
+  }
+
+  function navigatePeriod(aba, direction) {
+    const date = new Date(periodState[aba]);
+    date.setMonth(date.getMonth() + direction);
+    periodState[aba] = date;
+    updatePeriodDisplay(aba);
+
+    // Recarregar dados da aba específica com o novo período
+    if (aba === "producao") {
+      carregarProducaoPeriodo();
+    } else if (aba === "financeiro") {
+      carregarFinanceiroPeriodo();
+    } else if (aba === "rh") {
+      carregarRHPeriodo();
+    }
+  }
+
+  function resetPeriod(aba) {
+    periodState[aba] = new Date();
+    updatePeriodDisplay(aba);
+
+    // Recarregar dados da aba específica com o mês atual
+    if (aba === "producao") {
+      carregarProducaoPeriodo();
+    } else if (aba === "financeiro") {
+      carregarFinanceiroPeriodo();
+    } else if (aba === "rh") {
+      carregarRHPeriodo();
+    }
+  }
+
+  function capitalizeFirst(str) {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
+  // ============================================================
   // MODAL FUNCTIONS
   // ============================================================
   function openModal(title, html) {
     const container = document.getElementById("modalContainer");
     container.innerHTML = `
       <div class="modal-overlay" id="modalOverlay">
-        <div class="modal-sheet">
+        <div class="modal-sheet" id="modalSheet">
           <div class="handle"></div>
           <div class="modal-header">
             <h2><i class="ph ph-user-circle"></i> ${title}</h2>
@@ -834,47 +1259,85 @@
             document.getElementById("modalContainer").innerHTML = "";
           });
       }
+      setupModalDrag();
     }, 50);
   }
 
-  function showFeedback(title, message, type = "info", callback = null) {
-    const html = `
-      <div class="modal-overlay" id="feedbackOverlay">
-        <div class="modal-sheet" style="max-width:400px;">
-          <div class="handle"></div>
-          <div class="modal-header">
-            <h2><i class="ph ph-${type === "success" ? "check-circle" : type === "error" ? "warning-circle" : "info"}"></i> ${title}</h2>
-            <button class="btn-close" id="closeFeedback">
-              <i class="ph ph-x"></i> Fechar
-            </button>
-          </div>
-          <div class="modal-body">
-            <p style="color:var(--text-secondary);font-size:1rem;text-align:center;padding:20px 0;">${message}</p>
-            <div style="display:flex; justify-content:center; padding-top:8px;">
-              <button class="btn-primary" id="feedbackOk" style="background:var(--gold);border:none;color:#fff;padding:8px 20px;border-radius:8px;font-weight:600;cursor:pointer;">OK</button>
-            </div>
-          </div>
-        </div>
-      </div>
+  // ============================================================
+  // DRAG TO CLOSE MODAL (Mobile-first)
+  // ============================================================
+
+  function setupModalDrag() {
+    const modal = document.querySelector(".modal-sheet");
+    if (!modal) return;
+
+    // Remover drag area existente
+    const existingDrag = modal.querySelector(".drag-area");
+    if (existingDrag) existingDrag.remove();
+
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    const dragArea = document.createElement("div");
+    dragArea.className = "drag-area";
+    dragArea.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      cursor: grab;
+      z-index: 10;
     `;
-    const container = document.getElementById("modalContainer");
-    if (!container) return;
-    container.innerHTML = html;
-    const closeModal = () => {
-      container.innerHTML = "";
-      if (typeof callback === "function") callback();
-    };
-    document
-      .getElementById("closeFeedback")
-      ?.addEventListener("click", closeModal);
-    document
-      .getElementById("feedbackOk")
-      ?.addEventListener("click", closeModal);
-    document
-      .getElementById("feedbackOverlay")
-      ?.addEventListener("click", (e) => {
-        if (e.target.id === "feedbackOverlay") closeModal();
-      });
+    modal.style.position = "relative";
+    modal.prepend(dragArea);
+
+    dragArea.addEventListener(
+      "touchstart",
+      function (e) {
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        modal.classList.add("dragging");
+      },
+      { passive: true },
+    );
+
+    dragArea.addEventListener(
+      "touchmove",
+      function (e) {
+        if (!isDragging) return;
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+        if (deltaY > 0) {
+          modal.style.transform = `translateY(${deltaY}px)`;
+          modal.style.opacity = 1 - deltaY / 350;
+          modal.style.transition = "none";
+        }
+      },
+      { passive: true },
+    );
+
+    dragArea.addEventListener(
+      "touchend",
+      function (e) {
+        if (!isDragging) return;
+        isDragging = false;
+        modal.classList.remove("dragging");
+
+        const deltaY = currentY - startY;
+        if (deltaY > 150) {
+          // Fechar modal
+          document.getElementById("modalContainer").innerHTML = "";
+        } else {
+          // Voltar à posição original
+          modal.style.transform = "";
+          modal.style.opacity = "";
+          modal.style.transition = "";
+        }
+      },
+      { passive: true },
+    );
   }
 
   // ============================================================
@@ -883,7 +1346,7 @@
   function openFormModal(title, formHtml, onSubmit, maxWidth = "520px") {
     const html = `
       <div class="modal-overlay" id="formOverlay">
-        <div class="modal-sheet" style="max-width:${maxWidth}; width:95%; max-height:90vh; display:flex; flex-direction:column;">
+        <div class="modal-sheet" id="modalSheet" style="max-width:${maxWidth}; width:95%; max-height:92vh; display:flex; flex-direction:column;">
           <div class="handle"></div>
           <div class="modal-header" style="flex-shrink:0;">
             <h2><i class="ph ph-${getIconForTitle(title)}"></i> ${title}</h2>
@@ -937,6 +1400,8 @@
         }
         closeModal();
       });
+
+    setTimeout(setupModalDrag, 100);
   }
 
   function getIconForTitle(title) {
@@ -956,6 +1421,223 @@
       "Detalhes do Afastamento": "eye",
     };
     return icons[title] || "file";
+  }
+
+  // ============================================================
+  // KEYBOARD AVOIDANCE (Mobile-first)
+  // ============================================================
+
+  function setupKeyboardAvoidance() {
+    const inputs = document.querySelectorAll("input, textarea, select");
+
+    inputs.forEach((input) => {
+      input.addEventListener("focus", function () {
+        setTimeout(() => {
+          const rect = this.getBoundingClientRect();
+          const scrollY = window.scrollY || window.pageYOffset;
+          const targetY = rect.top + scrollY - 80;
+
+          const appContent = document.querySelector(".app-content");
+          if (appContent) {
+            appContent.scrollTo({
+              top: targetY,
+              behavior: "smooth",
+            });
+          }
+        }, 300);
+      });
+    });
+  }
+
+  // ============================================================
+  // SWIPE PARA VOLTAR (Mobile-first)
+  // ============================================================
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isSwiping = false;
+
+  function setupSwipeNavigation() {
+    document.addEventListener(
+      "touchstart",
+      function (e) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        isSwiping = false;
+      },
+      { passive: true },
+    );
+
+    document.addEventListener(
+      "touchmove",
+      function (e) {
+        const deltaX = e.touches[0].clientX - touchStartX;
+        const deltaY = e.touches[0].clientY - touchStartY;
+
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 30) {
+          isSwiping = true;
+        }
+      },
+      { passive: true },
+    );
+
+    document.addEventListener(
+      "touchend",
+      function (e) {
+        if (!isSwiping) return;
+
+        const deltaX = e.changedTouches[0].clientX - touchStartX;
+
+        // Verificar se há modal aberto
+        const modal = document.querySelector(".modal-overlay");
+        if (modal) {
+          if (deltaX > 80) {
+            document.getElementById("modalContainer").innerHTML = "";
+          }
+          isSwiping = false;
+          return;
+        }
+
+        // Voltar aba anterior (swipe da esquerda para direita)
+        if (deltaX > 80) {
+          const tabs = ["geral", "producao", "financeiro", "rh", "dividas"];
+          const currentIndex = tabs.indexOf(abaAtual);
+          if (currentIndex > 0) {
+            mostrarAba(tabs[currentIndex - 1]);
+          }
+        }
+
+        // Avançar aba (swipe da direita para esquerda)
+        if (deltaX < -80) {
+          const tabs = ["geral", "producao", "financeiro", "rh", "dividas"];
+          const currentIndex = tabs.indexOf(abaAtual);
+          if (currentIndex < tabs.length - 1) {
+            mostrarAba(tabs[currentIndex + 1]);
+          }
+        }
+
+        isSwiping = false;
+      },
+      { passive: true },
+    );
+  }
+
+  // ============================================================
+  // MENU DE AÇÕES MOBILE (Toggle com backdrop)
+  // ============================================================
+
+  window.toggleMenu = function (menuId) {
+    const menu = document.getElementById(menuId);
+    if (!menu) return;
+
+    // Fechar outros menus
+    document.querySelectorAll(".dropdown-actions-menu").forEach((m) => {
+      if (m.id !== menuId) m.style.display = "none";
+    });
+
+    // Remover backdrops existentes
+    document.querySelectorAll(".menu-backdrop").forEach((b) => b.remove());
+
+    const isOpen = menu.style.display === "block";
+
+    if (isOpen) {
+      menu.style.display = "none";
+    } else {
+      menu.style.display = "block";
+
+      // Adicionar backdrop para fechar ao tocar fora
+      const backdrop = document.createElement("div");
+      backdrop.className = "menu-backdrop";
+      backdrop.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 199;
+        background: rgba(0,0,0,0.4);
+        animation: fadeInOverlay 0.2s ease;
+      `;
+      backdrop.addEventListener("click", function () {
+        menu.style.display = "none";
+        this.remove();
+      });
+      document.body.appendChild(backdrop);
+    }
+  };
+
+  // ============================================================
+  // CONFIGURAR SELETORES DE PERÍODO
+  // ============================================================
+
+  function setupPeriodSelectors() {
+    // Produção
+    const periodNavsProd = document.querySelectorAll(
+      "#periodSelectorProducao .period-nav",
+    );
+    periodNavsProd.forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const direction = parseInt(this.dataset.direction === "prev" ? -1 : 1);
+        navigatePeriod("producao", direction);
+      });
+    });
+    const todayBtnProd = document.querySelector(
+      "#periodSelectorProducao .period-today",
+    );
+    if (todayBtnProd) {
+      todayBtnProd.addEventListener("click", function (e) {
+        e.stopPropagation();
+        resetPeriod("producao");
+      });
+    }
+
+    // Financeiro
+    const periodNavsFin = document.querySelectorAll(
+      "#periodSelectorFinanceiro .period-nav",
+    );
+    periodNavsFin.forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const direction = parseInt(this.dataset.direction === "prev" ? -1 : 1);
+        navigatePeriod("financeiro", direction);
+      });
+    });
+    const todayBtnFin = document.querySelector(
+      "#periodSelectorFinanceiro .period-today",
+    );
+    if (todayBtnFin) {
+      todayBtnFin.addEventListener("click", function (e) {
+        e.stopPropagation();
+        resetPeriod("financeiro");
+      });
+    }
+
+    // RH
+    const periodNavsRH = document.querySelectorAll(
+      "#periodSelectorRH .period-nav",
+    );
+    periodNavsRH.forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const direction = parseInt(this.dataset.direction === "prev" ? -1 : 1);
+        navigatePeriod("rh", direction);
+      });
+    });
+    const todayBtnRH = document.querySelector(
+      "#periodSelectorRH .period-today",
+    );
+    if (todayBtnRH) {
+      todayBtnRH.addEventListener("click", function (e) {
+        e.stopPropagation();
+        resetPeriod("rh");
+      });
+    }
+
+    // Inicializar displays
+    updatePeriodDisplay("producao");
+    updatePeriodDisplay("financeiro");
+    updatePeriodDisplay("rh");
   }
 
   // ============================================================
@@ -1175,12 +1857,345 @@
   }
 
   // ============================================================
+  // CARREGAR DADOS INICIAIS (DADOS QUE NÃO DEPENDEM DE PERÍODO)
+  // ============================================================
+  async function carregarDadosIniciais() {
+    console.log("🔄 Carregando dados iniciais do Supabase...");
+    if (carregando) return;
+    carregando = true;
+    refreshIcon.className = "ph ph-spinner spinning";
+
+    try {
+      // Carregar funcionários (não depende de período)
+      const { data: funcionarios, error: errFunc } = await supabase
+        .from("employees")
+        .select("*")
+        .eq("active", true)
+        .order("full_name");
+      if (errFunc) console.error("❌ Erro funcionários:", errFunc);
+
+      // Carregar dívidas (não depende de período)
+      const { data: dividas, error: errDiv } = await supabase
+        .from("debts")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (errDiv) console.error("❌ Erro dívidas:", errDiv);
+
+      let totalDividas = 0,
+        totalPago = 0;
+      for (const d of dividas || []) {
+        totalDividas += parseFloat(d.total_amount) || 0;
+        totalPago += parseFloat(d.paid_amount) || 0;
+      }
+      const saldoDevedor = totalDividas - totalPago;
+
+      // Armazenar dados que não dependem de período
+      dados.funcionarios = funcionarios || [];
+      dados.dividas = dividas || [];
+      dados.totalDividas = totalDividas || 0;
+      dados.saldoDevedor = saldoDevedor || 0;
+
+      // Carregar dados do período atual para cada aba
+      await carregarProducaoPeriodo();
+      await carregarFinanceiroPeriodo();
+      await carregarRHPeriodo();
+
+      console.log("✅ Dados iniciais carregados!");
+    } catch (e) {
+      console.error("❌ Erro ao carregar dados iniciais:", e);
+      showToast("Erro", "Falha ao carregar dados do Supabase.", "error");
+    } finally {
+      carregando = false;
+      refreshIcon.className = "ph ph-arrows-clockwise";
+      pullIndicator.classList.remove("active");
+    }
+  }
+
+  // ============================================================
+  // CARREGAR PRODUÇÃO POR PERÍODO
+  // ============================================================
+  async function carregarProducaoPeriodo() {
+    try {
+      const periodo = periodState.producao;
+      const mesRange = getMonthRangeForDate(periodo);
+
+      console.log(
+        `📊 Carregando produção para: ${mesRange.mes}/${mesRange.ano}`,
+      );
+
+      // Buscar OS do período
+      let queryOS = supabase
+        .from("service_orders")
+        .select(
+          `
+          id, order_number, product_description, product_reference,
+          total_quantity, unit_price, status, payment_status, payment_date, payment_method,
+          expected_delivery, received_date, notes, updated_at,
+          customers(company_name, trade_name)
+        `,
+        )
+        .or(
+          `received_date.gte.${mesRange.inicio},received_date.lte.${mesRange.fim},expected_delivery.gte.${mesRange.inicio},expected_delivery.lte.${mesRange.fim}`,
+        )
+        .order("created_at", { ascending: false });
+
+      const { data: todasOS, error: errOs } = await queryOS;
+      if (errOs) {
+        console.error("❌ Erro ao buscar OS:", errOs);
+        return;
+      }
+
+      const osAtivas = (todasOS || []).filter(
+        (o) => !["cancelado"].includes(o.status),
+      );
+
+      // Buscar progresso das OS
+      const osIds = osAtivas.map((o) => o.id);
+      let progressoMap = {};
+      if (osIds.length > 0) {
+        const { data: items } = await supabase
+          .from("service_order_items")
+          .select(
+            "service_order_id, quantity, sewn_quantity, delivered_quantity",
+          )
+          .in("service_order_id", osIds);
+        if (items) {
+          items.forEach((item) => {
+            if (!progressoMap[item.service_order_id]) {
+              progressoMap[item.service_order_id] = {
+                total: 0,
+                costurado: 0,
+                entregue: 0,
+              };
+            }
+            progressoMap[item.service_order_id].total += item.quantity;
+            progressoMap[item.service_order_id].costurado +=
+              item.sewn_quantity || 0;
+            progressoMap[item.service_order_id].entregue +=
+              item.delivered_quantity || 0;
+          });
+        }
+      }
+
+      dados.osAtivas = osAtivas || [];
+      dados.progressoMap = progressoMap || {};
+      dados.emCostura = osAtivas.filter(
+        (o) => o.status === "em_costura",
+      ).length;
+      dados.costurados = osAtivas.filter(
+        (o) => o.status === "costurado",
+      ).length;
+
+      // Renderizar produção
+      renderizarProducao(dados);
+      console.log(`✅ Produção carregada: ${osAtivas.length} OS`);
+    } catch (e) {
+      console.error("❌ Erro ao carregar produção:", e);
+      showToast("Erro", "Falha ao carregar dados de produção.", "error");
+    }
+  }
+
+  // ============================================================
+  // CARREGAR FINANCEIRO POR PERÍODO (COM GERAÇÃO DE RECORRENTES)
+  // ============================================================
+  async function carregarFinanceiroPeriodo() {
+    try {
+      const periodo = periodState.financeiro;
+      const mesRange = getMonthRangeForDate(periodo);
+
+      console.log(
+        `💰 Carregando financeiro para: ${mesRange.mes}/${mesRange.ano}`,
+      );
+
+      // ========== VERIFICAR E GERAR CONTAS RECORRENTES ==========
+      // Sempre gerar transações futuras quando carregar o financeiro
+      await verificarEGerarRecorrentesPorPeriodo(
+        mesRange.inicio,
+        mesRange.fim,
+        true, // gerarFuturos = true
+      );
+
+      // Buscar transações avulsas do período
+      let queryAvulsas = supabase
+        .from("financial_transactions")
+        .select(
+          `
+          id, description, amount, due_date, date, status, type,
+          payment_method, account_id, category_id,
+          installments, total_installments, entry_amount, notes,
+          chart_of_accounts(id, code, name, type)
+        `,
+        )
+        .or("installments.is.null,installments.eq.false")
+        .gte("due_date", mesRange.inicio)
+        .lte("due_date", mesRange.fim)
+        .neq("status", "cancelado");
+
+      const { data: avulsas, error: errAvulsas } = await queryAvulsas;
+      if (errAvulsas) console.error("❌ Erro avulsas:", errAvulsas);
+
+      // Buscar parcelas do período
+      const { data: parcelasPeriodo, error: errParc } = await supabase
+        .from("financial_installments")
+        .select(
+          "transaction_id, id, numero_parcela, valor, vencimento, status, payment_date, interest_paid, late_fee_paid",
+        )
+        .gte("vencimento", mesRange.inicio)
+        .lte("vencimento", mesRange.fim)
+        .order("vencimento", { ascending: true });
+      if (errParc) console.error("❌ Erro parcelas:", errParc);
+
+      // Buscar transações das parcelas
+      const idsTransacoes = [
+        ...new Set(
+          parcelasPeriodo?.map((p) => p.transaction_id).filter((id) => id) ||
+            [],
+        ),
+      ];
+
+      let transacoesParceladas = [];
+      if (idsTransacoes.length > 0) {
+        let queryParceladas = supabase
+          .from("financial_transactions")
+          .select(
+            `
+            id, description, amount, due_date, date, status, type,
+            payment_method, account_id, category_id,
+            installments, total_installments, entry_amount, notes,
+            chart_of_accounts(id, code, name, type)
+          `,
+          )
+          .in("id", idsTransacoes)
+          .eq("installments", true)
+          .neq("status", "cancelado");
+
+        const { data: parceladas, error: errParceladas } =
+          await queryParceladas;
+        if (errParceladas) console.error("❌ Erro parceladas:", errParceladas);
+        transacoesParceladas = parceladas || [];
+      }
+
+      // Montar transações com parcelas
+      const transacoesComParcelas = [];
+
+      for (const t of avulsas || []) {
+        transacoesComParcelas.push({
+          ...t,
+          financial_installments: [],
+        });
+      }
+
+      for (const t of transacoesParceladas) {
+        const parcelasDaTransacao =
+          parcelasPeriodo?.filter((p) => p.transaction_id === t.id) || [];
+        transacoesComParcelas.push({
+          ...t,
+          financial_installments: parcelasDaTransacao,
+        });
+      }
+
+      const eventosFinanceiros = gerarEventosFinanceiros(transacoesComParcelas);
+
+      let totalReceitas = 0,
+        totalDespesas = 0;
+      let totalPagar = 0,
+        totalReceber = 0;
+      let contasVencidas = 0;
+
+      for (const e of eventosFinanceiros) {
+        if (e.tipo === "receber") {
+          totalReceitas += e.valor;
+          if (e.status === "pendente" || e.status === "atrasado") {
+            totalReceber += e.valor;
+          }
+        } else {
+          totalDespesas += e.valor;
+          if (e.status === "pendente" || e.status === "atrasado") {
+            totalPagar += e.valor;
+          }
+        }
+
+        if (e.status === "pendente" && new Date(e.vencimento) < new Date()) {
+          contasVencidas++;
+        }
+      }
+
+      dados.eventosFinanceiros = eventosFinanceiros || [];
+      dados.totalReceitas = totalReceitas || 0;
+      dados.totalDespesas = totalDespesas || 0;
+      dados.totalPagar = totalPagar || 0;
+      dados.totalReceber = totalReceber || 0;
+      dados.contasVencidas = contasVencidas || 0;
+
+      // Renderizar financeiro
+      renderizarFinanceiro(dados);
+      console.log(
+        `✅ Financeiro carregado: ${eventosFinanceiros.length} eventos`,
+      );
+    } catch (e) {
+      console.error("❌ Erro ao carregar financeiro:", e);
+      showToast("Erro", "Falha ao carregar dados financeiros.", "error");
+    }
+  }
+
+  // ============================================================
+  // CARREGAR RH POR PERÍODO
+  // ============================================================
+  async function carregarRHPeriodo() {
+    try {
+      const periodo = periodState.rh;
+      const mesRange = getMonthRangeForDate(periodo);
+      const hoje = todayISO();
+
+      console.log(`👤 Carregando RH para: ${mesRange.mes}/${mesRange.ano}`);
+
+      // Buscar férias do período
+      const { data: ferias, error: errFer } = await supabase
+        .from("employee_vacations")
+        .select(
+          "*, employees(full_name, role, photo_url, phone_cell, email_personal)",
+        )
+        .eq("status", "agendada")
+        .lte("start_date", mesRange.fim)
+        .gte("end_date", mesRange.inicio)
+        .order("start_date", { ascending: true });
+      if (errFer) console.error("❌ Erro férias:", errFer);
+
+      // Buscar afastamentos do período
+      const { data: afastamentos, error: errAbs } = await supabase
+        .from("absences")
+        .select(
+          `
+          *,
+          employees(full_name, role, photo_url, phone_cell, email_personal)
+        `,
+        )
+        .lte("start_date", mesRange.fim)
+        .gte("end_date", mesRange.inicio)
+        .order("start_date", { ascending: false });
+      if (errAbs) console.error("❌ Erro afastamentos:", errAbs);
+
+      dados.ferias = ferias || [];
+      dados.afastamentos = afastamentos || [];
+
+      // Renderizar RH
+      renderizarRH(dados);
+      console.log(
+        `✅ RH carregado: ${ferias.length} férias, ${afastamentos.length} afastamentos`,
+      );
+    } catch (e) {
+      console.error("❌ Erro ao carregar RH:", e);
+      showToast("Erro", "Falha ao carregar dados de RH.", "error");
+    }
+  }
+
+  // ============================================================
   // FUNÇÃO PARA ABRIR MODAL COM DETALHES COMPLETOS DA CONTA (INCLUINDO PARCELAS)
   // ============================================================
   window.abrirModalConta = async function (id) {
     const evento = dados.eventosFinanceiros?.find((e) => e.id === id);
     if (!evento) {
-      showFeedback("Erro", "Conta não encontrada.", "error");
+      showToast("Erro", "Conta não encontrada.", "error");
       return;
     }
 
@@ -1370,7 +2385,7 @@
       .eq("id", id)
       .single();
     if (error || !lote) {
-      showFeedback("Erro", "Lote não encontrado.", "error");
+      showToast("Erro", "Lote não encontrado.", "error");
       return;
     }
     const { data: items } = await supabase
@@ -1606,7 +2621,7 @@
       .eq("id", id)
       .single();
     if (error || !os) {
-      showFeedback("Erro", "OS não encontrada.", "error");
+      showToast("Erro", "OS não encontrada.", "error");
       return;
     }
     const { data: items } = await supabase
@@ -1615,7 +2630,7 @@
       .eq("service_order_id", id)
       .order("size");
     if (!items || items.length === 0) {
-      showFeedback(
+      showToast(
         "Erro",
         "Esta OS não possui grade de tamanhos cadastrada.",
         "error",
@@ -1729,7 +2744,7 @@
           }
         });
         if (totalCosturadoAgora === 0) {
-          showFeedback(
+          showToast(
             "Aviso",
             "Informe pelo menos uma quantidade costurada.",
             "warning",
@@ -1738,7 +2753,7 @@
         }
         const loginResult = await abrirModalLogin("registrar costura parcial");
         if (!loginResult.success) {
-          showFeedback(
+          showToast(
             "Ação cancelada",
             "Você precisa estar autenticado.",
             "warning",
@@ -1798,12 +2813,12 @@
               .getElementById("depoisCostura")
               ?.addEventListener("click", () => {
                 document.getElementById("modalContainer").innerHTML = "";
-                showFeedback(
+                showToast(
                   "Sucesso",
                   "Costura registrada com sucesso!",
                   "success",
-                  () => carregarDados(),
                 );
+                setTimeout(() => carregarProducaoPeriodo(), 500);
               });
             document
               .getElementById("concluirCosturaAgora")
@@ -1813,24 +2828,24 @@
                   .update({ status: "costurado" })
                   .eq("id", id);
                 document.getElementById("modalContainer").innerHTML = "";
-                showFeedback(
+                showToast(
                   "Sucesso",
                   "Costura registrada e lote marcado como Costurado!",
                   "success",
-                  () => carregarDados(),
                 );
+                setTimeout(() => carregarProducaoPeriodo(), 500);
               });
           } else {
-            showFeedback(
+            showToast(
               "Sucesso",
               `${totalCosturadoAgora} peça(s) registrada(s)! Total costurado: ${totalCosturado}/${os.total_quantity}`,
               "success",
-              () => carregarDados(),
             );
+            setTimeout(() => carregarProducaoPeriodo(), 500);
           }
         } catch (error) {
           console.error("Erro ao registrar costura:", error);
-          showFeedback("Erro", "Falha ao registrar costura.", "error");
+          showToast("Erro", "Falha ao registrar costura.", "error");
         }
       });
   };
@@ -1923,7 +2938,7 @@
             !recebimento ||
             !prazo
           ) {
-            showFeedback(
+            showToast(
               "Erro",
               "Preencha todos os campos obrigatórios.",
               "error",
@@ -1932,7 +2947,7 @@
           }
           const loginResult = await abrirModalLogin("cadastrar novo lote");
           if (!loginResult.success) {
-            showFeedback(
+            showToast(
               "Ação cancelada",
               "Você precisa estar autenticado para esta ação.",
               "warning",
@@ -1961,7 +2976,7 @@
               if (novoCliente) clienteId = novoCliente.id;
             }
             if (!clienteId) {
-              showFeedback(
+              showToast(
                 "Erro",
                 "Não foi possível identificar o cliente.",
                 "error",
@@ -1990,7 +3005,7 @@
               .single();
             if (error) {
               console.error("❌ Erro ao criar OS:", error);
-              showFeedback(
+              showToast(
                 "Erro",
                 "Falha ao criar lote: " + error.message,
                 "error",
@@ -2014,19 +3029,15 @@
               "recebido",
             );
             document.getElementById("modalContainer").innerHTML = "";
-            showFeedback(
+            showToast(
               "Sucesso",
-              `Lote ${orderNumber} criado com referência ${referencia}!<br>💰 Conta a receber gerada com vencimento em ${formatDate(prazo)}.`,
+              `Lote ${orderNumber} criado com referência ${referencia}! 💰 Conta a receber gerada com vencimento em ${formatDate(prazo)}.`,
               "success",
-              () => carregarDados(),
             );
+            setTimeout(() => carregarProducaoPeriodo(), 500);
           } catch (error) {
             console.error("Erro ao criar lote:", error);
-            showFeedback(
-              "Erro",
-              "Falha ao criar lote: " + error.message,
-              "error",
-            );
+            showToast("Erro", "Falha ao criar lote: " + error.message, "error");
           }
         });
     });
@@ -2034,11 +3045,7 @@
   window.iniciarCosturaLote = async function (id, orderNumber) {
     const loginResult = await abrirModalLogin("iniciar costura");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showToast("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
     try {
@@ -2052,26 +3059,18 @@
       if (error) throw error;
       const card = document.querySelector(`.list-item[data-id="${id}"]`);
       if (card) pulseElement(card);
-      showFeedback(
-        "Sucesso",
-        `🧵 Lote ${orderNumber} em costura! (por ${loginResult.usuario.email})`,
-        "success",
-        () => carregarDados(),
-      );
+      showToast("Sucesso", `🧵 Lote ${orderNumber} em costura!`, "success");
+      setTimeout(() => carregarProducaoPeriodo(), 500);
     } catch (error) {
       console.error("Erro ao iniciar costura:", error);
-      showFeedback("Erro", "Falha ao iniciar costura.", "error");
+      showToast("Erro", "Falha ao iniciar costura.", "error");
     }
   };
 
   window.finalizarCosturaLote = async function (id, orderNumber) {
     const loginResult = await abrirModalLogin("finalizar costura");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showToast("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
     try {
@@ -2082,26 +3081,22 @@
       if (error) throw error;
       const card = document.querySelector(`.list-item[data-id="${id}"]`);
       if (card) pulseElement(card);
-      showFeedback(
+      showToast(
         "Sucesso",
         `✅ Lote ${orderNumber} costurado! Aguardando entrega.`,
         "success",
-        () => carregarDados(),
       );
+      setTimeout(() => carregarProducaoPeriodo(), 500);
     } catch (error) {
       console.error("Erro ao finalizar costura:", error);
-      showFeedback("Erro", "Falha ao finalizar costura.", "error");
+      showToast("Erro", "Falha ao finalizar costura.", "error");
     }
   };
 
   window.marcarEntregue = async function (id, orderNumber) {
     const loginResult = await abrirModalLogin("marcar lote como entregue");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showToast("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
     try {
@@ -2111,7 +3106,7 @@
         .eq("id", id)
         .single();
       if (!lote) {
-        showFeedback("Erro", "Lote não encontrado.", "error");
+        showToast("Erro", "Lote não encontrado.", "error");
         return;
       }
       const valorTotal = lote.total_quantity * lote.unit_price;
@@ -2137,26 +3132,25 @@
       );
       const card = document.querySelector(`.list-item[data-id="${id}"]`);
       if (card) pulseElement(card);
-      showFeedback(
+      showToast(
         "Sucesso",
-        `📦 Lote ${orderNumber} entregue!<br>💰 Conta a receber gerada com vencimento em ${formatDate(lote.expected_delivery)}.`,
+        `📦 Lote ${orderNumber} entregue! 💰 Conta a receber gerada com vencimento em ${formatDate(lote.expected_delivery)}.`,
         "success",
-        () => carregarDados(),
       );
+      setTimeout(() => {
+        carregarProducaoPeriodo();
+        carregarFinanceiroPeriodo();
+      }, 500);
     } catch (error) {
       console.error("Erro ao marcar como entregue:", error);
-      showFeedback("Erro", "Falha ao marcar lote como entregue.", "error");
+      showToast("Erro", "Falha ao marcar lote como entregue.", "error");
     }
   };
 
   window.marcarPago = async function (id, orderNumber) {
     const loginResult = await abrirModalLogin("marcar lote como pago");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showToast("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
     try {
@@ -2173,15 +3167,18 @@
       await atualizarContaReceber(id, "pago", dataPag, null);
       const card = document.querySelector(`.list-item[data-id="${id}"]`);
       if (card) pulseElement(card);
-      showFeedback(
+      showToast(
         "Sucesso",
         `💳 Lote ${orderNumber} marcado como pago!`,
         "success",
-        () => carregarDados(),
       );
+      setTimeout(() => {
+        carregarProducaoPeriodo();
+        carregarFinanceiroPeriodo();
+      }, 500);
     } catch (error) {
       console.error("Erro ao marcar como pago:", error);
-      showFeedback("Erro", "Falha ao marcar lote como pago.", "error");
+      showToast("Erro", "Falha ao marcar lote como pago.", "error");
     }
   };
 
@@ -2224,11 +3221,7 @@
     if (!confirm(`Cancelar o lote ${orderNumber}?`)) return;
     const loginResult = await abrirModalLogin("cancelar lote");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showToast("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
     try {
@@ -2252,15 +3245,14 @@
       if (error) throw error;
       const card = document.querySelector(`.list-item[data-id="${id}"]`);
       if (card) pulseElement(card);
-      showFeedback(
-        "Sucesso",
-        `❌ Lote ${orderNumber} cancelado.`,
-        "success",
-        () => carregarDados(),
-      );
+      showToast("Sucesso", `❌ Lote ${orderNumber} cancelado.`, "success");
+      setTimeout(() => {
+        carregarProducaoPeriodo();
+        carregarFinanceiroPeriodo();
+      }, 500);
     } catch (error) {
       console.error("Erro ao cancelar lote:", error);
-      showFeedback("Erro", "Falha ao cancelar lote.", "error");
+      showToast("Erro", "Falha ao cancelar lote.", "error");
     }
   };
 
@@ -2360,7 +3352,7 @@
           const loginResult = await abrirModalLogin("excluir lote");
           if (!loginResult.success) {
             document.getElementById("modalContainer").innerHTML = "";
-            showFeedback(
+            showToast(
               "Ação cancelada",
               "Você precisa estar autenticado.",
               "warning",
@@ -2409,31 +3401,16 @@
               .eq("id", id);
             if (error) throw error;
             document.getElementById("modalContainer").innerHTML = "";
-            const htmlSucesso = `
-            <div style="text-align: center; padding: 20px 0;">
-              <div style="font-size: 3rem; margin-bottom: 12px;">✅</div>
-              <h3 style="color: var(--success);">Lote Excluído!</h3>
-              <p style="color: var(--gray);">
-                ${orderNumber} foi removido com sucesso.
-              </p>
-              ${conta ? `<p style="color: var(--gray-dark); font-size: 0.8rem;">Conta a receber removida.</p>` : ""}
-              <button class="btn btn-primary" id="btnOkSucesso" style="margin-top: 12px; width: 100%;">
-                <i class="ph ph-check-circle"></i> OK
-              </button>
-            </div>
-          `;
-            openModal("✅ Sucesso", htmlSucesso);
-            document
-              .getElementById("btnOkSucesso")
-              ?.addEventListener("click", () => {
-                document.getElementById("modalContainer").innerHTML = "";
-                carregarDados();
-              });
-            setTimeout(() => carregarDados(), 500);
+            showToast(
+              "Sucesso",
+              `Lote ${orderNumber} excluído com sucesso!`,
+              "success",
+            );
+            setTimeout(() => carregarProducaoPeriodo(), 500);
           } catch (error) {
             console.error("Erro ao excluir lote:", error);
             document.getElementById("modalContainer").innerHTML = "";
-            showFeedback(
+            showToast(
               "Erro",
               "Falha ao excluir lote: " + error.message,
               "error",
@@ -2442,7 +3419,7 @@
         });
     } catch (error) {
       console.error("Erro ao excluir lote:", error);
-      showFeedback("Erro", "Falha ao excluir lote.", "error");
+      showToast("Erro", "Falha ao excluir lote.", "error");
     }
   };
 
@@ -2453,16 +3430,12 @@
       .eq("id", id)
       .single();
     if (fetchError || !lote) {
-      showFeedback("Erro", "Lote não encontrado.", "error");
+      showToast("Erro", "Lote não encontrado.", "error");
       return;
     }
     const loginResult = await abrirModalLogin("editar lote");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showToast("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
     const nomeCliente =
@@ -2596,11 +3569,7 @@
           !recebimento ||
           !prazo
         ) {
-          showFeedback(
-            "Erro",
-            "Preencha todos os campos obrigatórios.",
-            "error",
-          );
+          showToast("Erro", "Preencha todos os campos obrigatórios.", "error");
           return;
         }
         const total = qtd * preco;
@@ -2638,44 +3607,27 @@
           document.getElementById("modalContainer").innerHTML = "";
           const card = document.querySelector(`.list-item[data-id="${id}"]`);
           if (card) pulseElement(card);
-          showFeedback(
+          showToast(
             "Sucesso",
             `✅ Lote ${lote.order_number} atualizado!`,
             "success",
-            () => carregarDados(),
           );
+          setTimeout(() => {
+            carregarProducaoPeriodo();
+            carregarFinanceiroPeriodo();
+          }, 500);
         } catch (error) {
           console.error("Erro ao editar lote:", error);
-          showFeedback(
-            "Erro",
-            "Falha ao editar lote: " + error.message,
-            "error",
-          );
+          showToast("Erro", "Falha ao editar lote: " + error.message, "error");
         }
       });
-  };
-
-  window.toggleMenu = function (menuId) {
-    const menu = document.getElementById(menuId);
-    if (!menu) return;
-    document.querySelectorAll(".dropdown-actions-menu").forEach((m) => {
-      if (m.id !== menuId) {
-        m.style.display = "none";
-      }
-    });
-    const isOpen = menu.style.display === "block";
-    menu.style.display = isOpen ? "none" : "block";
   };
 
   window.enviarRevisao = async function (id, orderNumber) {
     if (!confirm(`Enviar o lote ${orderNumber} para revisão?`)) return;
     const loginResult = await abrirModalLogin("enviar para revisão");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showToast("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
     try {
@@ -2684,15 +3636,15 @@
         .update({ status: "em_revisao" })
         .eq("id", id);
       if (error) throw error;
-      showFeedback(
+      showToast(
         "Sucesso",
         `🔍 Lote ${orderNumber} enviado para revisão.`,
         "success",
-        () => carregarDados(),
       );
+      setTimeout(() => carregarProducaoPeriodo(), 500);
     } catch (error) {
       console.error("Erro ao enviar para revisão:", error);
-      showFeedback("Erro", "Falha ao enviar para revisão.", "error");
+      showToast("Erro", "Falha ao enviar para revisão.", "error");
     }
   };
 
@@ -2700,11 +3652,7 @@
     if (!confirm(`Retornar o lote ${orderNumber} para costura?`)) return;
     const loginResult = await abrirModalLogin("voltar para costura");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showToast("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
     try {
@@ -2713,15 +3661,15 @@
         .update({ status: "em_costura" })
         .eq("id", id);
       if (error) throw error;
-      showFeedback(
+      showToast(
         "Sucesso",
         `🔄 Lote ${orderNumber} voltou para costura.`,
         "success",
-        () => carregarDados(),
       );
+      setTimeout(() => carregarProducaoPeriodo(), 500);
     } catch (error) {
       console.error("Erro ao voltar para costura:", error);
-      showFeedback("Erro", "Falha ao voltar para costura.", "error");
+      showToast("Erro", "Falha ao voltar para costura.", "error");
     }
   };
 
@@ -3074,7 +4022,7 @@
         .eq("id", transactionId)
         .single();
       if (transError || !transacao) {
-        showFeedback("Erro", "Transação não encontrada.", "error");
+        showToast("Erro", "Transação não encontrada.", "error");
         return;
       }
       const parcelas = transacao.financial_installments || [];
@@ -3088,7 +4036,7 @@
       const anoAtual = hoje.getFullYear();
       const parcelasPendentes = parcelas.filter((p) => p.status !== "pago");
       if (parcelasPendentes.length === 0) {
-        showFeedback("Aviso", "Todas as parcelas já foram pagas.", "info");
+        showToast("Aviso", "Todas as parcelas já foram pagas.", "info");
         return;
       }
       const totalPendente = parcelasPendentes.reduce(
@@ -3141,7 +4089,7 @@
         .join("");
       const loginResult = await abrirModalLogin("baixar parcelas");
       if (!loginResult.success) {
-        showFeedback(
+        showToast(
           "Ação cancelada",
           "Você precisa estar autenticado.",
           "warning",
@@ -3262,11 +4210,7 @@
         ?.addEventListener("click", async function () {
           const checks = document.querySelectorAll(".parcela-checkbox:checked");
           if (checks.length === 0) {
-            showFeedback(
-              "Aviso",
-              "Selecione pelo menos uma parcela.",
-              "warning",
-            );
+            showToast("Aviso", "Selecione pelo menos uma parcela.", "warning");
             return;
           }
           const totalSelecionado = Array.from(checks).reduce(
@@ -3361,23 +4305,23 @@
                   .eq("id", transactionId);
                 document.getElementById("modalContainer").innerHTML = "";
                 if (erros === 0) {
-                  showFeedback(
+                  showToast(
                     "Sucesso",
                     `${sucessos} parcela(s) baixada(s) com sucesso!`,
                     "success",
-                    () => carregarDados(),
                   );
+                  setTimeout(() => carregarFinanceiroPeriodo(), 500);
                 } else {
-                  showFeedback(
+                  showToast(
                     "Aviso",
                     `${sucessos} parcela(s) baixada(s), ${erros} erro(s).`,
                     "warning",
-                    () => carregarDados(),
                   );
+                  setTimeout(() => carregarFinanceiroPeriodo(), 500);
                 }
               } catch (error) {
                 console.error("Erro ao baixar parcelas:", error);
-                showFeedback("Erro", "Falha ao baixar parcelas.", "error");
+                showToast("Erro", "Falha ao baixar parcelas.", "error");
                 document.getElementById("modalContainer").innerHTML = "";
               }
             });
@@ -3391,7 +4335,7 @@
         });
     } catch (error) {
       console.error("Erro ao abrir baixa de parcelas:", error);
-      showFeedback("Erro", "Falha ao carregar parcelas.", "error");
+      showToast("Erro", "Falha ao carregar parcelas.", "error");
     }
   };
 
@@ -3421,7 +4365,7 @@
         .eq("id", transactionId)
         .single();
       if (lancError || !lancamento) {
-        showFeedback("Erro", "Lançamento não encontrado.", "error");
+        showToast("Erro", "Lançamento não encontrado.", "error");
         return;
       }
       const valor = Math.abs(lancamento.amount);
@@ -3482,7 +4426,7 @@
           const loginResult = await abrirModalLogin("baixar lançamento");
           if (!loginResult.success) {
             document.getElementById("modalContainer").innerHTML = "";
-            showFeedback(
+            showToast(
               "Ação cancelada",
               "Você precisa estar autenticado.",
               "warning",
@@ -3500,16 +4444,12 @@
               .eq("id", transactionId);
             if (error) throw error;
             document.getElementById("modalContainer").innerHTML = "";
-            showFeedback(
-              "Sucesso",
-              "Lançamento baixado com sucesso!",
-              "success",
-              () => carregarDados(),
-            );
+            showToast("Sucesso", "Lançamento baixado com sucesso!", "success");
+            setTimeout(() => carregarFinanceiroPeriodo(), 500);
           } catch (error) {
             console.error("Erro ao baixar lançamento:", error);
             document.getElementById("modalContainer").innerHTML = "";
-            showFeedback("Erro", "Falha ao baixar lançamento.", "error");
+            showToast("Erro", "Falha ao baixar lançamento.", "error");
           }
         });
       document
@@ -3521,7 +4461,7 @@
         });
     } catch (error) {
       console.error("Erro ao baixar lançamento:", error);
-      showFeedback("Erro", "Falha ao baixar lançamento.", "error");
+      showToast("Erro", "Falha ao baixar lançamento.", "error");
     }
   };
 
@@ -3549,7 +4489,7 @@
   }
 
   // ============================================================
-  // RENDERIZAR - ABA FINANCEIRO (VISÃO PREMIUM EM CARDS + CALENDÁRIO)
+  // RENDERIZAR - ABA FINANCEIRO
   // ============================================================
   function renderizarFinanceiro(dados) {
     const { eventosFinanceiros, totalPagar, totalReceber } = dados;
@@ -4230,11 +5170,11 @@
       .single();
 
     if (!t) {
-      showFeedback("Erro", "Lançamento não encontrado.", "error");
+      showToast("Erro", "Lançamento não encontrado.", "error");
       return;
     }
 
-    showFeedback(
+    showToast(
       "Info",
       "Edição de lançamento em desenvolvimento. Use o sistema web para editar.",
       "info",
@@ -4244,11 +5184,7 @@
   window.excluirLancamento = async function (transactionId) {
     const loginResult = await abrirModalLogin("excluir lançamento");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showToast("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
 
@@ -4262,12 +5198,11 @@
 
       if (error) throw error;
 
-      showFeedback("Sucesso", "Lançamento excluído!", "success", () =>
-        carregarDados(),
-      );
+      showToast("Sucesso", "Lançamento excluído!", "success");
+      setTimeout(() => carregarFinanceiroPeriodo(), 500);
     } catch (error) {
       console.error("Erro ao excluir lançamento:", error);
-      showFeedback("Erro", "Falha ao excluir lançamento.", "error");
+      showToast("Erro", "Falha ao excluir lançamento.", "error");
     }
   };
 
@@ -4400,7 +5335,7 @@
   }
 
   // ============================================================
-  // RENDERIZAR - ABA RH (COM AFASTAMENTOS)
+  // RENDERIZAR - ABA RH
   // ============================================================
   function renderizarRH(dados) {
     const { funcionarios, ferias, afastamentos } = dados;
@@ -4678,7 +5613,7 @@
       .single();
 
     if (error || !afastamento) {
-      showFeedback("Erro", "Afastamento não encontrado.", "error");
+      showToast("Erro", "Afastamento não encontrado.", "error");
       return;
     }
 
@@ -4852,16 +5787,12 @@
           document.getElementById("afastamentoObs").value.trim() || null;
 
         if (!employee_id || !leave_type || !start_date || !end_date) {
-          showFeedback(
-            "Erro",
-            "Preencha todos os campos obrigatórios.",
-            "error",
-          );
+          showToast("Erro", "Preencha todos os campos obrigatórios.", "error");
           return;
         }
 
         if (new Date(end_date) < new Date(start_date)) {
-          showFeedback(
+          showToast(
             "Erro",
             "A data de fim não pode ser anterior à data de início.",
             "error",
@@ -4871,7 +5802,7 @@
 
         const loginResult = await abrirModalLogin("registrar afastamento");
         if (!loginResult.success) {
-          showFeedback(
+          showToast(
             "Ação cancelada",
             "Você precisa estar autenticado.",
             "warning",
@@ -4887,6 +5818,7 @@
           const { error } = await supabase.from("absences").insert({
             employee_id,
             type: "atestado",
+            leave_type: leave_type,
             start_date,
             end_date,
             days_off: diffDays,
@@ -4902,20 +5834,20 @@
 
           if (error) throw error;
 
-          showFeedback(
+          showToast(
             "Sucesso",
             "Afastamento registrado com sucesso!",
             "success",
-            () => {
-              carregarDados();
-              if (abaAtual === "rh") {
-                loadGestaoAfastamentos();
-              }
-            },
           );
+          setTimeout(() => {
+            carregarRHPeriodo();
+            if (abaAtual === "rh") {
+              loadGestaoAfastamentos();
+            }
+          }, 500);
         } catch (error) {
           console.error("Erro ao registrar afastamento:", error);
-          showFeedback(
+          showToast(
             "Erro",
             `Falha ao registrar afastamento: ${error.message}`,
             "error",
@@ -4934,11 +5866,7 @@
 
     const loginResult = await abrirModalLogin("encerrar afastamento");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showToast("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
 
@@ -4954,15 +5882,16 @@
       if (error) throw error;
 
       document.getElementById("modalContainer").innerHTML = "";
-      showFeedback("Sucesso", "Afastamento encerrado!", "success", () => {
-        carregarDados();
+      showToast("Sucesso", "Afastamento encerrado!", "success");
+      setTimeout(() => {
+        carregarRHPeriodo();
         if (abaAtual === "rh") {
           loadGestaoAfastamentos();
         }
-      });
+      }, 500);
     } catch (error) {
       console.error("Erro ao encerrar afastamento:", error);
-      showFeedback(
+      showToast(
         "Erro",
         `Falha ao encerrar afastamento: ${error.message}`,
         "error",
@@ -4981,7 +5910,7 @@
       .single();
 
     if (!afastamento) {
-      showFeedback("Erro", "Afastamento não encontrado.", "error");
+      showToast("Erro", "Afastamento não encontrado.", "error");
       return;
     }
 
@@ -5071,12 +6000,12 @@
           document.getElementById("editAfastamentoObs").value.trim() || null;
 
         if (!start_date || !end_date) {
-          showFeedback("Erro", "Preencha as datas de início e fim.", "error");
+          showToast("Erro", "Preencha as datas de início e fim.", "error");
           return;
         }
 
         if (new Date(end_date) < new Date(start_date)) {
-          showFeedback(
+          showToast(
             "Erro",
             "A data de fim não pode ser anterior à data de início.",
             "error",
@@ -5086,7 +6015,7 @@
 
         const loginResult = await abrirModalLogin("editar afastamento");
         if (!loginResult.success) {
-          showFeedback(
+          showToast(
             "Ação cancelada",
             "Você precisa estar autenticado.",
             "warning",
@@ -5117,15 +6046,16 @@
 
           if (error) throw error;
 
-          showFeedback("Sucesso", "Afastamento atualizado!", "success", () => {
-            carregarDados();
+          showToast("Sucesso", "Afastamento atualizado!", "success");
+          setTimeout(() => {
+            carregarRHPeriodo();
             if (abaAtual === "rh") {
               loadGestaoAfastamentos();
             }
-          });
+          }, 500);
         } catch (error) {
           console.error("Erro ao editar afastamento:", error);
-          showFeedback(
+          showToast(
             "Erro",
             `Falha ao editar afastamento: ${error.message}`,
             "error",
@@ -5144,11 +6074,7 @@
 
     const loginResult = await abrirModalLogin("excluir afastamento");
     if (!loginResult.success) {
-      showFeedback(
-        "Ação cancelada",
-        "Você precisa estar autenticado.",
-        "warning",
-      );
+      showToast("Ação cancelada", "Você precisa estar autenticado.", "warning");
       return;
     }
 
@@ -5158,15 +6084,16 @@
       if (error) throw error;
 
       document.getElementById("modalContainer").innerHTML = "";
-      showFeedback("Sucesso", "Afastamento excluído!", "success", () => {
-        carregarDados();
+      showToast("Sucesso", "Afastamento excluído!", "success");
+      setTimeout(() => {
+        carregarRHPeriodo();
         if (abaAtual === "rh") {
           loadGestaoAfastamentos();
         }
-      });
+      }, 500);
     } catch (error) {
       console.error("Erro ao excluir afastamento:", error);
-      showFeedback(
+      showToast(
         "Erro",
         `Falha ao excluir afastamento: ${error.message}`,
         "error",
@@ -5288,7 +6215,7 @@
       const { data: dividas, error, count } = await query;
       if (error) {
         console.error("Erro ao carregar dívidas:", error);
-        showFeedback("Erro", "Falha ao carregar dívidas.", "error");
+        showToast("Erro", "Falha ao carregar dívidas.", "error");
         return;
       }
 
@@ -5692,7 +6619,7 @@
       .single();
 
     if (error || !divida) {
-      showFeedback("Erro", "Dívida não encontrada.", "error");
+      showToast("Erro", "Dívida não encontrada.", "error");
       return;
     }
 
@@ -5822,13 +6749,13 @@
       const obs = document.getElementById("divObs").value.trim() || null;
 
       if (!credor || !tipo || !total || !numParcelas || !primeiroVenc) {
-        showFeedback("Erro", "Preencha todos os campos obrigatórios.", "error");
+        showToast("Erro", "Preencha todos os campos obrigatórios.", "error");
         return;
       }
 
       const loginResult = await abrirModalLogin("criar nova dívida");
       if (!loginResult.success) {
-        showFeedback(
+        showToast(
           "Ação cancelada",
           "Você precisa estar autenticado.",
           "warning",
@@ -5864,7 +6791,7 @@
         .single();
 
       if (insertError) {
-        showFeedback(
+        showToast(
           "Erro",
           `Falha ao criar dívida: ${insertError.message}`,
           "error",
@@ -5892,21 +6819,21 @@
 
       if (parcelasError) {
         console.error("Erro ao gerar parcelas:", parcelasError);
-        showFeedback(
+        showToast(
           "Aviso",
           "Dívida criada, mas houve falha ao gerar parcelas.",
           "warning",
         );
       } else {
-        showFeedback(
+        showToast(
           "Sucesso",
           `Dívida com ${numParcelas} parcelas criada!`,
           "success",
-          () => {
-            loadGestaoDividas();
-            carregarDados();
-          },
         );
+        setTimeout(() => {
+          loadGestaoDividas();
+          carregarDadosIniciais();
+        }, 500);
       }
     });
   };
@@ -5920,7 +6847,7 @@
       .single();
 
     if (!divida) {
-      showFeedback("Erro", "Dívida não encontrada.", "error");
+      showToast("Erro", "Dívida não encontrada.", "error");
       return;
     }
 
@@ -5968,13 +6895,13 @@
       const notes = document.getElementById("editObs").value.trim() || null;
 
       if (!creditor || !total_amount) {
-        showFeedback("Erro", "Preencha os campos obrigatórios.", "error");
+        showToast("Erro", "Preencha os campos obrigatórios.", "error");
         return;
       }
 
       const loginResult = await abrirModalLogin("editar dívida");
       if (!loginResult.success) {
-        showFeedback(
+        showToast(
           "Ação cancelada",
           "Você precisa estar autenticado.",
           "warning",
@@ -5988,12 +6915,13 @@
         .eq("id", id);
 
       if (error) {
-        showFeedback("Erro", error.message, "error");
+        showToast("Erro", error.message, "error");
       } else {
-        showFeedback("Sucesso", "Dívida atualizada!", "success", () => {
+        showToast("Sucesso", "Dívida atualizada!", "success");
+        setTimeout(() => {
           loadGestaoDividas();
-          carregarDados();
-        });
+          carregarDadosIniciais();
+        }, 500);
       }
     });
   };
@@ -6007,7 +6935,7 @@
       .single();
 
     if (!divida) {
-      showFeedback("Erro", "Dívida não encontrada.", "error");
+      showToast("Erro", "Dívida não encontrada.", "error");
       return;
     }
 
@@ -6046,7 +6974,7 @@
         const loginResult = await abrirModalLogin("excluir dívida");
         if (!loginResult.success) {
           document.getElementById("modalContainer").innerHTML = "";
-          showFeedback(
+          showToast(
             "Ação cancelada",
             "Você precisa estar autenticado.",
             "warning",
@@ -6062,13 +6990,14 @@
           if (error) throw error;
 
           document.getElementById("modalContainer").innerHTML = "";
-          showFeedback("Sucesso", "Dívida excluída!", "success", () => {
+          showToast("Sucesso", "Dívida excluída!", "success");
+          setTimeout(() => {
             loadGestaoDividas();
-            carregarDados();
-          });
+            carregarDadosIniciais();
+          }, 500);
         } catch (error) {
           console.error("Erro ao excluir dívida:", error);
-          showFeedback("Erro", "Falha ao excluir dívida.", "error");
+          showToast("Erro", "Falha ao excluir dívida.", "error");
         }
       });
   };
@@ -6082,7 +7011,7 @@
       .single();
 
     if (errDebt || !divida) {
-      showFeedback("Erro", "Dívida não encontrada.", "error");
+      showToast("Erro", "Dívida não encontrada.", "error");
       return;
     }
 
@@ -6094,7 +7023,7 @@
       .order("installment_number", { ascending: true });
 
     if (!parcelasPendentes || parcelasPendentes.length === 0) {
-      showFeedback("Aviso", "Não há parcelas pendentes.", "info");
+      showToast("Aviso", "Não há parcelas pendentes.", "info");
       return;
     }
 
@@ -6158,13 +7087,13 @@
         parseFloat(document.getElementById("multaParcela").value) || 0;
 
       if (!parcelaId || !dataPag) {
-        showFeedback("Erro", "Preencha todos os campos.", "error");
+        showToast("Erro", "Preencha todos os campos.", "error");
         return;
       }
 
       const loginResult = await abrirModalLogin("quitar parcela");
       if (!loginResult.success) {
-        showFeedback(
+        showToast(
           "Ação cancelada",
           "Você precisa estar autenticado.",
           "warning",
@@ -6180,7 +7109,7 @@
           .single();
 
         if (!parcelaAtual) {
-          showFeedback("Erro", "Parcela não encontrada.", "error");
+          showToast("Erro", "Parcela não encontrada.", "error");
           return;
         }
 
@@ -6235,13 +7164,14 @@
             .eq("id", id);
         }
 
-        showFeedback("Sucesso", "Parcela quitada!", "success", () => {
+        showToast("Sucesso", "Parcela quitada!", "success");
+        setTimeout(() => {
           loadGestaoDividas();
-          carregarDados();
-        });
+          carregarDadosIniciais();
+        }, 500);
       } catch (error) {
         console.error("Erro ao quitar parcela:", error);
-        showFeedback("Erro", "Falha ao quitar parcela.", "error");
+        showToast("Erro", "Falha ao quitar parcela.", "error");
       }
     });
 
@@ -6269,7 +7199,7 @@
       .single();
 
     if (!divida) {
-      showFeedback("Erro", "Dívida não encontrada.", "error");
+      showToast("Erro", "Dívida não encontrada.", "error");
       return;
     }
 
@@ -6281,7 +7211,7 @@
       .order("installment_number", { ascending: true });
 
     if (!parcelasPendentes || parcelasPendentes.length === 0) {
-      showFeedback("Aviso", "Esta dívida já está quitada.", "info");
+      showToast("Aviso", "Esta dívida já está quitada.", "info");
       return;
     }
 
@@ -6328,7 +7258,7 @@
         const loginResult = await abrirModalLogin("quitar dívida");
         if (!loginResult.success) {
           document.getElementById("modalContainer").innerHTML = "";
-          showFeedback(
+          showToast(
             "Ação cancelada",
             "Você precisa estar autenticado.",
             "warning",
@@ -6380,305 +7310,23 @@
           }
 
           document.getElementById("modalContainer").innerHTML = "";
-          showFeedback(
-            "Sucesso",
-            "Dívida totalmente quitada!",
-            "success",
-            () => {
-              loadGestaoDividas();
-              carregarDados();
-            },
-          );
+          showToast("Sucesso", "Dívida totalmente quitada!", "success");
+          setTimeout(() => {
+            loadGestaoDividas();
+            carregarDadosIniciais();
+          }, 500);
         } catch (error) {
           console.error("Erro ao quitar dívida:", error);
-          showFeedback("Erro", "Falha ao quitar dívida.", "error");
+          showToast("Erro", "Falha ao quitar dívida.", "error");
         }
       });
   };
 
   // ============================================================
-  // CARREGAR DADOS (TODOS DO SUPABASE)
+  // INICIALIZAÇÃO - CARREGAR DADOS INICIAIS
   // ============================================================
-  async function carregarDados() {
-    console.log("🔄 Carregando dados do Supabase...");
-    if (carregando) return;
-    carregando = true;
-    refreshIcon.className = "ph ph-spinner spinning";
-
-    try {
-      const hoje = todayISO();
-      const mesRange = getMonthRange();
-      console.log(`📅 Mês atual: ${mesRange.mes}/${mesRange.ano}`);
-
-      let queryOS = supabase
-        .from("service_orders")
-        .select(
-          `
-          id, order_number, product_description, product_reference,
-          total_quantity, unit_price, status, payment_status, payment_date, payment_method,
-          expected_delivery, received_date, notes, updated_at,
-          customers(company_name, trade_name)
-        `,
-        )
-        .order("created_at", { ascending: false });
-
-      const { data: todasOS, error: errOs } = await queryOS;
-      if (errOs) console.error("❌ Erro OS:", errOs);
-
-      const osAtivas = (todasOS || []).filter(
-        (o) => !["cancelado"].includes(o.status),
-      );
-
-      const osIds = osAtivas.map((o) => o.id);
-      let progressoMap = {};
-      if (osIds.length > 0) {
-        const { data: items } = await supabase
-          .from("service_order_items")
-          .select(
-            "service_order_id, quantity, sewn_quantity, delivered_quantity",
-          )
-          .in("service_order_id", osIds);
-        if (items) {
-          items.forEach((item) => {
-            if (!progressoMap[item.service_order_id]) {
-              progressoMap[item.service_order_id] = {
-                total: 0,
-                costurado: 0,
-                entregue: 0,
-              };
-            }
-            progressoMap[item.service_order_id].total += item.quantity;
-            progressoMap[item.service_order_id].costurado +=
-              item.sewn_quantity || 0;
-            progressoMap[item.service_order_id].entregue +=
-              item.delivered_quantity || 0;
-          });
-        }
-      }
-
-      const emCostura = osAtivas.filter(
-        (o) => o.status === "em_costura",
-      ).length;
-      const costurados = osAtivas.filter(
-        (o) => o.status === "costurado",
-      ).length;
-
-      dados.progressoMap = progressoMap;
-
-      let queryAvulsas = supabase
-        .from("financial_transactions")
-        .select(
-          `
-          id, description, amount, due_date, date, status, type,
-          payment_method, account_id, category_id,
-          installments, total_installments, entry_amount, notes,
-          chart_of_accounts(id, code, name, type)
-        `,
-        )
-        .or("installments.is.null,installments.eq.false")
-        .gte("due_date", mesRange.inicio)
-        .lte("due_date", mesRange.fim)
-        .neq("status", "cancelado");
-
-      const { data: avulsas, error: errAvulsas } = await queryAvulsas;
-      if (errAvulsas) console.error("❌ Erro avulsas:", errAvulsas);
-
-      const { data: parcelasPeriodo, error: errParc } = await supabase
-        .from("financial_installments")
-        .select(
-          "transaction_id, id, numero_parcela, valor, vencimento, status, payment_date, interest_paid, late_fee_paid",
-        )
-        .gte("vencimento", mesRange.inicio)
-        .lte("vencimento", mesRange.fim)
-        .order("vencimento", { ascending: true });
-      if (errParc) console.error("❌ Erro parcelas:", errParc);
-
-      const idsTransacoes = [
-        ...new Set(
-          parcelasPeriodo?.map((p) => p.transaction_id).filter((id) => id) ||
-            [],
-        ),
-      ];
-
-      let transacoesParceladas = [];
-      if (idsTransacoes.length > 0) {
-        let queryParceladas = supabase
-          .from("financial_transactions")
-          .select(
-            `
-            id, description, amount, due_date, date, status, type,
-            payment_method, account_id, category_id,
-            installments, total_installments, entry_amount, notes,
-            chart_of_accounts(id, code, name, type)
-          `,
-          )
-          .in("id", idsTransacoes)
-          .eq("installments", true)
-          .neq("status", "cancelado");
-
-        const { data: parceladas, error: errParceladas } =
-          await queryParceladas;
-        if (errParceladas) console.error("❌ Erro parceladas:", errParceladas);
-        transacoesParceladas = parceladas || [];
-      }
-
-      const transacoesComParcelas = [];
-
-      for (const t of avulsas || []) {
-        transacoesComParcelas.push({
-          ...t,
-          financial_installments: [],
-        });
-      }
-
-      for (const t of transacoesParceladas) {
-        const parcelasDaTransacao =
-          parcelasPeriodo?.filter((p) => p.transaction_id === t.id) || [];
-        transacoesComParcelas.push({
-          ...t,
-          financial_installments: parcelasDaTransacao,
-        });
-      }
-
-      const eventosFinanceiros = gerarEventosFinanceiros(transacoesComParcelas);
-
-      let totalReceitas = 0,
-        totalDespesas = 0;
-      let totalPagar = 0,
-        totalReceber = 0;
-      let contasVencidas = 0;
-
-      for (const e of eventosFinanceiros) {
-        if (e.tipo === "receber") {
-          totalReceitas += e.valor;
-          if (e.status === "pendente" || e.status === "atrasado") {
-            totalReceber += e.valor;
-          }
-        } else {
-          totalDespesas += e.valor;
-          if (e.status === "pendente" || e.status === "atrasado") {
-            totalPagar += e.valor;
-          }
-        }
-
-        if (e.status === "pendente" && new Date(e.vencimento) < new Date()) {
-          contasVencidas++;
-        }
-      }
-
-      const { data: funcionarios, error: errFunc } = await supabase
-        .from("employees")
-        .select("*")
-        .eq("active", true)
-        .order("full_name");
-      if (errFunc) console.error("❌ Erro funcionários:", errFunc);
-
-      const { data: ferias, error: errFer } = await supabase
-        .from("employee_vacations")
-        .select(
-          "*, employees(full_name, role, photo_url, phone_cell, email_personal)",
-        )
-        .eq("status", "agendada")
-        .lte("start_date", hoje)
-        .gte("end_date", hoje)
-        .order("start_date", { ascending: true });
-      if (errFer) console.error("❌ Erro férias:", errFer);
-
-      // Buscar afastamentos (NOVO)
-      const { data: afastamentos, error: errAbs } = await supabase
-        .from("absences")
-        .select(
-          `
-          *,
-          employees(full_name, role, photo_url, phone_cell, email_personal)
-        `,
-        )
-        .order("start_date", { ascending: false });
-      if (errAbs) console.error("❌ Erro afastamentos:", errAbs);
-
-      const { data: dividas, error: errDiv } = await supabase
-        .from("debts")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (errDiv) console.error("❌ Erro dívidas:", errDiv);
-
-      let totalDividas = 0,
-        totalPago = 0;
-      for (const d of dividas || []) {
-        totalDividas += parseFloat(d.total_amount) || 0;
-        totalPago += parseFloat(d.paid_amount) || 0;
-      }
-      const saldoDevedor = totalDividas - totalPago;
-
-      dados = {
-        osAtivas: osAtivas || [],
-        emCostura: emCostura || 0,
-        costurados: costurados || 0,
-        eventosFinanceiros: eventosFinanceiros || [],
-        totalReceitas: totalReceitas || 0,
-        totalDespesas: totalDespesas || 0,
-        totalPagar: totalPagar || 0,
-        totalReceber: totalReceber || 0,
-        contasVencidas: contasVencidas || 0,
-        funcionarios: funcionarios || [],
-        ferias: ferias || [],
-        afastamentos: afastamentos || [],
-        dividas: dividas || [],
-        totalDividas: totalDividas || 0,
-        saldoDevedor: saldoDevedor || 0,
-        mesRange: mesRange,
-        progressoMap: progressoMap || {},
-      };
-
-      renderizarGeral(dados);
-      renderizarProducao(dados);
-      renderizarFinanceiro(dados);
-      renderizarRH(dados);
-      renderizarDividasDashboard(dados);
-
-      // Se a aba atual for dívidas, carregar os dados específicos
-      if (abaAtual === "dividas") {
-        loadGestaoDividas();
-      }
-      // Se a aba atual for RH, carregar dados de afastamentos
-      if (abaAtual === "rh") {
-        loadGestaoAfastamentos();
-      }
-
-      const totalPendencias =
-        (osAtivas || []).filter(
-          (o) => o.status === "entregue" && o.payment_status !== "pago",
-        ).length + contasVencidas;
-
-      $("tabBadgeProd").textContent = (osAtivas || []).length;
-      $("tabBadgeProd").style.display =
-        (osAtivas || []).length > 0 ? "flex" : "none";
-      $("tabBadgeFin").textContent = contasVencidas;
-      $("tabBadgeFin").style.display = contasVencidas > 0 ? "flex" : "none";
-      $("tabBadgeRH").textContent =
-        (ferias || []).length +
-        (afastamentos || []).filter((a) => a.status !== "encerrado").length;
-      $("tabBadgeRH").style.display =
-        (ferias || []).length +
-          (afastamentos || []).filter((a) => a.status !== "encerrado").length >
-        0
-          ? "flex"
-          : "none";
-      const divAtivas = (dividas || []).filter(
-        (d) => d.status !== "quitada",
-      ).length;
-      $("tabBadgeDiv").textContent = divAtivas;
-      $("tabBadgeDiv").style.display = divAtivas > 0 ? "flex" : "none";
-
-      console.log("✅ Renderização concluída!");
-    } catch (e) {
-      console.error("❌ Erro:", e);
-      showFeedback("Erro", "Falha ao carregar dados do Supabase.", "error");
-    } finally {
-      carregando = false;
-      refreshIcon.className = "ph ph-arrows-clockwise";
-      pullIndicator.classList.remove("active");
-    }
+  function carregarDados() {
+    carregarDadosIniciais();
   }
 
   // ============================================================
@@ -6736,16 +7384,18 @@
   });
 
   // ============================================================
-  // PULL-TO-REFRESH
+  // PULL-TO-REFRESH MELHORADO
   // ============================================================
-  let touchStartY = 0,
-    touchMoved = false;
+  let pullTouchStartY = 0;
+  let pullTouchMoved = false;
+
   appContent.addEventListener(
     "touchstart",
     function (e) {
       if (this.scrollTop === 0) {
-        touchStartY = e.touches[0].clientY;
-        touchMoved = false;
+        pullTouchStartY = e.touches[0].clientY;
+        pullTouchMoved = false;
+        pullIndicator.classList.remove("active");
       }
     },
     { passive: true },
@@ -6753,17 +7403,25 @@
   appContent.addEventListener(
     "touchmove",
     function (e) {
-      if (this.scrollTop === 0 && touchStartY > 0) {
-        const deltaY = e.touches[0].clientY - touchStartY;
+      if (this.scrollTop === 0 && pullTouchStartY > 0) {
+        const deltaY = e.touches[0].clientY - pullTouchStartY;
         if (deltaY > 40) {
-          touchMoved = true;
+          pullTouchMoved = true;
           pullIndicator.classList.add("active");
-          pullIndicator.innerHTML =
-            '<i class="ph ph-arrow-down"></i> Solte para atualizar';
+          pullIndicator.innerHTML = `
+            <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+              <i class="ph ph-arrow-down pull-arrow"></i>
+              <span>Solte para atualizar</span>
+            </div>
+          `;
         } else if (deltaY > 10) {
           pullIndicator.classList.add("active");
-          pullIndicator.innerHTML =
-            '<i class="ph ph-arrow-down"></i> Puxe para atualizar';
+          pullIndicator.innerHTML = `
+            <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+              <i class="ph ph-arrow-down" style="transform: translateY(${Math.min(deltaY - 10, 30)}px);"></i>
+              <span>Puxe para atualizar</span>
+            </div>
+          `;
         } else {
           pullIndicator.classList.remove("active");
         }
@@ -6774,13 +7432,19 @@
   appContent.addEventListener(
     "touchend",
     function (e) {
-      if (touchMoved && this.scrollTop === 0) {
-        pullIndicator.innerHTML =
-          '<i class="ph ph-spinner spinning"></i> Atualizando...';
-        carregarDados().then(() => pullIndicator.classList.remove("active"));
+      if (pullTouchMoved && this.scrollTop === 0) {
+        pullIndicator.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+            <i class="ph ph-spinner spinning"></i>
+            <span>Atualizando...</span>
+          </div>
+        `;
+        carregarDadosIniciais().then(() =>
+          pullIndicator.classList.remove("active"),
+        );
       }
-      touchStartY = 0;
-      touchMoved = false;
+      pullTouchStartY = 0;
+      pullTouchMoved = false;
     },
     { passive: true },
   );
@@ -6788,7 +7452,7 @@
   // ============================================================
   // REFRESH
   // ============================================================
-  $("btnRefresh").addEventListener("click", carregarDados);
+  $("btnRefresh").addEventListener("click", carregarDadosIniciais);
 
   // ============================================================
   // INICIALIZAÇÃO
@@ -6803,8 +7467,11 @@
         appContainer.style.display = "flex";
       }
       mostrarAba("geral");
-      await carregarDados();
+      await carregarDadosIniciais();
       setupActivityDetection();
+      setupSwipeNavigation();
+      setupKeyboardAvoidance();
+      setupPeriodSelectors();
     } else {
       console.log("🔐 Sessão não encontrada, exibindo login...");
       const appContainer = document.querySelector(".app-container");
@@ -6814,6 +7481,9 @@
 
       await abrirModalLoginObrigatorio("acessar o app");
       setupActivityDetection();
+      setupSwipeNavigation();
+      setupKeyboardAvoidance();
+      setupPeriodSelectors();
 
       setInterval(
         () => {
@@ -6828,7 +7498,7 @@
 
     setInterval(() => {
       if (isAutenticado()) {
-        carregarDados();
+        carregarDadosIniciais();
       }
     }, 60000);
   });
@@ -6875,4 +7545,22 @@
   window.encerrarAfastamento = window.encerrarAfastamento;
   window.abrirModalAfastamento = window.abrirModalAfastamento;
   window.loadGestaoAfastamentos = loadGestaoAfastamentos;
+
+  // Exportar funções de toast
+  window.showToast = showToast;
+  window.showFeedback = showToast;
+
+  // Exportar funções de período
+  window.navigatePeriod = navigatePeriod;
+  window.resetPeriod = resetPeriod;
+  window.periodState = periodState;
+  window.carregarProducaoPeriodo = carregarProducaoPeriodo;
+  window.carregarFinanceiroPeriodo = carregarFinanceiroPeriodo;
+  window.carregarRHPeriodo = carregarRHPeriodo;
+
+  // Exportar funções de contas recorrentes
+  window.verificarEGerarRecorrentesPorPeriodo =
+    verificarEGerarRecorrentesPorPeriodo;
+  window.criarTransacoesParaNovaRecorrente = criarTransacoesParaNovaRecorrente;
+  window.gerarTransacoesRecorrentes = gerarTransacoesRecorrentes;
 })();
