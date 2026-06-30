@@ -1183,7 +1183,39 @@
       <div id="modalContainer"></div>
     </div>
 
-    <!-- ===== JAVASCRIPT DO APP ===== -->
-    <script src="app_gestor.js"></script>
+    <!-- ===== JAVASCRIPT DO APP (MODULAR) ===== -->
+    <!-- 1. Utilitários e Configuração -->
+    <script src="js/modules/utils.js"></script>
+    <script src="js/modules/supabase.js"></script>
+
+    <!-- 2. UI e Autenticação -->
+    <script src="js/modules/ui.js"></script>
+    <script src="js/modules/auth.js"></script>
+
+    <!-- 3. Módulo Dashboard (Geral) -->
+    <script src="js/modules/dashboard.js"></script>
+
+    <!-- 4. Ponto de Entrada -->
+    <script src="js/main.js"></script>
+
+    <!-- 5. Fallback para carregar dados -->
+    <script>
+      // Garantir que o app seja iniciado mesmo se os módulos falharem
+      document.addEventListener("DOMContentLoaded", function () {
+        // Verificar se o App foi inicializado
+        if (typeof window.App === "undefined") {
+          console.warn(
+            "⚠️ App não inicializado, tentando carregar manualmente...",
+          );
+          // Tentar carregar os dados manualmente
+          if (
+            typeof window.Dashboard !== "undefined" &&
+            window.Dashboard.carregarDadosIniciais
+          ) {
+            window.Dashboard.carregarDadosIniciais();
+          }
+        }
+      });
+    </script>
   </body>
 </html>
