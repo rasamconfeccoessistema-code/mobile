@@ -1,14 +1,14 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // JavaScript completo para o aplicativo do gestor
-// VERSÃO 3.0 - GESTÃO DE DÍVIDAS ESTILO DESKTOP
+// VERSÃO 3.1 - COM CONTROLE DE AFASTAMENTOS (ATESTADOS)
 // ============================================================
 
 (function () {
   "use strict";
 
   console.log(
-    "🚀 App do Gestor - Versão 3.0 com gestão de dívidas estilo desktop",
+    "🚀 App do Gestor - Versão 3.1 com controle de afastamentos",
   );
 
   // ============================================================
@@ -762,6 +762,41 @@
     return "badge-status-" + s;
   }
 
+  function calcularDiasRestantes(endDate) {
+    if (!endDate) return 0;
+    const hoje = new Date();
+    const fim = new Date(endDate);
+    const diffTime = fim - hoje;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  }
+
+  function getLeaveTypeLabel(type) {
+    const map = {
+      atestado: "📋 Atestado Médico",
+      licenca_maternidade: "👶 Licença Maternidade",
+      licenca_paternidade: "👨 Licença Paternidade",
+      acidente_trabalho: "⚠️ Acidente de Trabalho",
+      cirurgia: "🔬 Cirurgia",
+      doenca: "🤒 Doença",
+      tratamento_medico: "🏥 Tratamento Médico",
+      luto: "💔 Luto",
+      casamento: "💍 Casamento",
+      outro: "📌 Outro",
+    };
+    return map[type] || type || "📌 Outro";
+  }
+
+  function getLeaveStatusLabel(status) {
+    const map = {
+      pendente: "⏳ Pendente",
+      aprovado: "✅ Aprovado",
+      recusado: "❌ Recusado",
+      encerrado: "🔴 Encerrado",
+    };
+    return map[status] || status || "⏳ Pendente";
+  }
+
   // ============================================================
   // MODAL FUNCTIONS
   // ============================================================
@@ -912,6 +947,9 @@
       "Anexos": "paperclip",
       "Editar Parcelas": "receipt",
       "Confirmar Exclusão": "trash",
+      "Novo Afastamento": "plus-circle",
+      "Editar Afastamento": "pencil-simple",
+      "Detalhes do Afastamento": "eye",
     };
     return icons[title] || "file";
   }
@@ -4240,6 +4278,7 @@
       totalDespesas,
       contasVencidas,
       ferias,
+      afastamentos,
       dividas,
       saldoDevedor,
       mesRange,
@@ -4297,6 +4336,16 @@
         texto: `${ferias.length} funcionário(s) em férias`,
         tag: "atenção",
       });
+    const afastamentosAtivos = (afastamentos || []).filter(
+      (a) => a.status !== "encerrado" && new Date(a.end_date) >= new Date(),
+    );
+    if (afastamentosAtivos.length > 0)
+      alertas.push({
+        prioridade: "high",
+        icone: "ph-hospital",
+        texto: `${afastamentosAtivos.length} funcionário(s) em afastamento`,
+        tag: "urgente",
+      });
     if ((osAtivas || []).length === 0)
       alertas.push({
         prioridade: "low",
@@ -4347,18 +4396,27 @@
   }
 
   // ============================================================
-  // RENDERIZAR - ABA RH
+  // RENDERIZAR - ABA RH (COM AFASTAMENTOS)
   // ============================================================
   function renderizarRH(dados) {
-    const { funcionarios, ferias } = dados;
+    const { funcionarios, ferias, afastamentos } = dados;
 
     const totalFuncionarios = funcionarios?.length || 0;
     const emFerias = ferias?.length || 0;
+    const emAfastamento = (afastamentos || []).filter(
+      (a) => a.status !== "encerrado" && new Date(a.end_date) >= new Date(),
+    ).length;
+    const acidenteTrabalho = (afastamentos || []).filter(
+      (a) => a.work_accident === true && a.status !== "encerrado",
+    ).length;
 
     document.getElementById("rhTotalFuncionarios").textContent =
       totalFuncionarios;
     document.getElementById("rhEmFerias").textContent = emFerias;
+    document.getElementById("rhEmAfastamento").textContent = emAfastamento;
+    document.getElementById("rhAcidenteTrabalho").textContent = acidenteTrabalho;
 
+    // Renderizar férias (existente)
     const containerFerias = document.getElementById("listaRHFerias");
     document.getElementById("totalFerias").textContent =
       (ferias || []).length + " registros";
@@ -4385,6 +4443,82 @@
       containerFerias.innerHTML = `<div class="empty-state" style="text-align:center;padding:24px 16px;color:var(--gray-dark);"><i class="ph ph-sun" style="font-size:28px;display:block;margin-bottom:6px;color:var(--gray);"></i><p style="font-size:12px;">Nenhum funcionário em férias</p></div>`;
     }
 
+    // Renderizar afastamentos (NOVO)
+    const containerAfastamentos = document.getElementById("listaRHAfastamentos");
+    document.getElementById("totalAfastamentos").textContent =
+      (afastamentos || []).length + " registros";
+
+    if (afastamentos && afastamentos.length > 0) {
+      const hoje = new Date();
+      containerAfastamentos.innerHTML = afastamentos
+        .slice(0, 15)
+        .map((a) => {
+          const func = a.employees;
+          const diasRestantes = calcularDiasRestantes(a.end_date);
+          const emAndamento = diasRestantes > 0 && a.status !== "encerrado";
+          const isAcidente = a.work_accident === true;
+
+          let borderColor = "var(--warning)";
+          let statusLabel = "🟡 Em andamento";
+          if (a.status === "encerrado") {
+            borderColor = "var(--gray)";
+            statusLabel = "🔴 Encerrado";
+          } else if (isAcidente) {
+            borderColor = "var(--error)";
+            statusLabel = "⚠️ Acidente de Trabalho";
+          } else if (diasRestantes <= 3) {
+            borderColor = "var(--error)";
+            statusLabel = "🔴 Retorno próximo";
+          }
+
+          return `
+            <div class="list-item" 
+                 data-id="${a.id}"
+                 style="
+                   display:flex;
+                   align-items:center;
+                   padding:10px 14px;
+                   margin-bottom:8px;
+                   border-radius:8px;
+                   border-left:4px solid ${borderColor};
+                   background:${a.status === "encerrado" ? "rgba(255,255,255,0.02)" : isAcidente ? "rgba(255,82,82,0.05)" : "rgba(255,255,255,0.02)"};
+                   transition:var(--transition);
+                   cursor:pointer;
+                 "
+                 onclick="abrirModalAfastamento('${a.id}')"
+                 onmouseenter="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.2)';"
+                 onmouseleave="this.style.boxShadow='none';"
+                 >
+              <div class="item-main" style="flex:1;min-width:0;">
+                <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${isAcidente ? "color:var(--error);" : ""}">
+                  ${func?.full_name || "-"} 
+                  ${isAcidente ? '⚠️' : '🏥'}
+                </div>
+                <div class="item-sub" style="font-size:10px;color:var(--gray-dark);margin-top:1px;display:flex;flex-wrap:wrap;gap:4px 8px;">
+                  <span>${getLeaveTypeLabel(a.leave_type || a.type)}</span>
+                  <span>•</span>
+                  <span>${formatDate(a.start_date)} - ${formatDate(a.end_date)}</span>
+                  <span>•</span>
+                  <span style="color:${diasRestantes > 0 ? "var(--warning)" : "var(--gray)"};">${diasRestantes > 0 ? `${diasRestantes} dias restantes` : "Encerrado"}</span>
+                  ${a.reason ? `<span>•</span><span style="font-size:0.55rem;color:var(--gray);">${a.reason}</span>` : ""}
+                </div>
+                ${a.icd_code ? `<div style="font-size:0.55rem;color:var(--gray-dark);margin-top:2px;">CID: ${a.icd_code}</div>` : ""}
+              </div>
+              <div class="item-right" style="text-align:right;flex-shrink:0;">
+                <span class="item-badge ${emAndamento ? "badge-status-em_costura" : "badge-status-cancelado"}" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">
+                  ${statusLabel}
+                </span>
+                ${a.doctor_name ? `<div style="font-size:8px;color:var(--gray-dark);margin-top:2px;">Dr. ${a.doctor_name}</div>` : ""}
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    } else {
+      containerAfastamentos.innerHTML = `<div class="empty-state" style="text-align:center;padding:24px 16px;color:var(--gray-dark);"><i class="ph ph-hospital" style="font-size:28px;display:block;margin-bottom:6px;color:var(--gray);"></i><p style="font-size:12px;">Nenhum afastamento registrado</p></div>`;
+    }
+
+    // Renderizar funcionários ativos (existente)
     const containerFunc = document.getElementById("listaRHFuncionarios");
     document.getElementById("totalFuncionariosRH").textContent =
       (funcionarios || []).length + " funcionários";
@@ -4396,13 +4530,34 @@
           const emFeriasCheck = (ferias || []).some(
             (ff) => ff.employee_id === f.id,
           );
-          return `<div class="list-item ${emFeriasCheck ? "item-warning" : ""}" data-id="${f.id}" style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);gap:10px;transition:var(--transition);cursor:pointer;">
+          const emAfastamentoCheck = (afastamentos || []).some(
+            (a) => a.employee_id === f.id && a.status !== "encerrado" && new Date(a.end_date) >= new Date(),
+          );
+          const isAcidente = (afastamentos || []).some(
+            (a) => a.employee_id === f.id && a.work_accident === true && a.status !== "encerrado",
+          );
+
+          let statusClasse = "badge-status-entregue";
+          let statusTexto = "Ativo";
+          let corTitulo = "";
+
+          if (emFeriasCheck) {
+            statusClasse = "badge-status-em_costura";
+            statusTexto = "🌴 Férias";
+            corTitulo = "color:var(--warning);";
+          } else if (emAfastamentoCheck) {
+            statusClasse = "badge-status-cancelado";
+            statusTexto = isAcidente ? "⚠️ Acidente" : "🏥 Afastado";
+            corTitulo = isAcidente ? "color:var(--error);" : "color:var(--warning);";
+          }
+
+          return `<div class="list-item ${emFeriasCheck ? "item-warning" : emAfastamentoCheck ? "item-vencido" : ""}" data-id="${f.id}" style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);gap:10px;transition:var(--transition);cursor:pointer;">
             <div class="item-main" style="flex:1;min-width:0;">
-              <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${emFeriasCheck ? "color:var(--warning);" : ""}">${f.full_name}${emFeriasCheck ? " 🌴" : ""}</div>
+              <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${corTitulo}">${f.full_name}</div>
               <div class="item-sub" style="font-size:10px;color:var(--gray-dark);margin-top:1px;">${f.role || "-"} · ${f.contract_type === "clt" ? "CLT" : "Diarista"}</div>
             </div>
             <div class="item-right" style="text-align:right;flex-shrink:0;">
-              <span class="item-badge ${emFeriasCheck ? "badge-status-em_costura" : "badge-status-entregue"}" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">${emFeriasCheck ? "De Férias" : "Ativo"}</span>
+              <span class="item-badge ${statusClasse}" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">${statusTexto}</span>
             </div>
           </div>`;
         })
@@ -4412,7 +4567,7 @@
         el.addEventListener("click", function () {
           const id = this.dataset.id;
           const func = funcionarios.find((f) => f.id == id);
-          if (func) abrirModalFuncionario(func, ferias);
+          if (func) abrirModalFuncionario(func, ferias, afastamentos);
         });
       });
     } else {
@@ -4421,10 +4576,13 @@
   }
 
   // ============================================================
-  // ABRIR MODAL FUNCIONÁRIO
+  // ABRIR MODAL FUNCIONÁRIO (ATUALIZADO COM AFASTAMENTOS)
   // ============================================================
-  function abrirModalFuncionario(func, ferias) {
+  function abrirModalFuncionario(func, ferias, afastamentos) {
     const emFerias = (ferias || []).find((f) => f.employee_id === func.id);
+    const afastamentoAtivo = (afastamentos || []).find(
+      (a) => a.employee_id === func.id && a.status !== "encerrado" && new Date(a.end_date) >= new Date(),
+    );
     const fotoHtml = func.photo_url
       ? `<img src="${func.photo_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">`
       : `<div style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--pink-dark),var(--gold-dark));color:#fff;">${getInitials(func.full_name)}</div>`;
@@ -4437,6 +4595,26 @@
         <div class="info-row"><span class="label">Férias</span><span class="value gold">🟡 Em andamento</span></div>
         <div class="info-row"><span class="label">Período</span><span class="value">${formatDate(emFerias.start_date)} a ${formatDate(emFerias.end_date)}</span></div>
         <div class="info-row"><span class="label">Retorno</span><span class="value success">${formatDate(dataRetorno.toISOString())}</span></div>
+      `;
+    }
+
+    let afastamentoHtml = '';
+    if (afastamentoAtivo) {
+      const diasRestantes = calcularDiasRestantes(afastamentoAtivo.end_date);
+      const isAcidente = afastamentoAtivo.work_accident === true;
+      afastamentoHtml = `
+        <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; margin-top:8px;">
+          <div style="background:${isAcidente ? 'rgba(255,82,82,0.08)' : 'rgba(255,193,7,0.08)'}; border-radius:8px; padding:12px; border-left:3px solid ${isAcidente ? 'var(--error)' : 'var(--warning)'};">
+            <div class="info-row"><span class="label">Afastamento</span><span class="value ${isAcidente ? 'danger' : 'gold'}">${isAcidente ? '⚠️ Acidente de Trabalho' : '🏥 Em afastamento'}</span></div>
+            <div class="info-row"><span class="label">Tipo</span><span class="value">${getLeaveTypeLabel(afastamentoAtivo.leave_type || afastamentoAtivo.type)}</span></div>
+            <div class="info-row"><span class="label">Período</span><span class="value">${formatDate(afastamentoAtivo.start_date)} a ${formatDate(afastamentoAtivo.end_date)}</span></div>
+            <div class="info-row"><span class="label">Dias restantes</span><span class="value ${diasRestantes <= 3 ? 'danger' : 'success'}">${diasRestantes} dias</span></div>
+            ${afastamentoAtivo.reason ? `<div class="info-row"><span class="label">Motivo</span><span class="value">${afastamentoAtivo.reason}</span></div>` : ''}
+            ${afastamentoAtivo.icd_code ? `<div class="info-row"><span class="label">CID</span><span class="value">${afastamentoAtivo.icd_code}</span></div>` : ''}
+            ${afastamentoAtivo.doctor_name ? `<div class="info-row"><span class="label">Médico</span><span class="value">${afastamentoAtivo.doctor_name}</span></div>` : ''}
+            ${afastamentoAtivo.document_url ? `<div class="info-row"><span class="label">Atestado</span><span class="value"><a href="${afastamentoAtivo.document_url}" target="_blank" style="color:var(--gold-light);">📎 Ver documento</a></span></div>` : ''}
+          </div>
+        </div>
       `;
     }
 
@@ -4456,6 +4634,7 @@
       <div class="info-row"><span class="label">Salário</span><span class="value gold">${func.contract_type === "clt" ? formatCurrency(func.monthly_salary) : formatCurrency(func.daily_rate) + "/dia"}</span></div>
       <div class="info-row"><span class="label">Admissão</span><span class="value">${formatDate(func.admission_date)}</span></div>
       ${feriasHtml}
+      ${afastamentoHtml}
       ${func.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${func.notes}</span></div>` : ""}
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
         <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${func.id}</div>
@@ -4463,6 +4642,490 @@
     `;
 
     openModal(func.full_name, html);
+  }
+
+  // ============================================================
+  // ABRIR MODAL AFASTAMENTO (DETALHES)
+  // ============================================================
+  window.abrirModalAfastamento = async function (id) {
+    const { data: afastamento, error } = await supabase
+      .from("absences")
+      .select(`
+        *,
+        employees(full_name, role, phone_cell, email_personal, photo_url)
+      `)
+      .eq("id", id)
+      .single();
+
+    if (error || !afastamento) {
+      showFeedback("Erro", "Afastamento não encontrado.", "error");
+      return;
+    }
+
+    const func = afastamento.employees;
+    const diasRestantes = calcularDiasRestantes(afastamento.end_date);
+    const emAndamento = diasRestantes > 0 && afastamento.status !== "encerrado";
+    const isAcidente = afastamento.work_accident === true;
+
+    let statusColor = "var(--warning)";
+    let statusLabel = "🟡 Em andamento";
+    if (afastamento.status === "encerrado") {
+      statusColor = "var(--gray)";
+      statusLabel = "🔴 Encerrado";
+    } else if (isAcidente) {
+      statusColor = "var(--error)";
+      statusLabel = "⚠️ Acidente de Trabalho";
+    } else if (diasRestantes <= 3) {
+      statusColor = "var(--error)";
+      statusLabel = "🔴 Retorno próximo";
+    }
+
+    const fotoHtml = func?.photo_url
+      ? `<img src="${func.photo_url}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">`
+      : `<div style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;background:linear-gradient(135deg,var(--pink-dark),var(--gold-dark));color:#fff;">${getInitials(func?.full_name)}</div>`;
+
+    const html = `
+      <div style="display:grid; gap:12px;">
+        <div style="background:${isAcidente ? 'rgba(255,82,82,0.08)' : 'rgba(255,193,7,0.08)'}; border-radius:12px; padding:16px; display:flex; align-items:center; gap:16px; border-left:4px solid ${statusColor};">
+          ${fotoHtml}
+          <div>
+            <h4 style="margin:0;">${func?.full_name || "Funcionário"}</h4>
+            <small style="color:var(--gray);">${func?.role || "-"}</small>
+          </div>
+          <div style="margin-left:auto;">
+            <span style="font-size:0.65rem; color:${statusColor}; background:${statusColor}22; padding:3px 12px; border-radius:20px; border:1px solid ${statusColor}44; font-weight:500;">
+              ${statusLabel}
+            </span>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div><strong><i class="ph ph-tag"></i> Tipo:</strong> ${getLeaveTypeLabel(afastamento.leave_type || afastamento.type)}</div>
+          <div><strong><i class="ph ph-calendar"></i> Período:</strong> ${formatDate(afastamento.start_date)} a ${formatDate(afastamento.end_date)}</div>
+          <div><strong><i class="ph ph-clock"></i> Dias totais:</strong> ${afastamento.days_off || 0} dias</div>
+          <div><strong><i class="ph ph-hourglass"></i> Dias restantes:</strong> ${diasRestantes > 0 ? diasRestantes : '0'} dias</div>
+        </div>
+        ${afastamento.reason ? `<div><strong><i class="ph ph-note"></i> Motivo:</strong> ${escapeHtml(afastamento.reason)}</div>` : ""}
+        ${afastamento.icd_code ? `<div><strong><i class="ph ph-clipboard"></i> CID:</strong> ${escapeHtml(afastamento.icd_code)}</div>` : ""}
+        ${afastamento.doctor_name ? `<div><strong><i class="ph ph-user-md"></i> Médico:</strong> ${escapeHtml(afastamento.doctor_name)}</div>` : ""}
+        ${afastamento.hospital_name ? `<div><strong><i class="ph ph-building"></i> Hospital:</strong> ${escapeHtml(afastamento.hospital_name)}</div>` : ""}
+        ${afastamento.document_url ? `<div><strong><i class="ph ph-paperclip"></i> Atestado:</strong> <a href="${afastamento.document_url}" target="_blank" style="color:var(--gold-light);">📎 Ver documento</a></div>` : ""}
+        ${afastamento.notes ? `<div><strong><i class="ph ph-info"></i> Observações:</strong> ${escapeHtml(afastamento.notes)}</div>` : ""}
+        <div style="margin-top:8px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:8px; justify-content:flex-end;">
+          ${afastamento.status !== "encerrado" ? `
+            <button class="btn-action btn-action-success" onclick="encerrarAfastamento('${afastamento.id}')" style="padding:6px 14px;">
+              <i class="ph ph-check-circle"></i> Encerrar
+            </button>
+          ` : ""}
+          <button class="btn-action btn-action-ghost" onclick="editarAfastamento('${afastamento.id}')" style="padding:6px 14px;">
+            <i class="ph ph-pencil-simple"></i> Editar
+          </button>
+          <button class="btn-action btn-action-ghost" onclick="excluirAfastamento('${afastamento.id}')" style="padding:6px 14px; color:var(--error);">
+            <i class="ph ph-trash"></i> Excluir
+          </button>
+        </div>
+      </div>
+    `;
+
+    openModal(`Detalhes do Afastamento`, html);
+  };
+
+  // ============================================================
+  // NOVO AFASTAMENTO
+  // ============================================================
+  window.novoAfastamento = function () {
+    const html = `
+      <div style="display:grid; gap:12px;">
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-user"></i> Funcionário *</label>
+          <select id="afastamentoFuncionario" class="form-select" required>
+            <option value="">Selecione o funcionário...</option>
+            ${(dados.funcionarios || [])
+              .filter(f => f.active === true)
+              .map(f => `<option value="${f.id}">${f.full_name}</option>`)
+              .join("")}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-tag"></i> Tipo de Afastamento *</label>
+          <select id="afastamentoTipo" class="form-select" required>
+            <option value="atestado">📋 Atestado Médico</option>
+            <option value="acidente_trabalho">⚠️ Acidente de Trabalho</option>
+            <option value="cirurgia">🔬 Cirurgia</option>
+            <option value="doenca">🤒 Doença</option>
+            <option value="licenca_maternidade">👶 Licença Maternidade</option>
+            <option value="licenca_paternidade">👨 Licença Paternidade</option>
+            <option value="tratamento_medico">🏥 Tratamento Médico</option>
+            <option value="luto">💔 Luto</option>
+            <option value="casamento">💍 Casamento</option>
+            <option value="outro">📌 Outro</option>
+          </select>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label"><i class="ph ph-calendar"></i> Data Início *</label>
+            <input id="afastamentoInicio" type="date" class="form-input" value="${todayISO()}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="ph ph-calendar-check"></i> Data Fim *</label>
+            <input id="afastamentoFim" type="date" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-note"></i> Motivo / Descrição</label>
+          <textarea id="afastamentoMotivo" class="form-input" rows="2" placeholder="Descreva o motivo do afastamento..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-clipboard"></i> CID (Código da Doença)</label>
+          <input id="afastamentoCID" class="form-input" placeholder="Ex: M54.5 - Dor Lombar">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-user-md"></i> Médico Responsável</label>
+          <input id="afastamentoMedico" class="form-input" placeholder="Nome do médico">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-building"></i> Hospital</label>
+          <input id="afastamentoHospital" class="form-input" placeholder="Nome do hospital">
+        </div>
+        <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="afastamentoAcidente" style="width:18px; height:18px;">
+          <label class="form-label" style="margin:0;">⚠️ Acidente de Trabalho?</label>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-paperclip"></i> URL do Atestado</label>
+          <input id="afastamentoDocumento" class="form-input" placeholder="Link para imagem/PDF do atestado">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-info"></i> Observações</label>
+          <textarea id="afastamentoObs" class="form-input" rows="2" placeholder="Informações adicionais..."></textarea>
+        </div>
+      </div>
+    `;
+
+    openFormModal("Novo Afastamento", html, async () => {
+      const employee_id = document.getElementById("afastamentoFuncionario").value;
+      const leave_type = document.getElementById("afastamentoTipo").value;
+      const start_date = document.getElementById("afastamentoInicio").value;
+      const end_date = document.getElementById("afastamentoFim").value;
+      const reason = document.getElementById("afastamentoMotivo").value.trim() || null;
+      const icd_code = document.getElementById("afastamentoCID").value.trim() || null;
+      const doctor_name = document.getElementById("afastamentoMedico").value.trim() || null;
+      const hospital_name = document.getElementById("afastamentoHospital").value.trim() || null;
+      const work_accident = document.getElementById("afastamentoAcidente").checked;
+      const document_url = document.getElementById("afastamentoDocumento").value.trim() || null;
+      const notes = document.getElementById("afastamentoObs").value.trim() || null;
+
+      if (!employee_id || !leave_type || !start_date || !end_date) {
+        showFeedback("Erro", "Preencha todos os campos obrigatórios.", "error");
+        return;
+      }
+
+      if (new Date(end_date) < new Date(start_date)) {
+        showFeedback("Erro", "A data de fim não pode ser anterior à data de início.", "error");
+        return;
+      }
+
+      const loginResult = await abrirModalLogin("registrar afastamento");
+      if (!loginResult.success) {
+        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        return;
+      }
+
+      // Calcular dias de afastamento
+      const diffTime = Math.abs(new Date(end_date) - new Date(start_date));
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+      try {
+        const { error } = await supabase
+          .from("absences")
+          .insert({
+            employee_id,
+            type: "atestado",
+            start_date,
+            end_date,
+            days_off: diffDays,
+            reason,
+            icd_code,
+            doctor_name,
+            hospital_name,
+            work_accident,
+            document_url,
+            notes,
+            status: "aprovado",
+          });
+
+        if (error) throw error;
+
+        showFeedback("Sucesso", "Afastamento registrado com sucesso!", "success", () => {
+          carregarDados();
+          if (abaAtual === "rh") {
+            loadGestaoAfastamentos();
+          }
+        });
+      } catch (error) {
+        console.error("Erro ao registrar afastamento:", error);
+        showFeedback("Erro", `Falha ao registrar afastamento: ${error.message}`, "error");
+      }
+    }, "560px");
+  };
+
+  // ============================================================
+  // ENCERRAR AFASTAMENTO
+  // ============================================================
+  window.encerrarAfastamento = async function (id) {
+    if (!confirm("Deseja encerrar este afastamento?")) return;
+
+    const loginResult = await abrirModalLogin("encerrar afastamento");
+    if (!loginResult.success) {
+      showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("absences")
+        .update({
+          status: "encerrado",
+          end_date: todayISO(),
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      document.getElementById("modalContainer").innerHTML = "";
+      showFeedback("Sucesso", "Afastamento encerrado!", "success", () => {
+        carregarDados();
+        if (abaAtual === "rh") {
+          loadGestaoAfastamentos();
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao encerrar afastamento:", error);
+      showFeedback("Erro", `Falha ao encerrar afastamento: ${error.message}`, "error");
+    }
+  };
+
+  // ============================================================
+  // EDITAR AFASTAMENTO
+  // ============================================================
+  window.editarAfastamento = async function (id) {
+    const { data: afastamento } = await supabase
+      .from("absences")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (!afastamento) {
+      showFeedback("Erro", "Afastamento não encontrado.", "error");
+      return;
+    }
+
+    const html = `
+      <div style="display:grid; gap:12px;">
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-tag"></i> Tipo de Afastamento *</label>
+          <select id="editAfastamentoTipo" class="form-select" required>
+            <option value="atestado" ${afastamento.leave_type === "atestado" || afastamento.type === "atestado" ? "selected" : ""}>📋 Atestado Médico</option>
+            <option value="acidente_trabalho" ${afastamento.leave_type === "acidente_trabalho" || afastamento.type === "acidente_trabalho" ? "selected" : ""}>⚠️ Acidente de Trabalho</option>
+            <option value="cirurgia" ${afastamento.leave_type === "cirurgia" ? "selected" : ""}>🔬 Cirurgia</option>
+            <option value="doenca" ${afastamento.leave_type === "doenca" ? "selected" : ""}>🤒 Doença</option>
+            <option value="licenca_maternidade" ${afastamento.leave_type === "licenca_maternidade" ? "selected" : ""}>👶 Licença Maternidade</option>
+            <option value="licenca_paternidade" ${afastamento.leave_type === "licenca_paternidade" ? "selected" : ""}>👨 Licença Paternidade</option>
+            <option value="tratamento_medico" ${afastamento.leave_type === "tratamento_medico" ? "selected" : ""}>🏥 Tratamento Médico</option>
+            <option value="luto" ${afastamento.leave_type === "luto" ? "selected" : ""}>💔 Luto</option>
+            <option value="casamento" ${afastamento.leave_type === "casamento" ? "selected" : ""}>💍 Casamento</option>
+            <option value="outro" ${afastamento.leave_type === "outro" ? "selected" : ""}>📌 Outro</option>
+          </select>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label"><i class="ph ph-calendar"></i> Data Início *</label>
+            <input id="editAfastamentoInicio" type="date" class="form-input" value="${afastamento.start_date}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="ph ph-calendar-check"></i> Data Fim *</label>
+            <input id="editAfastamentoFim" type="date" class="form-input" value="${afastamento.end_date}" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-note"></i> Motivo / Descrição</label>
+          <textarea id="editAfastamentoMotivo" class="form-input" rows="2">${afastamento.reason || ""}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-clipboard"></i> CID</label>
+          <input id="editAfastamentoCID" class="form-input" value="${afastamento.icd_code || ""}">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-user-md"></i> Médico</label>
+          <input id="editAfastamentoMedico" class="form-input" value="${afastamento.doctor_name || ""}">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-building"></i> Hospital</label>
+          <input id="editAfastamentoHospital" class="form-input" value="${afastamento.hospital_name || ""}">
+        </div>
+        <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="editAfastamentoAcidente" ${afastamento.work_accident ? "checked" : ""} style="width:18px; height:18px;">
+          <label class="form-label" style="margin:0;">⚠️ Acidente de Trabalho?</label>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-paperclip"></i> URL do Atestado</label>
+          <input id="editAfastamentoDocumento" class="form-input" value="${afastamento.document_url || ""}">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-info"></i> Observações</label>
+          <textarea id="editAfastamentoObs" class="form-input" rows="2">${afastamento.notes || ""}</textarea>
+        </div>
+      </div>
+    `;
+
+    openFormModal("Editar Afastamento", html, async () => {
+      const leave_type = document.getElementById("editAfastamentoTipo").value;
+      const start_date = document.getElementById("editAfastamentoInicio").value;
+      const end_date = document.getElementById("editAfastamentoFim").value;
+      const reason = document.getElementById("editAfastamentoMotivo").value.trim() || null;
+      const icd_code = document.getElementById("editAfastamentoCID").value.trim() || null;
+      const doctor_name = document.getElementById("editAfastamentoMedico").value.trim() || null;
+      const hospital_name = document.getElementById("editAfastamentoHospital").value.trim() || null;
+      const work_accident = document.getElementById("editAfastamentoAcidente").checked;
+      const document_url = document.getElementById("editAfastamentoDocumento").value.trim() || null;
+      const notes = document.getElementById("editAfastamentoObs").value.trim() || null;
+
+      if (!start_date || !end_date) {
+        showFeedback("Erro", "Preencha as datas de início e fim.", "error");
+        return;
+      }
+
+      if (new Date(end_date) < new Date(start_date)) {
+        showFeedback("Erro", "A data de fim não pode ser anterior à data de início.", "error");
+        return;
+      }
+
+      const loginResult = await abrirModalLogin("editar afastamento");
+      if (!loginResult.success) {
+        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        return;
+      }
+
+      const diffTime = Math.abs(new Date(end_date) - new Date(start_date));
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+      try {
+        const { error } = await supabase
+          .from("absences")
+          .update({
+            leave_type,
+            start_date,
+            end_date,
+            days_off: diffDays,
+            reason,
+            icd_code,
+            doctor_name,
+            hospital_name,
+            work_accident,
+            document_url,
+            notes,
+          })
+          .eq("id", id);
+
+        if (error) throw error;
+
+        showFeedback("Sucesso", "Afastamento atualizado!", "success", () => {
+          carregarDados();
+          if (abaAtual === "rh") {
+            loadGestaoAfastamentos();
+          }
+        });
+      } catch (error) {
+        console.error("Erro ao editar afastamento:", error);
+        showFeedback("Erro", `Falha ao editar afastamento: ${error.message}`, "error");
+      }
+    }, "560px");
+  };
+
+  // ============================================================
+  // EXCLUIR AFASTAMENTO
+  // ============================================================
+  window.excluirAfastamento = async function (id) {
+    if (!confirm("Deseja realmente excluir este afastamento?")) return;
+
+    const loginResult = await abrirModalLogin("excluir afastamento");
+    if (!loginResult.success) {
+      showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("absences")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      document.getElementById("modalContainer").innerHTML = "";
+      showFeedback("Sucesso", "Afastamento excluído!", "success", () => {
+        carregarDados();
+        if (abaAtual === "rh") {
+          loadGestaoAfastamentos();
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao excluir afastamento:", error);
+      showFeedback("Erro", `Falha ao excluir afastamento: ${error.message}`, "error");
+    }
+  };
+
+  // ============================================================
+  // LOAD GESTÃO DE AFASTAMENTOS
+  // ============================================================
+  async function loadGestaoAfastamentos() {
+    try {
+      const hoje = todayISO();
+      const { data: afastamentos, error } = await supabase
+        .from("absences")
+        .select(`
+          *,
+          employees(full_name, role, photo_url, phone_cell, email_personal)
+        `)
+        .order("start_date", { ascending: false });
+
+      if (error) {
+        console.error("Erro ao carregar afastamentos:", error);
+        return;
+      }
+
+      // Atualizar dados globais
+      dados.afastamentos = afastamentos || [];
+
+      // Re-renderizar RH com os novos dados
+      renderizarRH(dados);
+    } catch (e) {
+      console.error("Erro em loadGestaoAfastamentos:", e);
+    }
+  }
+
+  // ============================================================
+  // RENDERIZAR DÍVIDAS - DASHBOARD (RESUMO)
+  // ============================================================
+  function renderizarDividasDashboard(dados) {
+    const { dividas, totalDividas, saldoDevedor } = dados;
+
+    const kpiDividas = document.getElementById("kpiDividasAtivas");
+    if (kpiDividas) {
+      kpiDividas.textContent = formatCurrency(saldoDevedor);
+    }
+
+    const maxDivida = Math.max(saldoDevedor, 1000);
+    const pct = Math.min(Math.round((saldoDevedor / maxDivida) * 100), 100);
+    const circumference = 188.5;
+    const offset = circumference - (pct / 100) * circumference;
+    const gaugeFill = document.getElementById("gaugeFill");
+    if (gaugeFill) {
+      gaugeFill.style.strokeDashoffset = offset;
+    }
+    const gaugePercent = document.getElementById("gaugePercent");
+    if (gaugePercent) {
+      gaugePercent.textContent = pct + "%";
+    }
   }
 
   // ============================================================
@@ -4501,7 +5164,6 @@
         })
         .range(limiteAtualDiv - LIMITE_PADRAO_DIV, limiteAtualDiv - 1);
 
-      // Aplica filtros
       if (filtrosDividas.credor) {
         query = query.ilike("creditor", `%${filtrosDividas.credor}%`);
       }
@@ -4530,7 +5192,6 @@
 
       totalRegistrosDiv = count || 0;
 
-      // Buscar fornecedores para mapear nomes
       const { data: suppliers } = await supabase
         .from("suppliers")
         .select("id, company_name");
@@ -4539,7 +5200,6 @@
         suppliers.forEach((s) => (suppliersMap[s.id] = s.company_name));
       }
 
-      // Buscar parcelas e anexos
       const ids = dividas?.map((d) => d.id) || [];
       let parcelasMap = {};
       let anexosMap = {};
@@ -4569,7 +5229,6 @@
         }
       }
 
-      // Anexar nome do fornecedor manualmente
       const dividasComFornecedor = dividas.map((d) => ({
         ...d,
         suppliers: d.supplier_id
@@ -4806,7 +5465,7 @@
       .join("");
   }
 
-  // Paginação
+  // Paginação de dívidas
   function renderizarPaginacaoDividas() {
     const container = document.getElementById("paginacaoDividas");
     if (!container) return;
@@ -4833,7 +5492,7 @@
     }
   }
 
-  // Configurar filtros
+  // Configurar filtros de dívidas
   function configurarFiltrosDividas() {
     const container = document.getElementById("filtrosDividas");
     if (!container) return;
@@ -5431,7 +6090,6 @@
       }
     });
 
-    // Atualizar juros/multa ao selecionar parcela
     setTimeout(() => {
       const select = document.getElementById("parcelaId");
       if (select) {
@@ -5567,12 +6225,6 @@
       }
     });
   };
-
-  // Inicializar aba de dívidas quando for ativada
-  function initAbaDividas() {
-    console.log("📊 Inicializando aba de dívidas...");
-    loadGestaoDividas();
-  }
 
   // ============================================================
   // CARREGAR DADOS (TODOS DO SUPABASE)
@@ -5762,6 +6414,16 @@
         .order("start_date", { ascending: true });
       if (errFer) console.error("❌ Erro férias:", errFer);
 
+      // Buscar afastamentos (NOVO)
+      const { data: afastamentos, error: errAbs } = await supabase
+        .from("absences")
+        .select(`
+          *,
+          employees(full_name, role, photo_url, phone_cell, email_personal)
+        `)
+        .order("start_date", { ascending: false });
+      if (errAbs) console.error("❌ Erro afastamentos:", errAbs);
+
       const { data: dividas, error: errDiv } = await supabase
         .from("debts")
         .select("*")
@@ -5788,6 +6450,7 @@
         contasVencidas: contasVencidas || 0,
         funcionarios: funcionarios || [],
         ferias: ferias || [],
+        afastamentos: afastamentos || [],
         dividas: dividas || [],
         totalDividas: totalDividas || 0,
         saldoDevedor: saldoDevedor || 0,
@@ -5799,14 +6462,16 @@
       renderizarProducao(dados);
       renderizarFinanceiro(dados);
       renderizarRH(dados);
+      renderizarDividasDashboard(dados);
 
       // Se a aba atual for dívidas, carregar os dados específicos
       if (abaAtual === "dividas") {
         loadGestaoDividas();
       }
-
-      // Renderizar dívidas no dashboard (cards de resumo)
-      renderizarDividasDashboard(dados);
+      // Se a aba atual for RH, carregar dados de afastamentos
+      if (abaAtual === "rh") {
+        loadGestaoAfastamentos();
+      }
 
       const totalPendencias =
         (osAtivas || []).filter(
@@ -5818,9 +6483,8 @@
         (osAtivas || []).length > 0 ? "flex" : "none";
       $("tabBadgeFin").textContent = contasVencidas;
       $("tabBadgeFin").style.display = contasVencidas > 0 ? "flex" : "none";
-      $("tabBadgeRH").textContent = (ferias || []).length;
-      $("tabBadgeRH").style.display =
-        (ferias || []).length > 0 ? "flex" : "none";
+      $("tabBadgeRH").textContent = (ferias || []).length + (afastamentos || []).filter(a => a.status !== "encerrado").length;
+      $("tabBadgeRH").style.display = ((ferias || []).length + (afastamentos || []).filter(a => a.status !== "encerrado").length) > 0 ? "flex" : "none";
       const divAtivas = (dividas || []).filter(
         (d) => d.status !== "quitada",
       ).length;
@@ -5838,33 +6502,8 @@
     }
   }
 
-  // Renderizar cards de dívidas no dashboard
-  function renderizarDividasDashboard(dados) {
-    const { dividas, totalDividas, saldoDevedor } = dados;
-
-    // Atualizar os cards na aba geral
-    const kpiDividas = document.getElementById("kpiDividasAtivas");
-    if (kpiDividas) {
-      kpiDividas.textContent = formatCurrency(saldoDevedor);
-    }
-
-    // Atualizar o gauge de dívidas
-    const maxDivida = Math.max(saldoDevedor, 1000);
-    const pct = Math.min(Math.round((saldoDevedor / maxDivida) * 100), 100);
-    const circumference = 188.5;
-    const offset = circumference - (pct / 100) * circumference;
-    const gaugeFill = document.getElementById("gaugeFill");
-    if (gaugeFill) {
-      gaugeFill.style.strokeDashoffset = offset;
-    }
-    const gaugePercent = document.getElementById("gaugePercent");
-    if (gaugePercent) {
-      gaugePercent.textContent = pct + "%";
-    }
-  }
-
   // ============================================================
-  // NAVEGAÇÃO POR ABAS - COM INICIALIZAÇÃO DA ABA DE DÍVIDAS
+  // NAVEGAÇÃO POR ABAS - COM INICIALIZAÇÃO DAS ABAS
   // ============================================================
   const tabItems = document.querySelectorAll(".tab-item");
   const tabContents = {
@@ -5886,10 +6525,15 @@
       tabContents[key].classList.toggle("active", key === aba);
     });
 
-    // Inicializar aba de dívidas quando for ativada
+    // Inicializar abas específicas quando ativadas
     if (aba === "dividas") {
       setTimeout(() => {
-        initAbaDividas();
+        loadGestaoDividas();
+      }, 100);
+    }
+    if (aba === "rh") {
+      setTimeout(() => {
+        loadGestaoAfastamentos();
       }, 100);
     }
 
@@ -6035,7 +6679,7 @@
   window.selecionarDiaCalendarioFinanceiro =
     window.selecionarDiaCalendarioFinanceiro;
   window.buscarParcelasDaTransacao = buscarParcelasDaTransacao;
-  
+
   // Exportar funções de dívidas
   window.loadGestaoDividas = loadGestaoDividas;
   window.novaDivida = window.novaDivida;
@@ -6044,6 +6688,13 @@
   window.quitarParcela = window.quitarParcela;
   window.quitarDivida = window.quitarDivida;
   window.abrirModalDivida = window.abrirModalDivida;
-  window.initAbaDividas = initAbaDividas;
+
+  // Exportar funções de afastamentos
+  window.novoAfastamento = window.novoAfastamento;
+  window.editarAfastamento = window.editarAfastamento;
+  window.excluirAfastamento = window.excluirAfastamento;
+  window.encerrarAfastamento = window.encerrarAfastamento;
+  window.abrirModalAfastamento = window.abrirModalAfastamento;
+  window.loadGestaoAfastamentos = loadGestaoAfastamentos;
 
 })();
