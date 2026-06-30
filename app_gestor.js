@@ -1,13 +1,15 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // JavaScript completo para o aplicativo do gestor
-// VERSÃO 2.17 - FINANCEIRO COM VISÃO EM CALENDÁRIO E PARCELAS COMPLETAS
+// VERSÃO 3.0 - GESTÃO DE DÍVIDAS ESTILO DESKTOP
 // ============================================================
 
 (function () {
   "use strict";
 
-  console.log("🚀 App do Gestor - Versão 2.17 com visão em calendário e parcelas completas");
+  console.log(
+    "🚀 App do Gestor - Versão 3.0 com gestão de dívidas estilo desktop",
+  );
 
   // ============================================================
   // SUPABASE
@@ -91,7 +93,9 @@
       clearTimeout(sessionTimeout);
     }
     sessionTimeout = setTimeout(() => {
-      console.log("⏰ Sessão expirada automaticamente após 30 minutos de inatividade");
+      console.log(
+        "⏰ Sessão expirada automaticamente após 30 minutos de inatividade",
+      );
       localStorage.removeItem("gestor_session");
       usuarioAutenticado = null;
       atualizarIndicadorSessao();
@@ -102,11 +106,13 @@
           "warning",
           () => {
             abrirModalLoginObrigatorio("continuar usando o app");
-          }
+          },
         );
       }
     }, SESSION_DURATION);
-    console.log(`💾 Sessão salva para: ${usuario.email} (expira em 30 minutos)`);
+    console.log(
+      `💾 Sessão salva para: ${usuario.email} (expira em 30 minutos)`,
+    );
     atualizarIndicadorSessao();
   }
 
@@ -121,7 +127,9 @@
         clearTimeout(sessionTimeout);
       }
       sessionTimeout = setTimeout(() => {
-        console.log("⏰ Sessão expirada automaticamente após 30 minutos de inatividade");
+        console.log(
+          "⏰ Sessão expirada automaticamente após 30 minutos de inatividade",
+        );
         localStorage.removeItem("gestor_session");
         usuarioAutenticado = null;
         atualizarIndicadorSessao();
@@ -132,7 +140,7 @@
             "warning",
             () => {
               abrirModalLoginObrigatorio("continuar usando o app");
-            }
+            },
           );
         }
       }, SESSION_DURATION);
@@ -386,21 +394,29 @@
           emailInput.focus();
         }
       }, 300);
-      document.getElementById("loginObrigatorioEmail")?.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          document.getElementById("loginObrigatorioSenha")?.focus();
-        }
-      });
-      document.getElementById("loginObrigatorioSenha")?.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          document.getElementById("confirmarLoginObrigatorio")?.click();
-        }
-      });
+      document
+        .getElementById("loginObrigatorioEmail")
+        ?.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            document.getElementById("loginObrigatorioSenha")?.focus();
+          }
+        });
+      document
+        .getElementById("loginObrigatorioSenha")
+        ?.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            document.getElementById("confirmarLoginObrigatorio")?.click();
+          }
+        });
       document
         .getElementById("confirmarLoginObrigatorio")
         ?.addEventListener("click", async function () {
-          const email = document.getElementById("loginObrigatorioEmail").value.trim();
-          const senha = document.getElementById("loginObrigatorioSenha").value.trim();
+          const email = document
+            .getElementById("loginObrigatorioEmail")
+            .value.trim();
+          const senha = document
+            .getElementById("loginObrigatorioSenha")
+            .value.trim();
           const statusEl = document.getElementById("loginObrigatorioStatus");
           if (!email || !senha) {
             statusEl.textContent = "❌ Preencha email e senha";
@@ -415,7 +431,9 @@
           if (result.success) {
             statusEl.textContent = `✅ Bem-vindo, ${result.usuario.user_metadata?.full_name || email}!`;
             statusEl.style.color = "#4caf50";
-            const overlayEl = document.getElementById("loginObrigatorioOverlay");
+            const overlayEl = document.getElementById(
+              "loginObrigatorioOverlay",
+            );
             if (overlayEl) {
               overlayEl.remove();
             }
@@ -532,8 +550,15 @@
 
   function setupActivityDetection() {
     const events = [
-      'click', 'touchstart', 'touchmove', 'scroll', 'keydown',
-      'input', 'change', 'focus', 'blur'
+      "click",
+      "touchstart",
+      "touchmove",
+      "scroll",
+      "keydown",
+      "input",
+      "change",
+      "focus",
+      "blur",
     ];
     let activityTimer = null;
     const handleActivity = () => {
@@ -543,10 +568,12 @@
         activityTimer = setTimeout(() => {}, 5000);
       }
     };
-    events.forEach(event => {
+    events.forEach((event) => {
       document.addEventListener(event, handleActivity, { passive: true });
     });
-    console.log("🔄 Detector de atividade configurado - sessão será renovada com interação");
+    console.log(
+      "🔄 Detector de atividade configurado - sessão será renovada com interação",
+    );
   }
 
   // ============================================================
@@ -597,6 +624,24 @@
       pago: "💳 Pago",
     };
     return map[s] || s || "-";
+  }
+
+  function formatarTipoDivida(tipo) {
+    const tipos = {
+      bancaria: "Bancária",
+      fornecedor: "Fornecedor",
+      imposto: "Imposto",
+      pessoal: "Pessoal",
+      outro: "Outro",
+    };
+    return tipos[tipo] || tipo;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
   }
 
   function getPaymentStatusInfo(status) {
@@ -797,6 +842,78 @@
       ?.addEventListener("click", (e) => {
         if (e.target.id === "feedbackOverlay") closeModal();
       });
+  }
+
+  // ============================================================
+  // MODAL CUSTOM PARA FORMULÁRIOS COM BOTÃO DE SUBMIT
+  // ============================================================
+  function openFormModal(title, formHtml, onSubmit, maxWidth = "520px") {
+    const html = `
+      <div class="modal-overlay" id="formOverlay">
+        <div class="modal-sheet" style="max-width:${maxWidth}; width:95%; max-height:90vh; display:flex; flex-direction:column;">
+          <div class="handle"></div>
+          <div class="modal-header" style="flex-shrink:0;">
+            <h2><i class="ph ph-${getIconForTitle(title)}"></i> ${title}</h2>
+            <button class="btn-close" id="closeFormModal"><i class="ph ph-x"></i> Fechar</button>
+          </div>
+          <div class="modal-body" style="flex:1; overflow-y:auto; padding:16px 20px;">
+            <form id="dynamicForm" novalidate style="display:flex; flex-direction:column; gap:8px;">
+              ${formHtml}
+              <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.05);">
+                <button type="button" class="btn-ghost" id="cancelFormModal" style="padding:8px 16px;">Cancelar</button>
+                <button type="submit" class="btn-primary" style="padding:8px 20px;">
+                  <i class="ph ph-check-circle"></i> Salvar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const container = document.getElementById("modalContainer");
+    if (!container) return;
+    container.innerHTML = html;
+
+    const closeModal = () => {
+      container.innerHTML = "";
+    };
+
+    document.getElementById("closeFormModal").addEventListener("click", closeModal);
+    document.getElementById("cancelFormModal").addEventListener("click", closeModal);
+    document.getElementById("formOverlay").addEventListener("click", (e) => {
+      if (e.target.id === "formOverlay") closeModal();
+    });
+    document.addEventListener("keydown", function escForm(e) {
+      if (e.key === "Escape") {
+        closeModal();
+        document.removeEventListener("keydown", escForm);
+      }
+    });
+
+    document.getElementById("dynamicForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (typeof onSubmit === "function") {
+        await onSubmit();
+      }
+      closeModal();
+    });
+  }
+
+  function getIconForTitle(title) {
+    const icons = {
+      "Nova Dívida": "plus-circle",
+      "Editar Dívida": "pencil-simple",
+      "Detalhes da Dívida": "eye",
+      "Quitar Parcela": "check-circle",
+      "Quitar Dívida Completa": "check-square",
+      "Simulação de Quitação Antecipada": "chart-line",
+      "Renegociar Dívida": "arrows-clockwise",
+      "Anexos": "paperclip",
+      "Editar Parcelas": "receipt",
+      "Confirmar Exclusão": "trash",
+    };
+    return icons[title] || "file";
   }
 
   // ============================================================
@@ -1025,24 +1142,30 @@
       return;
     }
 
-    // Se for uma parcela, buscar a transação principal e todas as parcelas
     const transactionId = evento.transaction_id || id;
     const transacaoOriginal = evento.transacao_original || null;
-    const isParcelada = evento.isParcela || (transacaoOriginal && transacaoOriginal.installments === true);
+    const isParcelada =
+      evento.isParcela ||
+      (transacaoOriginal && transacaoOriginal.installments === true);
 
     let todasParcelas = [];
     let parcelasHtml = "";
 
     if (isParcelada) {
       todasParcelas = await buscarParcelasDaTransacao(transactionId);
-      
+
       if (todasParcelas && todasParcelas.length > 0) {
         const hoje = new Date();
         const totalParcelas = todasParcelas.length;
-        const pagas = todasParcelas.filter(p => p.status === "pago").length;
+        const pagas = todasParcelas.filter((p) => p.status === "pago").length;
         const pendentes = totalParcelas - pagas;
-        const totalValor = todasParcelas.reduce((sum, p) => sum + parseFloat(p.valor), 0);
-        const totalPago = todasParcelas.filter(p => p.status === "pago").reduce((sum, p) => sum + parseFloat(p.valor), 0);
+        const totalValor = todasParcelas.reduce(
+          (sum, p) => sum + parseFloat(p.valor),
+          0,
+        );
+        const totalPago = todasParcelas
+          .filter((p) => p.status === "pago")
+          .reduce((sum, p) => sum + parseFloat(p.valor), 0);
 
         parcelasHtml = `
           <div style="margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 12px;">
@@ -1055,34 +1178,39 @@
               </div>
             </div>
             <div style="max-height: 300px; overflow-y: auto;">
-              ${todasParcelas.map((p) => {
-                const isPaga = p.status === "pago";
-                const isVencida = !isPaga && new Date(p.vencimento) < hoje;
-                const isMesAtual = !isPaga && !isVencida && new Date(p.vencimento).getMonth() === hoje.getMonth() && new Date(p.vencimento).getFullYear() === hoje.getFullYear();
-                
-                let statusCor = "var(--gray)";
-                let statusTexto = "⏳ Pendente";
-                let bgCor = "rgba(255,255,255,0.02)";
-                let borderCor = "var(--gray)";
-                
-                if (isPaga) {
-                  statusCor = "var(--success)";
-                  statusTexto = "✅ Paga";
-                  bgCor = "rgba(76,175,80,0.05)";
-                  borderCor = "var(--success)";
-                } else if (isVencida) {
-                  statusCor = "var(--error)";
-                  statusTexto = "🔴 Vencida";
-                  bgCor = "rgba(255,82,82,0.08)";
-                  borderCor = "var(--error)";
-                } else if (isMesAtual) {
-                  statusCor = "var(--warning)";
-                  statusTexto = "🟡 Mês atual";
-                  bgCor = "rgba(255,193,7,0.08)";
-                  borderCor = "var(--warning)";
-                }
+              ${todasParcelas
+                .map((p) => {
+                  const isPaga = p.status === "pago";
+                  const isVencida = !isPaga && new Date(p.vencimento) < hoje;
+                  const isMesAtual =
+                    !isPaga &&
+                    !isVencida &&
+                    new Date(p.vencimento).getMonth() === hoje.getMonth() &&
+                    new Date(p.vencimento).getFullYear() === hoje.getFullYear();
 
-                return `
+                  let statusCor = "var(--gray)";
+                  let statusTexto = "⏳ Pendente";
+                  let bgCor = "rgba(255,255,255,0.02)";
+                  let borderCor = "var(--gray)";
+
+                  if (isPaga) {
+                    statusCor = "var(--success)";
+                    statusTexto = "✅ Paga";
+                    bgCor = "rgba(76,175,80,0.05)";
+                    borderCor = "var(--success)";
+                  } else if (isVencida) {
+                    statusCor = "var(--error)";
+                    statusTexto = "🔴 Vencida";
+                    bgCor = "rgba(255,82,82,0.08)";
+                    borderCor = "var(--error)";
+                  } else if (isMesAtual) {
+                    statusCor = "var(--warning)";
+                    statusTexto = "🟡 Mês atual";
+                    bgCor = "rgba(255,193,7,0.08)";
+                    borderCor = "var(--warning)";
+                  }
+
+                  return `
                   <div style="
                     display: flex;
                     align-items: center;
@@ -1100,14 +1228,18 @@
                       <div>
                         <div style="font-size: 0.75rem; color: var(--gray);">
                           Vence: ${formatDate(p.vencimento)}
-                          ${p.payment_date ? `• Pago em: ${formatDate(p.payment_date)}` : ''}
+                          ${p.payment_date ? `• Pago em: ${formatDate(p.payment_date)}` : ""}
                         </div>
-                        ${p.interest_paid > 0 || p.late_fee_paid > 0 ? `
+                        ${
+                          p.interest_paid > 0 || p.late_fee_paid > 0
+                            ? `
                           <div style="font-size: 0.65rem; color: var(--gray-dark);">
-                            ${p.interest_paid > 0 ? `Juros: ${formatCurrency(p.interest_paid)}` : ''}
-                            ${p.late_fee_paid > 0 ? `• Multa: ${formatCurrency(p.late_fee_paid)}` : ''}
+                            ${p.interest_paid > 0 ? `Juros: ${formatCurrency(p.interest_paid)}` : ""}
+                            ${p.late_fee_paid > 0 ? `• Multa: ${formatCurrency(p.late_fee_paid)}` : ""}
                           </div>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                       </div>
                     </div>
                     <div style="text-align: right; flex-shrink: 0; margin-left: 12px;">
@@ -1120,7 +1252,8 @@
                     </div>
                   </div>
                 `;
-              }).join('')}
+                })
+                .join("")}
             </div>
           </div>
         `;
@@ -1128,7 +1261,8 @@
     }
 
     const isPagar = evento.tipo === "pagar";
-    const vencido = evento.status === "pendente" && new Date(evento.vencimento) < new Date();
+    const vencido =
+      evento.status === "pendente" && new Date(evento.vencimento) < new Date();
     const pago = evento.status === "pago" || evento.status === "recebido";
 
     let statusText = "";
@@ -1146,7 +1280,7 @@
 
     let infoParcelas = "";
     if (isParcelada && todasParcelas.length > 0) {
-      const pagas = todasParcelas.filter(p => p.status === "pago").length;
+      const pagas = todasParcelas.filter((p) => p.status === "pago").length;
       const total = todasParcelas.length;
       infoParcelas = ` • ${pagas}/${total} parcelas pagas`;
     }
@@ -1161,11 +1295,15 @@
       <div class="info-row"><span class="label">Vencimento</span><span class="value">${formatDate(evento.vencimento)}</span></div>
       <div class="info-row"><span class="label">Tipo</span><span class="value ${isPagar ? "danger" : "success"}">${isPagar ? "A Pagar" : "A Receber"}</span></div>
       ${evento.payment_method ? `<div class="info-row"><span class="label">Forma de Pagamento</span><span class="value">${evento.payment_method}</span></div>` : ""}
-      ${evento.isParcela ? `
+      ${
+        evento.isParcela
+          ? `
         <div class="info-row"><span class="label">Parcela</span><span class="value">${evento.numero_parcela}/${evento.total_parcelas}</span></div>
         ${evento.interest_paid ? `<div class="info-row"><span class="label">Juros pagos</span><span class="value">${formatCurrency(evento.interest_paid)}</span></div>` : ""}
         ${evento.late_fee_paid ? `<div class="info-row"><span class="label">Multa paga</span><span class="value">${formatCurrency(evento.late_fee_paid)}</span></div>` : ""}
-      ` : ""}
+      `
+          : ""
+      }
       ${parcelasHtml}
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
         <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${evento.id}</div>
@@ -1732,9 +1870,8 @@
             "novoLoteRecebimento",
           ).value;
           const prazo = document.getElementById("novoLotePrazo").value;
-          const obs = document
-            .getElementById("novoLoteObs")
-            .value.trim() || null;
+          const obs =
+            document.getElementById("novoLoteObs").value.trim() || null;
           if (
             !cliente ||
             !produto ||
@@ -2035,9 +2172,11 @@
         </div>
       `;
       openModal("⚠️ Ação Bloqueada", htmlBloqueio);
-      document.getElementById("btnEntendiCancelar")?.addEventListener("click", () => {
-        document.getElementById("modalContainer").innerHTML = "";
-      });
+      document
+        .getElementById("btnEntendiCancelar")
+        ?.addEventListener("click", () => {
+          document.getElementById("modalContainer").innerHTML = "";
+        });
       return;
     }
     if (!confirm(`Cancelar o lote ${orderNumber}?`)) return;
@@ -2060,7 +2199,9 @@
           .from("financial_transactions")
           .delete()
           .eq("id", conta.id);
-        console.log(`✅ Conta a receber removida por cancelamento: ${conta.id}`);
+        console.log(
+          `✅ Conta a receber removida por cancelamento: ${conta.id}`,
+        );
       }
       const { error } = await supabase
         .from("service_orders")
@@ -2111,9 +2252,11 @@
           </div>
         `;
         openModal("⚠️ Ação Bloqueada", htmlBloqueio);
-        document.getElementById("btnEntendiExcluir")?.addEventListener("click", () => {
-          document.getElementById("modalContainer").innerHTML = "";
-        });
+        document
+          .getElementById("btnEntendiExcluir")
+          ?.addEventListener("click", () => {
+            document.getElementById("modalContainer").innerHTML = "";
+          });
         return;
       }
       let mensagemAdicional = "";
@@ -2149,73 +2292,82 @@
               <i class="ph ph-trash"></i> Excluir
             </button>
           </div>
-          ${conta && conta.status === "pendente" ? `
+          ${
+            conta && conta.status === "pendente"
+              ? `
             <p style="color: var(--gray-dark); font-size: 0.7rem; margin-top: 12px;">
               <i class="ph ph-currency-circle-dollar"></i> Conta a receber de ${formatCurrency(conta.amount)} será removida
             </p>
-          ` : ""}
+          `
+              : ""
+          }
         </div>
       `;
       openModal("⚠️ Confirmar Exclusão", htmlConfirmacao);
-      document.getElementById("btnCancelarExclusao")?.addEventListener("click", () => {
-        document.getElementById("modalContainer").innerHTML = "";
-      });
-      document.getElementById("btnConfirmarExclusao")?.addEventListener("click", async function() {
-        this.disabled = true;
-        this.innerHTML = '<i class="ph ph-spinner spinning"></i> Excluindo...';
-        const loginResult = await abrirModalLogin("excluir lote");
-        if (!loginResult.success) {
+      document
+        .getElementById("btnCancelarExclusao")
+        ?.addEventListener("click", () => {
           document.getElementById("modalContainer").innerHTML = "";
-          showFeedback(
-            "Ação cancelada",
-            "Você precisa estar autenticado.",
-            "warning",
-          );
-          return;
-        }
-        try {
-          if (conta) {
-            await supabase
-              .from("financial_installments")
-              .delete()
-              .eq("transaction_id", conta.id);
-            await supabase
-              .from("financial_transactions")
-              .delete()
-              .eq("id", conta.id);
-            console.log(`✅ Conta a receber removida: ${conta.id}`);
+        });
+      document
+        .getElementById("btnConfirmarExclusao")
+        ?.addEventListener("click", async function () {
+          this.disabled = true;
+          this.innerHTML =
+            '<i class="ph ph-spinner spinning"></i> Excluindo...';
+          const loginResult = await abrirModalLogin("excluir lote");
+          if (!loginResult.success) {
+            document.getElementById("modalContainer").innerHTML = "";
+            showFeedback(
+              "Ação cancelada",
+              "Você precisa estar autenticado.",
+              "warning",
+            );
+            return;
           }
-          const { data: items } = await supabase
-            .from("service_order_items")
-            .select("id")
-            .eq("service_order_id", id);
-          if (items && items.length > 0) {
-            for (const item of items) {
+          try {
+            if (conta) {
               await supabase
-                .from("sewing_records")
+                .from("financial_installments")
                 .delete()
-                .eq("service_order_item_id", item.id);
+                .eq("transaction_id", conta.id);
+              await supabase
+                .from("financial_transactions")
+                .delete()
+                .eq("id", conta.id);
+              console.log(`✅ Conta a receber removida: ${conta.id}`);
+            }
+            const { data: items } = await supabase
+              .from("service_order_items")
+              .select("id")
+              .eq("service_order_id", id);
+            if (items && items.length > 0) {
+              for (const item of items) {
+                await supabase
+                  .from("sewing_records")
+                  .delete()
+                  .eq("service_order_item_id", item.id);
+              }
+              await supabase
+                .from("service_order_items")
+                .delete()
+                .eq("service_order_id", id);
             }
             await supabase
-              .from("service_order_items")
+              .from("shipments")
               .delete()
               .eq("service_order_id", id);
-          }
-          await supabase
-            .from("shipments")
-            .delete()
-            .eq("service_order_id", id);
-          await supabase
-            .from("material_consumption")
-            .delete()
-            .eq("service_order_id", id);
-          const { error } = await supabase
-            .from("service_orders")
-            .delete()
-            .eq("id", id);
-          if (error) throw error;
-          document.getElementById("modalContainer").innerHTML = "";
-          const htmlSucesso = `
+            await supabase
+              .from("material_consumption")
+              .delete()
+              .eq("service_order_id", id);
+            const { error } = await supabase
+              .from("service_orders")
+              .delete()
+              .eq("id", id);
+            if (error) throw error;
+            document.getElementById("modalContainer").innerHTML = "";
+            const htmlSucesso = `
             <div style="text-align: center; padding: 20px 0;">
               <div style="font-size: 3rem; margin-bottom: 12px;">✅</div>
               <h3 style="color: var(--success);">Lote Excluído!</h3>
@@ -2228,18 +2380,24 @@
               </button>
             </div>
           `;
-          openModal("✅ Sucesso", htmlSucesso);
-          document.getElementById("btnOkSucesso")?.addEventListener("click", () => {
+            openModal("✅ Sucesso", htmlSucesso);
+            document
+              .getElementById("btnOkSucesso")
+              ?.addEventListener("click", () => {
+                document.getElementById("modalContainer").innerHTML = "";
+                carregarDados();
+              });
+            setTimeout(() => carregarDados(), 500);
+          } catch (error) {
+            console.error("Erro ao excluir lote:", error);
             document.getElementById("modalContainer").innerHTML = "";
-            carregarDados();
-          });
-          setTimeout(() => carregarDados(), 500);
-        } catch (error) {
-          console.error("Erro ao excluir lote:", error);
-          document.getElementById("modalContainer").innerHTML = "";
-          showFeedback("Erro", "Falha ao excluir lote: " + error.message, "error");
-        }
-      });
+            showFeedback(
+              "Erro",
+              "Falha ao excluir lote: " + error.message,
+              "error",
+            );
+          }
+        });
     } catch (error) {
       console.error("Erro ao excluir lote:", error);
       showFeedback("Erro", "Falha ao excluir lote.", "error");
@@ -2541,10 +2699,12 @@
     const atrasados = osAtivas.filter((o) => {
       if (!o.expected_delivery) return false;
       const prazo = new Date(o.expected_delivery);
-      return prazo < hoje && !["entregue", "cancelado", "pago"].includes(o.status);
+      return (
+        prazo < hoje && !["entregue", "cancelado", "pago"].includes(o.status)
+      );
     }).length;
     const aguardandoPagto = osAtivas.filter(
-      (o) => o.status === "entregue" && o.payment_status !== "pago"
+      (o) => o.status === "entregue" && o.payment_status !== "pago",
     ).length;
     const pagos = osAtivas.filter((o) => o.payment_status === "pago").length;
     const entreguesHoje = osAtivas.filter((o) => {
@@ -2566,7 +2726,7 @@
       atrasados,
       aguardandoPagto,
       pagos,
-      entreguesHoje
+      entreguesHoje,
     });
     const elEmCostura = document.getElementById("prodEmCostura");
     const elCosturados = document.getElementById("prodCosturados");
@@ -2863,10 +3023,12 @@
     try {
       const { data: transacao, error: transError } = await supabase
         .from("financial_transactions")
-        .select(`
+        .select(
+          `
           id, description, type, amount, 
           financial_installments(id, numero_parcela, valor, vencimento, status, payment_date)
-        `)
+        `,
+        )
         .eq("id", transactionId)
         .single();
       if (transError || !transacao) {
@@ -2882,19 +3044,25 @@
       const hojeISO = todayISO();
       const mesAtual = hoje.getMonth();
       const anoAtual = hoje.getFullYear();
-      const parcelasPendentes = parcelas.filter(p => p.status !== "pago");
+      const parcelasPendentes = parcelas.filter((p) => p.status !== "pago");
       if (parcelasPendentes.length === 0) {
         showFeedback("Aviso", "Todas as parcelas já foram pagas.", "info");
         return;
       }
-      const totalPendente = parcelasPendentes.reduce((sum, p) => sum + parseFloat(p.valor), 0);
-      let parcelasHtml = parcelasPendentes.map((p) => {
-        const dataVenc = new Date(p.vencimento);
-        const isVencida = dataVenc < hoje;
-        const isMesAtual = dataVenc.getMonth() === mesAtual && dataVenc.getFullYear() === anoAtual;
-        const isPaga = p.status === "pago";
-        const deveSelecionar = (isVencida || isMesAtual) && !isPaga;
-        return `
+      const totalPendente = parcelasPendentes.reduce(
+        (sum, p) => sum + parseFloat(p.valor),
+        0,
+      );
+      let parcelasHtml = parcelasPendentes
+        .map((p) => {
+          const dataVenc = new Date(p.vencimento);
+          const isVencida = dataVenc < hoje;
+          const isMesAtual =
+            dataVenc.getMonth() === mesAtual &&
+            dataVenc.getFullYear() === anoAtual;
+          const isPaga = p.status === "pago";
+          const deveSelecionar = (isVencida || isMesAtual) && !isPaga;
+          return `
           <div style="
             display: flex;
             align-items: center;
@@ -2909,13 +3077,13 @@
               <input type="checkbox" class="parcela-checkbox" 
                      data-id="${p.id}" 
                      data-valor="${p.valor}"
-                     ${deveSelecionar ? 'checked' : ''}
+                     ${deveSelecionar ? "checked" : ""}
                      style="width: 18px; height: 18px; accent-color: var(--gold-light); cursor: pointer;">
               <div>
                 <div style="font-weight: 600; font-size: 0.9rem;">
                   Parcela ${p.numero_parcela}ª
-                  ${isVencida ? '<span style="color: var(--error); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-warning"></i> Vencida</span>' : ''}
-                  ${isMesAtual && !isVencida ? '<span style="color: var(--warning); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-clock"></i> Mês atual</span>' : ''}
+                  ${isVencida ? '<span style="color: var(--error); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-warning"></i> Vencida</span>' : ""}
+                  ${isMesAtual && !isVencida ? '<span style="color: var(--warning); font-size: 0.65rem; margin-left: 6px;"><i class="ph ph-clock"></i> Mês atual</span>' : ""}
                 </div>
                 <div style="font-size: 0.7rem; color: var(--gray);">
                   Vence: ${formatDate(p.vencimento)}
@@ -2927,10 +3095,15 @@
             </div>
           </div>
         `;
-      }).join("");
+        })
+        .join("");
       const loginResult = await abrirModalLogin("baixar parcelas");
       if (!loginResult.success) {
-        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        showFeedback(
+          "Ação cancelada",
+          "Você precisa estar autenticado.",
+          "warning",
+        );
         return;
       }
       const html = `
@@ -2995,45 +3168,71 @@
       function atualizarTotalSelecionado() {
         const checks = document.querySelectorAll(".parcela-checkbox:checked");
         let total = 0;
-        checks.forEach(cb => {
+        checks.forEach((cb) => {
           total += parseFloat(cb.dataset.valor) || 0;
         });
-        document.getElementById("totalSelecionadoParcelas").textContent = formatCurrency(total);
+        document.getElementById("totalSelecionadoParcelas").textContent =
+          formatCurrency(total);
       }
-      document.getElementById("selecionarVencidasMesAtual")?.addEventListener("click", () => {
-        document.querySelectorAll(".parcela-checkbox").forEach(cb => {
-          const tr = cb.closest('div[style*="border-left"]');
-          if (tr) {
-            const isVencida = tr.style.borderLeftColor === "var(--error)" || tr.style.borderLeftColor === "#ff5252";
-            const isMesAtual = tr.style.borderLeftColor === "var(--warning)" || tr.style.borderLeftColor === "#ffc107";
-            cb.checked = isVencida || isMesAtual;
-          }
+      document
+        .getElementById("selecionarVencidasMesAtual")
+        ?.addEventListener("click", () => {
+          document.querySelectorAll(".parcela-checkbox").forEach((cb) => {
+            const tr = cb.closest('div[style*="border-left"]');
+            if (tr) {
+              const isVencida =
+                tr.style.borderLeftColor === "var(--error)" ||
+                tr.style.borderLeftColor === "#ff5252";
+              const isMesAtual =
+                tr.style.borderLeftColor === "var(--warning)" ||
+                tr.style.borderLeftColor === "#ffc107";
+              cb.checked = isVencida || isMesAtual;
+            }
+          });
+          atualizarTotalSelecionado();
         });
-        atualizarTotalSelecionado();
-      });
-      document.getElementById("selecionarTodasParcelas")?.addEventListener("click", () => {
-        document.querySelectorAll(".parcela-checkbox").forEach(cb => cb.checked = true);
-        atualizarTotalSelecionado();
-      });
-      document.getElementById("desmarcarTodasParcelas")?.addEventListener("click", () => {
-        document.querySelectorAll(".parcela-checkbox").forEach(cb => cb.checked = false);
-        atualizarTotalSelecionado();
-      });
-      document.querySelectorAll(".parcela-checkbox").forEach(cb => {
+      document
+        .getElementById("selecionarTodasParcelas")
+        ?.addEventListener("click", () => {
+          document
+            .querySelectorAll(".parcela-checkbox")
+            .forEach((cb) => (cb.checked = true));
+          atualizarTotalSelecionado();
+        });
+      document
+        .getElementById("desmarcarTodasParcelas")
+        ?.addEventListener("click", () => {
+          document
+            .querySelectorAll(".parcela-checkbox")
+            .forEach((cb) => (cb.checked = false));
+          atualizarTotalSelecionado();
+        });
+      document.querySelectorAll(".parcela-checkbox").forEach((cb) => {
         cb.addEventListener("change", atualizarTotalSelecionado);
       });
-      document.getElementById("cancelarBaixaParcelas")?.addEventListener("click", () => {
-        document.getElementById("modalContainer").innerHTML = "";
-      });
-      document.getElementById("confirmarBaixaParcelas")?.addEventListener("click", async function() {
-        const checks = document.querySelectorAll(".parcela-checkbox:checked");
-        if (checks.length === 0) {
-          showFeedback("Aviso", "Selecione pelo menos uma parcela.", "warning");
-          return;
-        }
-        const totalSelecionado = Array.from(checks).reduce((sum, cb) => sum + parseFloat(cb.dataset.valor), 0);
-        const qtdSelecionadas = checks.length;
-        const confirmHtml = `
+      document
+        .getElementById("cancelarBaixaParcelas")
+        ?.addEventListener("click", () => {
+          document.getElementById("modalContainer").innerHTML = "";
+        });
+      document
+        .getElementById("confirmarBaixaParcelas")
+        ?.addEventListener("click", async function () {
+          const checks = document.querySelectorAll(".parcela-checkbox:checked");
+          if (checks.length === 0) {
+            showFeedback(
+              "Aviso",
+              "Selecione pelo menos uma parcela.",
+              "warning",
+            );
+            return;
+          }
+          const totalSelecionado = Array.from(checks).reduce(
+            (sum, cb) => sum + parseFloat(cb.dataset.valor),
+            0,
+          );
+          const qtdSelecionadas = checks.length;
+          const confirmHtml = `
           <div style="text-align: center; padding: 12px 0;">
             <div style="font-size: 3rem; margin-bottom: 12px;">💳</div>
             <h3 style="color: var(--gold-light); margin-bottom: 8px;">Confirmar Baixa</h3>
@@ -3053,8 +3252,8 @@
             </div>
           </div>
         `;
-        const modalContainer = document.getElementById("modalContainer");
-        const modalHtml = `
+          const modalContainer = document.getElementById("modalContainer");
+          const modalHtml = `
           <div class="modal-overlay" id="modalOverlay">
             <div class="modal-sheet">
               <div class="handle"></div>
@@ -3066,66 +3265,88 @@
             </div>
           </div>
         `;
-        modalContainer.innerHTML = modalHtml;
-        document.getElementById("closeModalBtn")?.addEventListener("click", () => {
-          document.getElementById("modalContainer").innerHTML = "";
-        });
-        document.getElementById("cancelarConfirmacaoBaixa")?.addEventListener("click", () => {
-          document.getElementById("modalContainer").innerHTML = "";
-        });
-        document.getElementById("confirmarBaixaFinal")?.addEventListener("click", async function() {
-          this.disabled = true;
-          this.innerHTML = '<i class="ph ph-spinner spinning"></i> Processando...';
-          try {
-            let sucessos = 0;
-            let erros = 0;
-            for (const cb of checks) {
-              const parcelaId = cb.dataset.id;
-              const { error } = await supabase
-                .from("financial_installments")
-                .update({ 
-                  status: "pago",
-                  payment_date: new Date().toISOString().split("T")[0]
-                })
-                .eq("id", parcelaId);
-              if (error) {
-                console.error("Erro ao baixar parcela:", error);
-                erros++;
-              } else {
-                sucessos++;
+          modalContainer.innerHTML = modalHtml;
+          document
+            .getElementById("closeModalBtn")
+            ?.addEventListener("click", () => {
+              document.getElementById("modalContainer").innerHTML = "";
+            });
+          document
+            .getElementById("cancelarConfirmacaoBaixa")
+            ?.addEventListener("click", () => {
+              document.getElementById("modalContainer").innerHTML = "";
+            });
+          document
+            .getElementById("confirmarBaixaFinal")
+            ?.addEventListener("click", async function () {
+              this.disabled = true;
+              this.innerHTML =
+                '<i class="ph ph-spinner spinning"></i> Processando...';
+              try {
+                let sucessos = 0;
+                let erros = 0;
+                for (const cb of checks) {
+                  const parcelaId = cb.dataset.id;
+                  const { error } = await supabase
+                    .from("financial_installments")
+                    .update({
+                      status: "pago",
+                      payment_date: new Date().toISOString().split("T")[0],
+                    })
+                    .eq("id", parcelaId);
+                  if (error) {
+                    console.error("Erro ao baixar parcela:", error);
+                    erros++;
+                  } else {
+                    sucessos++;
+                  }
+                }
+                const { data: parcelasRestantes } = await supabase
+                  .from("financial_installments")
+                  .select("status")
+                  .eq("transaction_id", transactionId)
+                  .neq("status", "pago");
+                const todasPagas =
+                  !parcelasRestantes || parcelasRestantes.length === 0;
+                await supabase
+                  .from("financial_transactions")
+                  .update({
+                    status: todasPagas ? "pago" : "pendente",
+                    payment_date: todasPagas
+                      ? new Date().toISOString().split("T")[0]
+                      : null,
+                  })
+                  .eq("id", transactionId);
+                document.getElementById("modalContainer").innerHTML = "";
+                if (erros === 0) {
+                  showFeedback(
+                    "Sucesso",
+                    `${sucessos} parcela(s) baixada(s) com sucesso!`,
+                    "success",
+                    () => carregarDados(),
+                  );
+                } else {
+                  showFeedback(
+                    "Aviso",
+                    `${sucessos} parcela(s) baixada(s), ${erros} erro(s).`,
+                    "warning",
+                    () => carregarDados(),
+                  );
+                }
+              } catch (error) {
+                console.error("Erro ao baixar parcelas:", error);
+                showFeedback("Erro", "Falha ao baixar parcelas.", "error");
+                document.getElementById("modalContainer").innerHTML = "";
               }
-            }
-            const { data: parcelasRestantes } = await supabase
-              .from("financial_installments")
-              .select("status")
-              .eq("transaction_id", transactionId)
-              .neq("status", "pago");
-            const todasPagas = !parcelasRestantes || parcelasRestantes.length === 0;
-            await supabase
-              .from("financial_transactions")
-              .update({ 
-                status: todasPagas ? "pago" : "pendente",
-                payment_date: todasPagas ? new Date().toISOString().split("T")[0] : null
-              })
-              .eq("id", transactionId);
-            document.getElementById("modalContainer").innerHTML = "";
-            if (erros === 0) {
-              showFeedback("Sucesso", `${sucessos} parcela(s) baixada(s) com sucesso!`, "success", () => carregarDados());
-            } else {
-              showFeedback("Aviso", `${sucessos} parcela(s) baixada(s), ${erros} erro(s).`, "warning", () => carregarDados());
-            }
-          } catch (error) {
-            console.error("Erro ao baixar parcelas:", error);
-            showFeedback("Erro", "Falha ao baixar parcelas.", "error");
-            document.getElementById("modalContainer").innerHTML = "";
-          }
+            });
+          document
+            .getElementById("modalOverlay")
+            ?.addEventListener("click", (e) => {
+              if (e.target.id === "modalOverlay") {
+                document.getElementById("modalContainer").innerHTML = "";
+              }
+            });
         });
-        document.getElementById("modalOverlay")?.addEventListener("click", (e) => {
-          if (e.target.id === "modalOverlay") {
-            document.getElementById("modalContainer").innerHTML = "";
-          }
-        });
-      });
     } catch (error) {
       console.error("Erro ao abrir baixa de parcelas:", error);
       showFeedback("Erro", "Falha ao carregar parcelas.", "error");
@@ -3146,7 +3367,7 @@
         console.error("Erro ao verificar parcelas:", parcelasError);
       }
       if (parcelas && parcelas.length > 0) {
-        const pendentes = parcelas.filter(p => p.status !== "pago");
+        const pendentes = parcelas.filter((p) => p.status !== "pago");
         if (pendentes.length > 0) {
           await abrirBaixaParcelas(transactionId);
           return;
@@ -3200,44 +3421,62 @@
         </div>
       `;
       modalContainer.innerHTML = modalHtml;
-      document.getElementById("closeModalBtn")?.addEventListener("click", () => {
-        document.getElementById("modalContainer").innerHTML = "";
-      });
-      document.getElementById("cancelarConfirmacaoBaixa")?.addEventListener("click", () => {
-        document.getElementById("modalContainer").innerHTML = "";
-      });
-      document.getElementById("confirmarBaixaFinal")?.addEventListener("click", async function() {
-        this.disabled = true;
-        this.innerHTML = '<i class="ph ph-spinner spinning"></i> Processando...';
-        const loginResult = await abrirModalLogin("baixar lançamento");
-        if (!loginResult.success) {
+      document
+        .getElementById("closeModalBtn")
+        ?.addEventListener("click", () => {
           document.getElementById("modalContainer").innerHTML = "";
-          showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
-          return;
-        }
-        try {
-          const dataPag = new Date().toISOString().split("T")[0];
-          const { error } = await supabase
-            .from("financial_transactions")
-            .update({
-              status: "pago",
-              payment_date: dataPag,
-            })
-            .eq("id", transactionId);
-          if (error) throw error;
+        });
+      document
+        .getElementById("cancelarConfirmacaoBaixa")
+        ?.addEventListener("click", () => {
           document.getElementById("modalContainer").innerHTML = "";
-          showFeedback("Sucesso", "Lançamento baixado com sucesso!", "success", () => carregarDados());
-        } catch (error) {
-          console.error("Erro ao baixar lançamento:", error);
-          document.getElementById("modalContainer").innerHTML = "";
-          showFeedback("Erro", "Falha ao baixar lançamento.", "error");
-        }
-      });
-      document.getElementById("modalOverlay")?.addEventListener("click", (e) => {
-        if (e.target.id === "modalOverlay") {
-          document.getElementById("modalContainer").innerHTML = "";
-        }
-      });
+        });
+      document
+        .getElementById("confirmarBaixaFinal")
+        ?.addEventListener("click", async function () {
+          this.disabled = true;
+          this.innerHTML =
+            '<i class="ph ph-spinner spinning"></i> Processando...';
+          const loginResult = await abrirModalLogin("baixar lançamento");
+          if (!loginResult.success) {
+            document.getElementById("modalContainer").innerHTML = "";
+            showFeedback(
+              "Ação cancelada",
+              "Você precisa estar autenticado.",
+              "warning",
+            );
+            return;
+          }
+          try {
+            const dataPag = new Date().toISOString().split("T")[0];
+            const { error } = await supabase
+              .from("financial_transactions")
+              .update({
+                status: "pago",
+                payment_date: dataPag,
+              })
+              .eq("id", transactionId);
+            if (error) throw error;
+            document.getElementById("modalContainer").innerHTML = "";
+            showFeedback(
+              "Sucesso",
+              "Lançamento baixado com sucesso!",
+              "success",
+              () => carregarDados(),
+            );
+          } catch (error) {
+            console.error("Erro ao baixar lançamento:", error);
+            document.getElementById("modalContainer").innerHTML = "";
+            showFeedback("Erro", "Falha ao baixar lançamento.", "error");
+          }
+        });
+      document
+        .getElementById("modalOverlay")
+        ?.addEventListener("click", (e) => {
+          if (e.target.id === "modalOverlay") {
+            document.getElementById("modalContainer").innerHTML = "";
+          }
+        });
     } catch (error) {
       console.error("Erro ao baixar lançamento:", error);
       showFeedback("Erro", "Falha ao baixar lançamento.", "error");
@@ -3248,11 +3487,14 @@
   // FUNÇÃO PARA ALTERNAR VISUALIZAÇÃO DO FINANCEIRO
   // ============================================================
   function alternarVisualizacaoFinanceiro() {
-    visualizacaoFinanceiro = visualizacaoFinanceiro === "cards" ? "calendario" : "cards";
+    visualizacaoFinanceiro =
+      visualizacaoFinanceiro === "cards" ? "calendario" : "cards";
     console.log(`📊 Alternando visualização para: ${visualizacaoFinanceiro}`);
     renderizarFinanceiro(dados);
-    
-    const btnToggle = document.getElementById("btnToggleVisualizacaoFinanceiro");
+
+    const btnToggle = document.getElementById(
+      "btnToggleVisualizacaoFinanceiro",
+    );
     if (btnToggle) {
       if (visualizacaoFinanceiro === "cards") {
         btnToggle.innerHTML = '<i class="ph ph-calendar"></i> Calendário';
@@ -3269,10 +3511,16 @@
   // ============================================================
   function renderizarFinanceiro(dados) {
     const { eventosFinanceiros, totalPagar, totalReceber } = dados;
-    console.log("💰 renderizarFinanceiro chamada com", eventosFinanceiros?.length || 0, "eventos");
+    console.log(
+      "💰 renderizarFinanceiro chamada com",
+      eventosFinanceiros?.length || 0,
+      "eventos",
+    );
 
-    document.getElementById("finTotalPagar").textContent = formatCurrency(totalPagar);
-    document.getElementById("finTotalReceber").textContent = formatCurrency(totalReceber);
+    document.getElementById("finTotalPagar").textContent =
+      formatCurrency(totalPagar);
+    document.getElementById("finTotalReceber").textContent =
+      formatCurrency(totalReceber);
 
     let saldoMes = 0;
     let contasVencidas = 0;
@@ -3296,23 +3544,26 @@
       }
     }
 
-    document.getElementById("finSaldoMes").textContent = formatCurrency(saldoMes);
+    document.getElementById("finSaldoMes").textContent =
+      formatCurrency(saldoMes);
     document.getElementById("finContasVencidas").textContent = contasVencidas;
 
     const container = document.getElementById("listaFinanceiro");
     document.getElementById("totalLancamentos").textContent =
       (eventosFinanceiros || []).length + " contas";
 
-    // ============================================================
-    // BOTÃO DE TOGGLE PARA VISUALIZAÇÃO
-    // ============================================================
-    let toggleContainer = document.getElementById("toggleVisualizacaoFinanceiro");
+    let toggleContainer = document.getElementById(
+      "toggleVisualizacaoFinanceiro",
+    );
     if (!toggleContainer) {
-      const panelHeader = document.querySelector("#tab-financeiro .panel-header");
+      const panelHeader = document.querySelector(
+        "#tab-financeiro .panel-header",
+      );
       if (panelHeader) {
         toggleContainer = document.createElement("div");
         toggleContainer.id = "toggleVisualizacaoFinanceiro";
-        toggleContainer.style.cssText = "display:flex; gap:8px; align-items:center;";
+        toggleContainer.style.cssText =
+          "display:flex; gap:8px; align-items:center;";
         const btn = document.createElement("button");
         btn.id = "btnToggleVisualizacaoFinanceiro";
         btn.className = "btn btn-ghost btn-sm";
@@ -3340,9 +3591,6 @@
       return;
     }
 
-    // ============================================================
-    // VISÃO EM CARDS (PADRÃO)
-    // ============================================================
     if (eventosFinanceiros && eventosFinanceiros.length > 0) {
       const ordenados = [...eventosFinanceiros].sort((a, b) => {
         return new Date(a.vencimento) - new Date(b.vencimento);
@@ -3352,11 +3600,14 @@
         .slice(0, 20)
         .map((e) => {
           const isPagar = e.tipo === "pagar";
-          const vencido = e.status === "pendente" && new Date(e.vencimento) < new Date();
+          const vencido =
+            e.status === "pendente" && new Date(e.vencimento) < new Date();
           const pago = e.status === "pago" || e.status === "recebido";
           const hoje = new Date();
-          const diasFalta = Math.ceil((new Date(e.vencimento) - hoje) / (1000 * 60 * 60 * 24));
-          
+          const diasFalta = Math.ceil(
+            (new Date(e.vencimento) - hoje) / (1000 * 60 * 60 * 24),
+          );
+
           let statusIcon = "";
           let statusColor = "";
           let statusBg = "";
@@ -3388,22 +3639,38 @@
           const sinal = isPagar ? "-" : "+";
           const corValor = isPagar ? "var(--error)" : "var(--success)";
           const tipoLabel = isPagar ? "💰 A Pagar" : "📈 A Receber";
-          
+
           const parcelaInfo = e.isParcela
             ? `Parcela ${e.numero_parcela}/${e.total_parcelas}`
             : "Avulsa";
 
           let catIcon = "ph-file";
           const catLower = (e.categoria || "").toLowerCase();
-          if (catLower.includes("venda") || catLower.includes("faturamento")) catIcon = "ph-shopping-cart";
-          else if (catLower.includes("salário") || catLower.includes("folha")) catIcon = "ph-users";
+          if (catLower.includes("venda") || catLower.includes("faturamento"))
+            catIcon = "ph-shopping-cart";
+          else if (catLower.includes("salário") || catLower.includes("folha"))
+            catIcon = "ph-users";
           else if (catLower.includes("aluguel")) catIcon = "ph-building";
-          else if (catLower.includes("material") || catLower.includes("insumo")) catIcon = "ph-package";
-          else if (catLower.includes("imposto") || catLower.includes("taxa")) catIcon = "ph-receipt";
-          else if (catLower.includes("energia") || catLower.includes("agua") || catLower.includes("luz")) catIcon = "ph-lightning";
-          else if (catLower.includes("internet") || catLower.includes("telefone")) catIcon = "ph-wifi";
+          else if (catLower.includes("material") || catLower.includes("insumo"))
+            catIcon = "ph-package";
+          else if (catLower.includes("imposto") || catLower.includes("taxa"))
+            catIcon = "ph-receipt";
+          else if (
+            catLower.includes("energia") ||
+            catLower.includes("agua") ||
+            catLower.includes("luz")
+          )
+            catIcon = "ph-lightning";
+          else if (
+            catLower.includes("internet") ||
+            catLower.includes("telefone")
+          )
+            catIcon = "ph-wifi";
 
-          const temParcelas = e.isParcela || (e.transacao_original && e.transacao_original.installments === true);
+          const temParcelas =
+            e.isParcela ||
+            (e.transacao_original &&
+              e.transacao_original.installments === true);
           const transactionId = e.transaction_id;
 
           return `
@@ -3511,27 +3778,35 @@
                 border-top: 1px solid rgba(255,255,255,0.04);
                 flex-wrap: wrap;
               ">
-                ${!pago ? `
-                  ${temParcelas ? `
+                ${
+                  !pago
+                    ? `
+                  ${
+                    temParcelas
+                      ? `
                     <button class="btn-action btn-action-primary" 
                             onclick="event.stopPropagation(); abrirBaixaParcelas('${transactionId}')" 
                             style="padding:4px 12px; font-size:0.6rem; background:rgba(33,150,243,0.15); color:#64b5f6; border:1px solid rgba(33,150,243,0.2); border-radius:16px;">
                       <i class="ph ph-receipt"></i> Baixar Parcelas
                     </button>
-                  ` : `
+                  `
+                      : `
                     <button class="btn-action btn-action-success" 
                             onclick="event.stopPropagation(); baixarLancamento('${transactionId}')" 
                             style="padding:4px 12px; font-size:0.6rem; background:rgba(76,175,80,0.15); color:#a5d6a7; border:1px solid rgba(76,175,80,0.2); border-radius:16px;">
                       <i class="ph ph-check-circle"></i> Baixar
                     </button>
-                  `}
-                ` : `
+                  `
+                  }
+                `
+                    : `
                   <button class="btn-action btn-action-ghost" 
                           onclick="event.stopPropagation(); abrirModalConta('${e.id}')" 
                           style="padding:4px 12px; font-size:0.6rem;">
                     <i class="ph ph-eye"></i> Detalhes
                   </button>
-                `}
+                `
+                }
                 <button class="btn-action btn-action-ghost" 
                         onclick="event.stopPropagation(); editarLancamento('${transactionId}')" 
                         style="padding:4px 12px; font-size:0.6rem;">
@@ -3563,13 +3838,13 @@
   // ============================================================
   function renderizarCalendarioFinanceiro(eventos) {
     const container = document.getElementById("listaFinanceiro");
-    
+
     if (!window.calendarioState) {
       const hoje = new Date();
       window.calendarioState = {
         mes: hoje.getMonth(),
         ano: hoje.getFullYear(),
-        diaSelecionado: hoje.getDate()
+        diaSelecionado: hoje.getDate(),
       };
     }
 
@@ -3577,7 +3852,7 @@
 
     const nomeMes = new Date(ano, mes, 1).toLocaleDateString("pt-BR", {
       month: "long",
-      year: "numeric"
+      year: "numeric",
     });
 
     const diasSemana = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
@@ -3620,11 +3895,15 @@
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 12px;">
-          ${diasSemana.map(d => `
+          ${diasSemana
+            .map(
+              (d) => `
             <div style="text-align: center; font-size: 0.6rem; color: var(--gray-dark); font-weight: 600; padding: 4px 0;">
               ${d}
             </div>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
@@ -3643,7 +3922,10 @@
       const eventosDia = eventosPorDia[dia] || [];
       const temEventos = eventosDia.length > 0;
       const isHoje = dia === hojeNum && mes === hojeMes && ano === hojeAno;
-      const isSelecionado = dia === diaSelecionado && mes === window.calendarioState.mes && ano === window.calendarioState.ano;
+      const isSelecionado =
+        dia === diaSelecionado &&
+        mes === window.calendarioState.mes &&
+        ano === window.calendarioState.ano;
 
       let corFundo = "transparent";
       let corBorda = "transparent";
@@ -3651,9 +3933,15 @@
       let tooltip = "";
 
       if (temEventos) {
-        const temPago = eventosDia.some(e => e.status === "pago" || e.status === "recebido");
-        const temVencido = eventosDia.some(e => e.status === "pendente" && new Date(e.vencimento) < new Date());
-        const temPendente = eventosDia.some(e => e.status === "pendente" || e.status === "atrasado");
+        const temPago = eventosDia.some(
+          (e) => e.status === "pago" || e.status === "recebido",
+        );
+        const temVencido = eventosDia.some(
+          (e) => e.status === "pendente" && new Date(e.vencimento) < new Date(),
+        );
+        const temPendente = eventosDia.some(
+          (e) => e.status === "pendente" || e.status === "atrasado",
+        );
 
         if (temVencido) {
           corFundo = "rgba(255,82,82,0.12)";
@@ -3681,10 +3969,10 @@
           data-dia="${dia}"
           data-mes="${mes}"
           data-ano="${ano}"
-          onclick="${temEventos ? `selecionarDiaCalendarioFinanceiro(${dia}, ${mes}, ${ano})` : ''}"
+          onclick="${temEventos ? `selecionarDiaCalendarioFinanceiro(${dia}, ${mes}, ${ano})` : ""}"
           style="
             background: ${corFundo};
-            border: ${isSelecionado ? '2px solid var(--gold-light)' : isHoje ? '1px solid rgba(212,160,23,0.3)' : corBorda};
+            border: ${isSelecionado ? "2px solid var(--gold-light)" : isHoje ? "1px solid rgba(212,160,23,0.3)" : corBorda};
             border-radius: 8px;
             padding: 6px 4px;
             text-align: center;
@@ -3692,24 +3980,28 @@
             transition: all 0.2s ease;
             min-height: 48px;
             position: relative;
-            ${isHoje ? 'box-shadow: 0 0 12px rgba(212,160,23,0.1);' : ''}
+            ${isHoje ? "box-shadow: 0 0 12px rgba(212,160,23,0.1);" : ""}
           "
-          ${temEventos ? `title="${tooltip}"` : ''}
+          ${temEventos ? `title="${tooltip}"` : ""}
         >
           <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
             <span style="
               font-size: 0.8rem; 
-              font-weight: ${isHoje ? '700' : '400'};
-              color: ${isHoje ? 'var(--gold-light)' : 'var(--white)'};
+              font-weight: ${isHoje ? "700" : "400"};
+              color: ${isHoje ? "var(--gold-light)" : "var(--white)"};
             ">
               ${dia}
             </span>
-            ${temEventos ? `
+            ${
+              temEventos
+                ? `
               <span style="font-size: 0.55rem; color: var(--gray);">
                 ${indicador} ${eventosDia.length}
               </span>
-            ` : ''}
-            ${isHoje ? '<span style="font-size: 0.45rem; color: var(--gold-light);">●</span>' : ''}
+            `
+                : ""
+            }
+            ${isHoje ? '<span style="font-size: 0.45rem; color: var(--gold-light);">●</span>' : ""}
           </div>
         </div>
       `;
@@ -3726,10 +4018,14 @@
       </div>
     `;
 
-    const eventosDiaSelecionado = eventos.filter(e => {
+    const eventosDiaSelecionado = eventos.filter((e) => {
       if (!e.vencimento) return false;
       const data = new Date(e.vencimento);
-      return data.getDate() === diaSelecionado && data.getMonth() === mes && data.getFullYear() === ano;
+      return (
+        data.getDate() === diaSelecionado &&
+        data.getMonth() === mes &&
+        data.getFullYear() === ano
+      );
     });
 
     let detalhesHtml = `
@@ -3756,14 +4052,15 @@
           const vB = b.status === "pago" ? 1 : b.status === "pendente" ? 0 : 2;
           return vA - vB;
         })
-        .map(e => {
+        .map((e) => {
           const isPagar = e.tipo === "pagar";
-          const vencido = e.status === "pendente" && new Date(e.vencimento) < new Date();
+          const vencido =
+            e.status === "pendente" && new Date(e.vencimento) < new Date();
           const pago = e.status === "pago" || e.status === "recebido";
           const valor = e.valor || 0;
           const sinal = isPagar ? "-" : "+";
           const corValor = isPagar ? "var(--error)" : "var(--success)";
-          
+
           let statusBadge = "";
           let statusColor = "";
           if (pago) {
@@ -3799,7 +4096,7 @@
                   ${e.descricao}
                 </div>
                 <div style="font-size: 0.65rem; color: var(--gray);">
-                  ${e.categoria || "Sem categoria"} ${e.isParcela ? `• Parcela ${e.numero_parcela}/${e.total_parcelas}` : ''}
+                  ${e.categoria || "Sem categoria"} ${e.isParcela ? `• Parcela ${e.numero_parcela}/${e.total_parcelas}` : ""}
                 </div>
               </div>
               <div style="text-align: right; flex-shrink: 0; margin-left: 12px;">
@@ -3821,42 +4118,48 @@
 
     container.innerHTML = calendarioHtml;
 
-    document.getElementById("btnMesAnteriorFinanceiro")?.addEventListener("click", () => {
-      window.calendarioState.mes--;
-      if (window.calendarioState.mes < 0) {
-        window.calendarioState.mes = 11;
-        window.calendarioState.ano--;
-      }
-      renderizarFinanceiro(dados);
-    });
+    document
+      .getElementById("btnMesAnteriorFinanceiro")
+      ?.addEventListener("click", () => {
+        window.calendarioState.mes--;
+        if (window.calendarioState.mes < 0) {
+          window.calendarioState.mes = 11;
+          window.calendarioState.ano--;
+        }
+        renderizarFinanceiro(dados);
+      });
 
-    document.getElementById("btnMesProximoFinanceiro")?.addEventListener("click", () => {
-      window.calendarioState.mes++;
-      if (window.calendarioState.mes > 11) {
-        window.calendarioState.mes = 0;
-        window.calendarioState.ano++;
-      }
-      renderizarFinanceiro(dados);
-    });
+    document
+      .getElementById("btnMesProximoFinanceiro")
+      ?.addEventListener("click", () => {
+        window.calendarioState.mes++;
+        if (window.calendarioState.mes > 11) {
+          window.calendarioState.mes = 0;
+          window.calendarioState.ano++;
+        }
+        renderizarFinanceiro(dados);
+      });
 
-    document.getElementById("btnHojeFinanceiro")?.addEventListener("click", () => {
-      const hoje = new Date();
-      window.calendarioState.mes = hoje.getMonth();
-      window.calendarioState.ano = hoje.getFullYear();
-      window.calendarioState.diaSelecionado = hoje.getDate();
-      renderizarFinanceiro(dados);
-    });
+    document
+      .getElementById("btnHojeFinanceiro")
+      ?.addEventListener("click", () => {
+        const hoje = new Date();
+        window.calendarioState.mes = hoje.getMonth();
+        window.calendarioState.ano = hoje.getFullYear();
+        window.calendarioState.diaSelecionado = hoje.getDate();
+        renderizarFinanceiro(dados);
+      });
   }
 
   // ============================================================
   // FUNÇÃO PARA SELECIONAR DIA NO CALENDÁRIO
   // ============================================================
-  window.selecionarDiaCalendarioFinanceiro = function(dia, mes, ano) {
+  window.selecionarDiaCalendarioFinanceiro = function (dia, mes, ano) {
     if (!window.calendarioState) {
       window.calendarioState = {
         mes: new Date().getMonth(),
         ano: new Date().getFullYear(),
-        diaSelecionado: new Date().getDate()
+        diaSelecionado: new Date().getDate(),
       };
     }
     window.calendarioState.diaSelecionado = dia;
@@ -3876,7 +4179,7 @@
   // ============================================================
   // FUNÇÕES PARA LANÇAMENTOS FINANCEIROS
   // ============================================================
-  
+
   window.editarLancamento = async function (transactionId) {
     const { data: t } = await supabase
       .from("financial_transactions")
@@ -3889,13 +4192,21 @@
       return;
     }
 
-    showFeedback("Info", "Edição de lançamento em desenvolvimento. Use o sistema web para editar.", "info");
+    showFeedback(
+      "Info",
+      "Edição de lançamento em desenvolvimento. Use o sistema web para editar.",
+      "info",
+    );
   };
 
   window.excluirLancamento = async function (transactionId) {
     const loginResult = await abrirModalLogin("excluir lançamento");
     if (!loginResult.success) {
-      showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+      showFeedback(
+        "Ação cancelada",
+        "Você precisa estar autenticado.",
+        "warning",
+      );
       return;
     }
 
@@ -3909,7 +4220,9 @@
 
       if (error) throw error;
 
-      showFeedback("Sucesso", "Lançamento excluído!", "success", () => carregarDados());
+      showFeedback("Sucesso", "Lançamento excluído!", "success", () =>
+        carregarDados(),
+      );
     } catch (error) {
       console.error("Erro ao excluir lançamento:", error);
       showFeedback("Erro", "Falha ao excluir lançamento.", "error");
@@ -4153,97 +4466,1112 @@
   }
 
   // ============================================================
-  // ABRIR MODAL DÍVIDA
+  // GESTÃO DE DÍVIDAS - FUNÇÕES DO MÓDULO DESKTOP
   // ============================================================
-  function abrirModalDivida(div) {
-    const total = div.total_amount || 0;
-    const pago = div.paid_amount || 0;
-    const percentual = total > 0 ? Math.round((pago / total) * 100) : 0;
-    const restante = total - pago;
 
-    let statusText = div.status === "quitada" ? "✅ Quitada" : "🟡 Ativa";
-    let statusColor =
-      div.status === "quitada" ? "var(--success)" : "var(--gold-light)";
+  // Variáveis de estado para dívidas
+  let filtrosDividas = {
+    credor: "",
+    status: "",
+    tipo: "",
+    vencimentoInicio: "",
+    vencimentoFim: "",
+    fornecedorId: "",
+  };
 
-    const html = `
-      <div style="margin-bottom:16px;">
-        <h3 style="font-size:1.1rem;color:var(--gold-light);">${div.credor || "Credor não informado"}</h3>
-        <p style="color:var(--gray);font-size:0.85rem;">${div.description || "Sem descrição"}</p>
-        <p style="color:${statusColor};font-weight:600;font-size:0.9rem;margin-top:4px;">${statusText}</p>
+  let ordenacaoDividas = {
+    coluna: "due_date",
+    ascendente: true,
+  };
+
+  let LIMITE_PADRAO_DIV = 20;
+  let limiteAtualDiv = LIMITE_PADRAO_DIV;
+  let totalRegistrosDiv = 0;
+
+  // Carregar dados da aba de dívidas
+  async function loadGestaoDividas(resetLimite = true) {
+    if (resetLimite) limiteAtualDiv = LIMITE_PADRAO_DIV;
+
+    try {
+      let query = supabase
+        .from("debts")
+        .select("*", { count: "exact" })
+        .order(ordenacaoDividas.coluna, {
+          ascending: ordenacaoDividas.ascendente,
+        })
+        .range(limiteAtualDiv - LIMITE_PADRAO_DIV, limiteAtualDiv - 1);
+
+      // Aplica filtros
+      if (filtrosDividas.credor) {
+        query = query.ilike("creditor", `%${filtrosDividas.credor}%`);
+      }
+      if (filtrosDividas.status) {
+        query = query.eq("status", filtrosDividas.status);
+      }
+      if (filtrosDividas.tipo) {
+        query = query.eq("type", filtrosDividas.tipo);
+      }
+      if (filtrosDividas.vencimentoInicio) {
+        query = query.gte("due_date", filtrosDividas.vencimentoInicio);
+      }
+      if (filtrosDividas.vencimentoFim) {
+        query = query.lte("due_date", filtrosDividas.vencimentoFim);
+      }
+      if (filtrosDividas.fornecedorId) {
+        query = query.eq("supplier_id", filtrosDividas.fornecedorId);
+      }
+
+      const { data: dividas, error, count } = await query;
+      if (error) {
+        console.error("Erro ao carregar dívidas:", error);
+        showFeedback("Erro", "Falha ao carregar dívidas.", "error");
+        return;
+      }
+
+      totalRegistrosDiv = count || 0;
+
+      // Buscar fornecedores para mapear nomes
+      const { data: suppliers } = await supabase
+        .from("suppliers")
+        .select("id, company_name");
+      const suppliersMap = {};
+      if (suppliers) {
+        suppliers.forEach((s) => (suppliersMap[s.id] = s.company_name));
+      }
+
+      // Buscar parcelas e anexos
+      const ids = dividas?.map((d) => d.id) || [];
+      let parcelasMap = {};
+      let anexosMap = {};
+
+      if (ids.length > 0) {
+        const { data: parcelas } = await supabase
+          .from("debt_installments")
+          .select("*")
+          .in("debt_id", ids)
+          .order("installment_number", { ascending: true });
+        if (parcelas) {
+          parcelas.forEach((p) => {
+            if (!parcelasMap[p.debt_id]) parcelasMap[p.debt_id] = [];
+            parcelasMap[p.debt_id].push(p);
+          });
+        }
+
+        const { data: anexos } = await supabase
+          .from("debt_attachments")
+          .select("*")
+          .in("debt_id", ids);
+        if (anexos) {
+          anexos.forEach((a) => {
+            if (!anexosMap[a.debt_id]) anexosMap[a.debt_id] = [];
+            anexosMap[a.debt_id].push(a);
+          });
+        }
+      }
+
+      // Anexar nome do fornecedor manualmente
+      const dividasComFornecedor = dividas.map((d) => ({
+        ...d,
+        suppliers: d.supplier_id
+          ? { company_name: suppliersMap[d.supplier_id] }
+          : null,
+      }));
+
+      renderizarCardsResumoDividas(dividasComFornecedor || [], parcelasMap);
+      renderizarTabelaDividas(dividasComFornecedor || [], parcelasMap, anexosMap);
+      renderizarPaginacaoDividas();
+      configurarFiltrosDividas();
+    } catch (e) {
+      console.error("Erro em loadGestaoDividas:", e);
+    }
+  }
+
+  // Renderizar cards de resumo de dívidas
+  function renderizarCardsResumoDividas(dividas, parcelasMap) {
+    const container = document.querySelector("#tab-dividas .cards-grid");
+    if (!container) return;
+
+    const hoje = todayISO();
+    let totalDivida = 0,
+      totalPago = 0,
+      vencidas = 0,
+      ativas = 0,
+      parcelasVencerProximas = 0;
+
+    for (const d of dividas) {
+      const parcelas = parcelasMap[d.id] || [];
+      const valorTotal = parseFloat(d.total_amount) || 0;
+      totalDivida += valorTotal;
+
+      const valorPago = parcelas
+        .filter((p) => p.paid === true)
+        .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+      totalPago += valorPago;
+
+      if (d.status === "ativa") ativas++;
+
+      const parcelaVencida = parcelas.some((p) => !p.paid && p.due_date < hoje);
+      if (parcelaVencida) vencidas++;
+
+      const parcelaProxima = parcelas.some(
+        (p) =>
+          !p.paid &&
+          p.due_date >= hoje &&
+          new Date(p.due_date) <= new Date(Date.now() + 7 * 86400000),
+      );
+      if (parcelaProxima) parcelasVencerProximas++;
+    }
+
+    const cardsHtml = `
+      <div class="kpi-card">
+        <div class="kpi-label">Dívidas Ativas</div>
+        <div class="kpi-value warning">${ativas}</div>
+        <div class="kpi-detail">em aberto</div>
       </div>
-      <div class="info-row"><span class="label">Valor Total</span><span class="value gold">${formatCurrency(total)}</span></div>
-      <div class="info-row"><span class="label">Valor Pago</span><span class="value success">${formatCurrency(pago)}</span></div>
-      <div class="info-row"><span class="label">Saldo Restante</span><span class="value ${restante > 0 ? "danger" : "success"}">${formatCurrency(restante)}</span></div>
-      <div class="info-row"><span class="label">Progresso</span><span class="value">${percentual}%</span></div>
-      ${div.next_due_date ? `<div class="info-row"><span class="label">Próximo Vencimento</span><span class="value">${formatDate(div.next_due_date)}</span></div>` : ""}
-      ${div.notes ? `<div class="info-row" style="flex-direction:column;gap:4px;"><span class="label">Observações</span><span class="value" style="font-size:0.85rem;color:var(--gray);">${div.notes}</span></div>` : ""}
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-        <div style="font-size:0.7rem;color:var(--gray-dark);text-align:center;">ID: ${div.id}</div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Devido</div>
+        <div class="kpi-value">${formatCurrency(totalDivida)}</div>
+        <div class="kpi-detail">valor original</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Pago</div>
+        <div class="kpi-value success">${formatCurrency(totalPago)}</div>
+        <div class="kpi-detail">${((totalPago / totalDivida) * 100 || 0).toFixed(1)}% quitado</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Parcelas Vencidas</div>
+        <div class="kpi-value ${vencidas > 0 ? "danger" : ""}">${vencidas}</div>
+        <div class="kpi-detail">em atraso</div>
+      </div>
+      <div class="kpi-card" style="border:1px solid rgba(212,160,23,0.3);">
+        <div class="kpi-label">Vencem em 7 dias</div>
+        <div class="kpi-value warning">${parcelasVencerProximas}</div>
+        <div class="kpi-detail">atenção!</div>
       </div>
     `;
 
-    openModal(div.credor || "Dívida", html);
+    container.innerHTML = cardsHtml;
+  }
+
+  // Renderizar tabela de dívidas
+  function renderizarTabelaDividas(dividas, parcelasMap, anexosMap) {
+    const container = document.getElementById("listaDividas");
+    if (!container) return;
+
+    const totalEl = document.getElementById("totalDividas");
+    if (totalEl) {
+      totalEl.textContent = (dividas || []).length + " registros";
+    }
+
+    if (!dividas || dividas.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state" style="text-align:center;padding:40px 16px;color:var(--gray-dark);">
+          <i class="ph ph-warning-circle" style="font-size:40px;display:block;margin-bottom:12px;color:var(--gray);"></i>
+          <p style="font-size:15px;font-weight:500;">Nenhuma dívida cadastrada</p>
+          <p style="font-size:12px;color:var(--gray);margin-top:4px;">Clique em "Nova Dívida" para começar</p>
+        </div>
+      `;
+      return;
+    }
+
+    const hoje = new Date();
+
+    container.innerHTML = dividas
+      .map((d) => {
+        const parcelas = parcelasMap[d.id] || [];
+        const totalParcelas = parcelas.length;
+        const pagas = parcelas.filter((p) => p.paid === true).length;
+        const percentual = totalParcelas > 0 ? (pagas / totalParcelas) * 100 : 0;
+
+        const proximaParcela = parcelas.find((p) => !p.paid);
+        const proxVenc = proximaParcela
+          ? formatDate(proximaParcela.due_date)
+          : "-";
+        const vencida =
+          proximaParcela &&
+          new Date(proximaParcela.due_date) < hoje &&
+          d.status !== "quitada";
+
+        let statusBadge = "";
+        let statusColor = "";
+        if (d.status === "quitada") {
+          statusBadge = "✅ Quitada";
+          statusColor = "var(--success)";
+        } else if (vencida) {
+          statusBadge = "🔴 Vencida";
+          statusColor = "var(--error)";
+        } else {
+          statusBadge = "🟡 Ativa";
+          statusColor = "var(--warning)";
+        }
+
+        const fornecedorNome =
+          d.suppliers?.company_name ||
+          (d.type === "fornecedor" ? d.creditor : "-");
+        const anexosCount = anexosMap[d.id]?.length || 0;
+        const anexoIcon =
+          anexosCount > 0
+            ? `<i class="ph ph-paperclip" style="color:var(--gold-light);" title="${anexosCount} anexo(s)"></i>`
+            : "-";
+
+        const credorExibicao = d.creditor || d.creditor || "Credor não informado";
+
+        return `
+          <div class="list-item" 
+               data-id="${d.id}"
+               style="
+                 display: flex;
+                 flex-direction: column;
+                 padding: 14px 16px;
+                 margin-bottom: 10px;
+                 border-radius: 12px;
+                 border: 1px solid ${vencida ? "rgba(255,82,82,0.2)" : d.status === "quitada" ? "rgba(76,175,80,0.2)" : "rgba(255,255,255,0.06)"};
+                 border-left: 4px solid ${vencida ? "var(--error)" : d.status === "quitada" ? "var(--success)" : "var(--warning)"};
+                 background: ${vencida ? "rgba(255,82,82,0.05)" : "rgba(255,255,255,0.02)"};
+                 transition: all 0.2s ease;
+                 cursor: pointer;
+               "
+               onclick="abrirModalDivida('${d.id}')"
+               onmouseenter="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.3)'; this.style.transform='translateY(-2px)';"
+               onmouseleave="this.style.boxShadow='none'; this.style.transform='translateY(0)';"
+               >
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 6px;">
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 15px; font-weight: 700; color: ${vencida ? "var(--error)" : d.status === "quitada" ? "var(--success)" : "var(--gold-light)"};">
+                  ${escapeHtml(credorExibicao)}
+                </div>
+                <div style="font-size: 11px; color: var(--gray-dark); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 4px 14px;">
+                  <span><i class="ph ph-tag"></i> ${formatarTipoDivida(d.type)}</span>
+                  <span><i class="ph ph-truck"></i> ${fornecedorNome}</span>
+                  <span><i class="ph ph-currency-circle-dollar"></i> ${formatCurrency(d.total_amount)}</span>
+                  <span><i class="ph ph-receipt"></i> ${pagas}/${totalParcelas}</span>
+                  <span><i class="ph ph-calendar"></i> Próx.: ${proxVenc}</span>
+                </div>
+              </div>
+              <div style="text-align: right; flex-shrink: 0;">
+                <span style="font-size:0.65rem; color:${statusColor}; background:${statusColor}22; padding:3px 12px; border-radius:20px; border:1px solid ${statusColor}44; font-weight:500;">
+                  ${statusBadge}
+                </span>
+                <div style="font-size:0.6rem; color:var(--gray-dark); margin-top:2px;">${anexoIcon}</div>
+              </div>
+            </div>
+
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.04);">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                <div style="flex: 1;">
+                  <div style="display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--gray-dark); margin-bottom: 2px;">
+                    <span>Pago: ${formatCurrency(parcelas.filter(p => p.paid).reduce((s, p) => s + parseFloat(p.amount), 0))}</span>
+                    <span>${percentual.toFixed(0)}%</span>
+                  </div>
+                  <div style="width:100%; height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden;">
+                    <div style="width:${Math.min(percentual, 100)}%; height:100%; background:${d.status === "quitada" ? "var(--success)" : "var(--gold)"}; border-radius:2px; transition:width 0.8s ease;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px; align-items: center;">
+              <button class="btn-action btn-action-ghost" 
+                      onclick="event.stopPropagation(); abrirModalDivida('${d.id}')" 
+                      style="padding:4px 12px; font-size:0.6rem;">
+                <i class="ph ph-eye"></i> Detalhes
+              </button>
+              <button class="btn-action btn-action-ghost" 
+                      onclick="event.stopPropagation(); editarDivida('${d.id}')" 
+                      style="padding:4px 12px; font-size:0.6rem;">
+                <i class="ph ph-pencil-simple"></i> Editar
+              </button>
+              ${d.status !== "quitada" ? `
+                <button class="btn-action btn-action-success" 
+                        onclick="event.stopPropagation(); quitarParcela('${d.id}')" 
+                        style="padding:4px 12px; font-size:0.6rem; background:rgba(76,175,80,0.15); color:#a5d6a7; border:1px solid rgba(76,175,80,0.2); border-radius:16px;">
+                  <i class="ph ph-check-circle"></i> Quitar Parcela
+                </button>
+                <button class="btn-action btn-action-primary" 
+                        onclick="event.stopPropagation(); quitarDivida('${d.id}')" 
+                        style="padding:4px 12px; font-size:0.6rem; background:rgba(33,150,243,0.15); color:#64b5f6; border:1px solid rgba(33,150,243,0.2); border-radius:16px;">
+                  <i class="ph ph-check-square"></i> Quitar Tudo
+                </button>
+              ` : ""}
+              <button class="btn-action btn-action-ghost" 
+                      onclick="event.stopPropagation(); excluirDivida('${d.id}')" 
+                      style="padding:4px 12px; font-size:0.6rem; color:var(--error);">
+                <i class="ph ph-trash"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  // Paginação
+  function renderizarPaginacaoDividas() {
+    const container = document.getElementById("paginacaoDividas");
+    if (!container) return;
+
+    if (totalRegistrosDiv <= limiteAtualDiv) {
+      container.innerHTML = "";
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="text-align:center; margin-top:12px;">
+        <button class="btn btn-ghost btn-sm" id="btnCarregarMaisDividas">
+          <i class="ph ph-plus-circle"></i> Carregar mais (${totalRegistrosDiv - limiteAtualDiv} restantes)
+        </button>
+      </div>
+    `;
+
+    const btn = document.getElementById("btnCarregarMaisDividas");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        limiteAtualDiv += LIMITE_PADRAO_DIV;
+        loadGestaoDividas(false);
+      });
+    }
+  }
+
+  // Configurar filtros
+  function configurarFiltrosDividas() {
+    const container = document.getElementById("filtrosDividas");
+    if (!container) return;
+
+    container.innerHTML = `
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; width:100%;">
+        <div class="form-group" style="position:relative; margin-bottom:0;">
+          <input type="text" id="filtroCredor" class="form-input" placeholder="Buscar credor..." value="${filtrosDividas.credor}">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <select id="filtroStatus" class="form-select">
+            <option value="">Todos Status</option>
+            <option value="ativa" ${filtrosDividas.status === "ativa" ? "selected" : ""}>Ativa</option>
+            <option value="quitada" ${filtrosDividas.status === "quitada" ? "selected" : ""}>Quitada</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <select id="filtroTipo" class="form-select">
+            <option value="">Todos Tipos</option>
+            <option value="bancaria" ${filtrosDividas.tipo === "bancaria" ? "selected" : ""}>Bancária</option>
+            <option value="fornecedor" ${filtrosDividas.tipo === "fornecedor" ? "selected" : ""}>Fornecedor</option>
+            <option value="imposto" ${filtrosDividas.tipo === "imposto" ? "selected" : ""}>Imposto</option>
+            <option value="pessoal" ${filtrosDividas.tipo === "pessoal" ? "selected" : ""}>Pessoal</option>
+            <option value="outro" ${filtrosDividas.tipo === "outro" ? "selected" : ""}>Outro</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <input type="date" id="filtroVencimentoInicio" class="form-input" title="Vencimento Inicial" value="${filtrosDividas.vencimentoInicio}">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <input type="date" id="filtroVencimentoFim" class="form-input" title="Vencimento Final" value="${filtrosDividas.vencimentoFim}">
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn btn-primary btn-sm" id="btnAplicarFiltrosDividas"><i class="ph ph-funnel"></i> Aplicar</button>
+          <button class="btn btn-ghost btn-sm" id="btnLimparFiltrosDividas"><i class="ph ph-x"></i> Limpar</button>
+        </div>
+      </div>
+    `;
+
+    document
+      .getElementById("btnAplicarFiltrosDividas")
+      ?.addEventListener("click", () => {
+        filtrosDividas.credor = document.getElementById("filtroCredor").value;
+        filtrosDividas.status = document.getElementById("filtroStatus").value;
+        filtrosDividas.tipo = document.getElementById("filtroTipo").value;
+        filtrosDividas.vencimentoInicio = document.getElementById(
+          "filtroVencimentoInicio",
+        ).value;
+        filtrosDividas.vencimentoFim = document.getElementById(
+          "filtroVencimentoFim",
+        ).value;
+        loadGestaoDividas();
+      });
+
+    document
+      .getElementById("btnLimparFiltrosDividas")
+      ?.addEventListener("click", () => {
+        filtrosDividas = {
+          credor: "",
+          status: "",
+          tipo: "",
+          vencimentoInicio: "",
+          vencimentoFim: "",
+          fornecedorId: "",
+        };
+        document.getElementById("filtroCredor").value = "";
+        document.getElementById("filtroStatus").value = "";
+        document.getElementById("filtroTipo").value = "";
+        document.getElementById("filtroVencimentoInicio").value = "";
+        document.getElementById("filtroVencimentoFim").value = "";
+        loadGestaoDividas();
+      });
   }
 
   // ============================================================
-  // RENDERIZAR - ABA DÍVIDAS
+  // FUNÇÕES DE DÍVIDAS - MODAL E AÇÕES
   // ============================================================
-  function renderizarDividas(dados) {
-    const { dividas, totalDividas, saldoDevedor } = dados;
 
-    document.getElementById("divTotalGeral").textContent =
-      formatCurrency(totalDividas);
-    document.getElementById("divSaldoDevedor").textContent =
-      formatCurrency(saldoDevedor);
+  // Abrir modal de detalhes da dívida
+  window.abrirModalDivida = async function (id) {
+    const { data: divida, error } = await supabase
+      .from("debts")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-    const ativas = (dividas || []).filter((d) => d.status !== "quitada").length;
-    const quitadas = (dividas || []).filter(
-      (d) => d.status === "quitada",
-    ).length;
-
-    document.getElementById("divAtivas").textContent = ativas;
-    document.getElementById("divQuitadas").textContent = quitadas;
-
-    const container = document.getElementById("listaDividas");
-    document.getElementById("totalDividas").textContent =
-      (dividas || []).length + " registros";
-
-    if (dividas && dividas.length > 0) {
-      container.innerHTML = dividas
-        .slice(0, 15)
-        .map((d) => {
-          const total = d.total_amount || 0;
-          const pago = d.paid_amount || 0;
-          const percentual = total > 0 ? Math.round((pago / total) * 100) : 0;
-          const credor = d.credor || d.creditor || "Credor não informado";
-          const descricao = d.description || d.notes || "-";
-          const statusClass = d.status === "quitada" ? "quitada" : "ativa";
-          const statusLabel =
-            d.status === "quitada" ? "✅ Quitada" : "🟡 Ativa";
-
-          return `<div class="list-item" data-id="${d.id}" style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03);gap:10px;transition:var(--transition);cursor:pointer;">
-            <div class="item-main" style="flex:1;min-width:0;">
-              <div class="item-title" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${d.status === "quitada" ? "var(--success)" : "var(--gold-light)"};">${credor}</div>
-              <div class="item-sub" style="font-size:10px;color:var(--gray-dark);margin-top:1px;">${descricao} · ${percentual}% pago</div>
-            </div>
-            <div class="item-right" style="text-align:right;flex-shrink:0;">
-              <span class="item-badge badge-status-${statusClass}" style="font-size:9px;font-weight:600;padding:2px 10px;border-radius:20px;display:inline-block;">${statusLabel}</span>
-              <div style="font-size:9px;color:var(--gray-dark);">${formatCurrency(total - pago)} restante</div>
-            </div>
-          </div>`;
-        })
-        .join("");
-
-      container.querySelectorAll(".list-item[data-id]").forEach((el) => {
-        el.addEventListener("click", function () {
-          const id = this.dataset.id;
-          const div = dividas.find((d) => d.id == id);
-          if (div) abrirModalDivida(div);
-        });
-      });
-    } else {
-      container.innerHTML = `<div class="empty-state" style="text-align:center;padding:24px 16px;color:var(--gray-dark);"><i class="ph ph-warning-circle" style="font-size:28px;display:block;margin-bottom:6px;color:var(--gray);"></i><p style="font-size:12px;">Nenhuma dívida cadastrada</p></div>`;
+    if (error || !divida) {
+      showFeedback("Erro", "Dívida não encontrada.", "error");
+      return;
     }
+
+    const { data: parcelas } = await supabase
+      .from("debt_installments")
+      .select("*")
+      .eq("debt_id", id)
+      .order("installment_number", { ascending: true });
+
+    const totalPago =
+      parcelas
+        ?.filter((p) => p.paid)
+        .reduce((s, p) => s + parseFloat(p.amount), 0) || 0;
+    const saldo = divida.total_amount - totalPago;
+
+    let parcelasHtml = "";
+    if (parcelas && parcelas.length > 0) {
+      parcelasHtml = `
+        <h4 style="margin:16px 0 8px 0; font-size:0.9rem;"><i class="ph ph-receipt"></i> Parcelas</h4>
+        <div style="max-height:300px; overflow-y:auto;">
+          ${parcelas
+            .map((p) => {
+              const atrasada = !p.paid && new Date(p.due_date) < new Date();
+              const jurosMulta =
+                (p.interest_paid || 0) + (p.late_fee_paid || 0);
+              return `
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; margin-bottom:4px; background:${atrasada ? "rgba(255,82,82,0.08)" : "rgba(255,255,255,0.02)"}; border-radius:8px; border-left:3px solid ${atrasada ? "var(--error)" : p.paid ? "var(--success)" : "var(--warning)"};">
+                  <div style="display:flex; align-items:center; gap:12px; flex:1;">
+                    <span style="font-weight:600; font-size:0.85rem; min-width:40px;">${p.installment_number}ª</span>
+                    <div>
+                      <div style="font-size:0.75rem; color:var(--gray);">
+                        Vence: ${formatDate(p.due_date)}
+                        ${p.paid_date ? `• Pago em: ${formatDate(p.paid_date)}` : ""}
+                      </div>
+                      ${jurosMulta > 0 ? `<div style="font-size:0.65rem; color:var(--gray-dark);">Juros/Multa: ${formatCurrency(jurosMulta)}</div>` : ""}
+                    </div>
+                  </div>
+                  <div style="text-align:right; flex-shrink:0; margin-left:12px;">
+                    <div style="font-weight:700; font-size:0.9rem;">${formatCurrency(p.amount)}</div>
+                    <div style="font-size:0.6rem; color:${p.paid ? "var(--success)" : atrasada ? "var(--error)" : "var(--warning)"};">${p.paid ? "✅ Paga" : atrasada ? "🔴 Vencida" : "⏳ Pendente"}</div>
+                  </div>
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      `;
+    }
+
+    const credorExibicao = divida.creditor || "Credor não informado";
+
+    const html = `
+      <div style="display:grid; gap:12px;">
+        <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:16px; display:flex; align-items:center; gap:16px;">
+          <div style="width:48px; height:48px; background:rgba(212,160,23,0.15); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:var(--gold-light);"><i class="ph ph-warning-circle"></i></div>
+          <div><h4 style="margin:0;">${escapeHtml(credorExibicao)}</h4><small style="color:var(--gray);">${formatarTipoDivida(divida.type)}</small></div>
+          <div style="margin-left:auto;"><span class="status-badge status-${divida.status === "quitada" ? "entregue" : "em_costura"}">${divida.status === "quitada" ? '✅ Quitada' : '🟡 Ativa'}</span></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div><strong><i class="ph ph-currency-circle-dollar"></i> Valor Total:</strong> ${formatCurrency(divida.total_amount)}</div>
+          <div><strong><i class="ph ph-arrow-circle-up"></i> Valor Original:</strong> ${formatCurrency(divida.original_total_amount || divida.total_amount)}</div>
+          <div><strong><i class="ph ph-percent"></i> Taxa de Juros:</strong> ${divida.interest_rate || 0}% ao mês</div>
+          <div><strong><i class="ph ph-receipt"></i> Parcelas:</strong> ${divida.total_installments} x ${formatCurrency(divida.installment_value || 0)}</div>
+          <div><strong><i class="ph ph-check-circle"></i> Total Pago:</strong> ${formatCurrency(totalPago)}</div>
+          <div><strong><i class="ph ph-warning"></i> Saldo Devedor:</strong> ${formatCurrency(saldo)}</div>
+        </div>
+        ${divida.notes ? `<div><strong><i class="ph ph-note"></i> Obs:</strong> ${escapeHtml(divida.notes)}</div>` : ""}
+        ${parcelasHtml}
+      </div>
+    `;
+
+    openModal(`Detalhes da Dívida - ${credorExibicao}`, html);
+  };
+
+  // Nova dívida
+  window.novaDivida = function () {
+    const formHtml = `
+      <div style="display:grid; gap:12px;">
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-user"></i> Credor *</label>
+          <input id="divCredor" class="form-input" placeholder="Nome do credor" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-tag"></i> Tipo *</label>
+          <select id="divTipo" class="form-select" required>
+            <option value="bancaria">Bancária</option>
+            <option value="fornecedor">Fornecedor</option>
+            <option value="imposto">Imposto</option>
+            <option value="pessoal">Pessoal</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-currency-circle-dollar"></i> Valor Total *</label>
+          <input id="divTotal" type="number" step="0.01" min="0.01" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-receipt"></i> Número de Parcelas *</label>
+          <input id="divParcelas" type="number" min="1" max="120" class="form-input" value="1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-calendar-blank"></i> Data do Primeiro Vencimento *</label>
+          <input id="divPrimeiroVenc" type="date" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-percent"></i> Taxa de Juros Mensal (%)</label>
+          <input id="divJuros" type="number" step="0.01" class="form-input" placeholder="Ex: 2.5 (opcional)">
+          <small style="color:var(--gray);">Se houver juros, o valor das parcelas será recalculado</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-note"></i> Observações</label>
+          <textarea id="divObs" class="form-input" rows="2"></textarea>
+        </div>
+      </div>
+    `;
+
+    openFormModal("Nova Dívida", formHtml, async () => {
+      const credor = document.getElementById("divCredor").value.trim();
+      const tipo = document.getElementById("divTipo").value;
+      const total = parseFloat(document.getElementById("divTotal").value);
+      const numParcelas = parseInt(
+        document.getElementById("divParcelas").value,
+      );
+      const primeiroVenc = document.getElementById("divPrimeiroVenc").value;
+      const jurosMensal =
+        parseFloat(document.getElementById("divJuros").value) || 0;
+      const obs = document.getElementById("divObs").value.trim() || null;
+
+      if (!credor || !tipo || !total || !numParcelas || !primeiroVenc) {
+        showFeedback("Erro", "Preencha todos os campos obrigatórios.", "error");
+        return;
+      }
+
+      const loginResult = await abrirModalLogin("criar nova dívida");
+      if (!loginResult.success) {
+        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        return;
+      }
+
+      let valorParcela = total / numParcelas;
+      let jurosEfetivo = 0;
+      if (jurosMensal > 0) {
+        const i = jurosMensal / 100;
+        const fator = Math.pow(1 + i, numParcelas);
+        valorParcela = total * ((i * fator) / (fator - 1));
+        jurosEfetivo = jurosMensal;
+      }
+
+      const { data: nova, error: insertError } = await supabase
+        .from("debts")
+        .insert({
+          creditor: credor,
+          type: tipo,
+          total_amount: total,
+          original_total_amount: total,
+          interest_rate: jurosEfetivo,
+          late_fee_percent: 0,
+          total_installments: numParcelas,
+          installment_value: valorParcela,
+          due_date: primeiroVenc,
+          status: "ativa",
+          notes: obs,
+        })
+        .select("id")
+        .single();
+
+      if (insertError) {
+        showFeedback("Erro", `Falha ao criar dívida: ${insertError.message}`, "error");
+        return;
+      }
+
+      const parcelas = [];
+      for (let i = 0; i < numParcelas; i++) {
+        const dataVenc = new Date(primeiroVenc + "T12:00:00");
+        dataVenc.setMonth(dataVenc.getMonth() + i);
+        const dataVencStr = dataVenc.toISOString().split("T")[0];
+        parcelas.push({
+          debt_id: nova.id,
+          installment_number: i + 1,
+          amount: valorParcela,
+          due_date: dataVencStr,
+          paid: false,
+        });
+      }
+
+      const { error: parcelasError } = await supabase
+        .from("debt_installments")
+        .insert(parcelas);
+
+      if (parcelasError) {
+        console.error("Erro ao gerar parcelas:", parcelasError);
+        showFeedback("Aviso", "Dívida criada, mas houve falha ao gerar parcelas.", "warning");
+      } else {
+        showFeedback("Sucesso", `Dívida com ${numParcelas} parcelas criada!`, "success", () => {
+          loadGestaoDividas();
+          carregarDados();
+        });
+      }
+    });
+  };
+
+  // Editar dívida
+  window.editarDivida = async function (id) {
+    const { data: divida } = await supabase
+      .from("debts")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (!divida) {
+      showFeedback("Erro", "Dívida não encontrada.", "error");
+      return;
+    }
+
+    const formHtml = `
+      <div style="display:grid; gap:12px;">
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-user"></i> Credor *</label>
+          <input id="editCredor" class="form-input" value="${escapeHtml(divida.creditor)}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-tag"></i> Tipo *</label>
+          <select id="editTipo" class="form-select" required>
+            <option value="bancaria" ${divida.type === "bancaria" ? "selected" : ""}>Bancária</option>
+            <option value="fornecedor" ${divida.type === "fornecedor" ? "selected" : ""}>Fornecedor</option>
+            <option value="imposto" ${divida.type === "imposto" ? "selected" : ""}>Imposto</option>
+            <option value="pessoal" ${divida.type === "pessoal" ? "selected" : ""}>Pessoal</option>
+            <option value="outro" ${divida.type === "outro" ? "selected" : ""}>Outro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-currency-circle-dollar"></i> Valor Total *</label>
+          <input id="editTotal" type="number" step="0.01" class="form-input" value="${divida.total_amount}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-info"></i> Status *</label>
+          <select id="editStatus" class="form-select" required>
+            <option value="ativa" ${divida.status === "ativa" ? "selected" : ""}>Ativa</option>
+            <option value="quitada" ${divida.status === "quitada" ? "selected" : ""}>Quitada</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-note"></i> Observações</label>
+          <textarea id="editObs" class="form-input" rows="2">${divida.notes || ""}</textarea>
+        </div>
+      </div>
+    `;
+
+    openFormModal("Editar Dívida", formHtml, async () => {
+      const creditor = document.getElementById("editCredor").value.trim();
+      const type = document.getElementById("editTipo").value;
+      const total_amount = parseFloat(document.getElementById("editTotal").value);
+      const status = document.getElementById("editStatus").value;
+      const notes = document.getElementById("editObs").value.trim() || null;
+
+      if (!creditor || !total_amount) {
+        showFeedback("Erro", "Preencha os campos obrigatórios.", "error");
+        return;
+      }
+
+      const loginResult = await abrirModalLogin("editar dívida");
+      if (!loginResult.success) {
+        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        return;
+      }
+
+      const { error } = await supabase
+        .from("debts")
+        .update({ creditor, type, total_amount, status, notes })
+        .eq("id", id);
+
+      if (error) {
+        showFeedback("Erro", error.message, "error");
+      } else {
+        showFeedback("Sucesso", "Dívida atualizada!", "success", () => {
+          loadGestaoDividas();
+          carregarDados();
+        });
+      }
+    });
+  };
+
+  // Excluir dívida
+  window.excluirDivida = async function (id) {
+    const { data: divida } = await supabase
+      .from("debts")
+      .select("creditor")
+      .eq("id", id)
+      .single();
+
+    if (!divida) {
+      showFeedback("Erro", "Dívida não encontrada.", "error");
+      return;
+    }
+
+    const confirmHtml = `
+      <div style="text-align:center; padding:12px 0;">
+        <div style="font-size:3rem; margin-bottom:12px;">🗑️</div>
+        <h3 style="color:var(--error); margin-bottom:8px;">Confirmar Exclusão</h3>
+        <p style="color:var(--gray); font-size:0.95rem;">
+          Excluir dívida com <strong>${escapeHtml(divida.creditor)}</strong>?
+        </p>
+        <p style="color:var(--gray-dark); font-size:0.8rem;">
+          Todas as parcelas e anexos serão removidos. Esta ação <strong style="color:var(--error);">não pode ser desfeita</strong>.
+        </p>
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button class="btn btn-ghost" id="cancelarExclusao" style="flex:1; padding:12px;">
+            <i class="ph ph-x-circle"></i> Cancelar
+          </button>
+          <button class="btn btn-primary" id="confirmarExclusao" style="flex:1; padding:12px; background:var(--error); border-color:var(--error);">
+            <i class="ph ph-trash"></i> Excluir
+          </button>
+        </div>
+      </div>
+    `;
+
+    openModal("Confirmar Exclusão", confirmHtml);
+
+    document.getElementById("cancelarExclusao")?.addEventListener("click", () => {
+      document.getElementById("modalContainer").innerHTML = "";
+    });
+
+    document.getElementById("confirmarExclusao")?.addEventListener("click", async function () {
+      const loginResult = await abrirModalLogin("excluir dívida");
+      if (!loginResult.success) {
+        document.getElementById("modalContainer").innerHTML = "";
+        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        return;
+      }
+
+      try {
+        await supabase.from("debt_installments").delete().eq("debt_id", id);
+        await supabase.from("debt_attachments").delete().eq("debt_id", id);
+        const { error } = await supabase.from("debts").delete().eq("id", id);
+
+        if (error) throw error;
+
+        document.getElementById("modalContainer").innerHTML = "";
+        showFeedback("Sucesso", "Dívida excluída!", "success", () => {
+          loadGestaoDividas();
+          carregarDados();
+        });
+      } catch (error) {
+        console.error("Erro ao excluir dívida:", error);
+        showFeedback("Erro", "Falha ao excluir dívida.", "error");
+      }
+    });
+  };
+
+  // Quitar parcela
+  window.quitarParcela = async function (id) {
+    const { data: divida, error: errDebt } = await supabase
+      .from("debts")
+      .select("id, creditor, interest_rate, late_fee_percent")
+      .eq("id", id)
+      .single();
+
+    if (errDebt || !divida) {
+      showFeedback("Erro", "Dívida não encontrada.", "error");
+      return;
+    }
+
+    const { data: parcelasPendentes } = await supabase
+      .from("debt_installments")
+      .select("*")
+      .eq("debt_id", id)
+      .eq("paid", false)
+      .order("installment_number", { ascending: true });
+
+    if (!parcelasPendentes || parcelasPendentes.length === 0) {
+      showFeedback("Aviso", "Não há parcelas pendentes.", "info");
+      return;
+    }
+
+    const options = parcelasPendentes
+      .map((p) => {
+        const diasAtraso = Math.max(
+          0,
+          Math.ceil((new Date() - new Date(p.due_date)) / (1000 * 60 * 60 * 24)),
+        );
+        const jurosCalc =
+          (divida.interest_rate / 100) * p.amount * (diasAtraso / 30);
+        const multaCalc = (divida.late_fee_percent / 100) * p.amount;
+        return `<option value="${p.id}" data-juros="${jurosCalc.toFixed(2)}" data-multa="${multaCalc.toFixed(2)}" data-valor="${p.amount}" data-venc="${p.due_date}">
+          ${p.installment_number}ª - ${formatCurrency(p.amount)} (venc. ${formatDate(p.due_date)})
+        </option>`;
+      })
+      .join("");
+
+    const formHtml = `
+      <div class="form-group">
+        <label class="form-label"><i class="ph ph-receipt"></i> Selecione a parcela</label>
+        <select id="parcelaId" class="form-select" required>${options}</select>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><i class="ph ph-calendar"></i> Data do Pagamento</label>
+        <input id="dataPagamento" type="date" class="form-input" value="${todayISO()}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><i class="ph ph-credit-card"></i> Forma de Pagamento</label>
+        <select id="formaPagamento" class="form-select">
+          <option value="">Selecione...</option>
+          <option value="PIX">PIX</option>
+          <option value="Boleto">Boleto</option>
+          <option value="Transferência">Transferência</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Cartão">Cartão</option>
+        </select>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-percent"></i> Juros (R$)</label>
+          <input id="jurosParcela" type="number" step="0.01" class="form-input" value="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-warning"></i> Multa (R$)</label>
+          <input id="multaParcela" type="number" step="0.01" class="form-input" value="0">
+        </div>
+      </div>
+    `;
+
+    openFormModal(`Quitar Parcela - ${divida.creditor}`, formHtml, async () => {
+      const parcelaId = document.getElementById("parcelaId").value;
+      const dataPag = document.getElementById("dataPagamento").value;
+      const formaPagamento = document.getElementById("formaPagamento").value.trim() || null;
+      const juros = parseFloat(document.getElementById("jurosParcela").value) || 0;
+      const multa = parseFloat(document.getElementById("multaParcela").value) || 0;
+
+      if (!parcelaId || !dataPag) {
+        showFeedback("Erro", "Preencha todos os campos.", "error");
+        return;
+      }
+
+      const loginResult = await abrirModalLogin("quitar parcela");
+      if (!loginResult.success) {
+        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        return;
+      }
+
+      try {
+        const { data: parcelaAtual } = await supabase
+          .from("debt_installments")
+          .select("*")
+          .eq("id", parcelaId)
+          .single();
+
+        if (!parcelaAtual) {
+          showFeedback("Erro", "Parcela não encontrada.", "error");
+          return;
+        }
+
+        // Criar lançamento financeiro
+        const { data: categoria } = await supabase
+          .from("chart_of_accounts")
+          .select("id")
+          .eq("type", "despesa")
+          .ilike("name", "%pagamento%")
+          .limit(1)
+          .maybeSingle();
+
+        if (categoria) {
+          const valorTotal = parseFloat(parcelaAtual.amount) + juros + multa;
+          await supabase.from("financial_transactions").insert({
+            type: "pagar",
+            amount: -valorTotal,
+            date: dataPag,
+            due_date: parcelaAtual.due_date,
+            payment_date: dataPag,
+            status: "pago",
+            description: `Parcela ${parcelaAtual.installment_number} - ${divida.creditor}`,
+            category_id: categoria.id,
+            payment_method: formaPagamento,
+          });
+        }
+
+        // Atualizar parcela
+        await supabase
+          .from("debt_installments")
+          .update({
+            paid: true,
+            paid_date: dataPag,
+            payment_method: formaPagamento,
+            interest_paid: juros,
+            late_fee_paid: multa,
+          })
+          .eq("id", parcelaId);
+
+        // Verificar se todas as parcelas foram pagas
+        const { data: restantes } = await supabase
+          .from("debt_installments")
+          .select("id")
+          .eq("debt_id", id)
+          .eq("paid", false)
+          .limit(1);
+
+        if (!restantes || restantes.length === 0) {
+          await supabase.from("debts").update({ status: "quitada" }).eq("id", id);
+        }
+
+        showFeedback("Sucesso", "Parcela quitada!", "success", () => {
+          loadGestaoDividas();
+          carregarDados();
+        });
+      } catch (error) {
+        console.error("Erro ao quitar parcela:", error);
+        showFeedback("Erro", "Falha ao quitar parcela.", "error");
+      }
+    });
+
+    // Atualizar juros/multa ao selecionar parcela
+    setTimeout(() => {
+      const select = document.getElementById("parcelaId");
+      if (select) {
+        select.addEventListener("change", function () {
+          const option = this.options[this.selectedIndex];
+          document.getElementById("jurosParcela").value = option.dataset.juros || "0";
+          document.getElementById("multaParcela").value = option.dataset.multa || "0";
+        });
+        select.dispatchEvent(new Event("change"));
+      }
+    }, 100);
+  };
+
+  // Quitar dívida inteira
+  window.quitarDivida = async function (id) {
+    const { data: divida } = await supabase
+      .from("debts")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (!divida) {
+      showFeedback("Erro", "Dívida não encontrada.", "error");
+      return;
+    }
+
+    const { data: parcelasPendentes } = await supabase
+      .from("debt_installments")
+      .select("*")
+      .eq("debt_id", id)
+      .eq("paid", false)
+      .order("installment_number", { ascending: true });
+
+    if (!parcelasPendentes || parcelasPendentes.length === 0) {
+      showFeedback("Aviso", "Esta dívida já está quitada.", "info");
+      return;
+    }
+
+    const valorTotalParcelas = parcelasPendentes.reduce(
+      (s, p) => s + parseFloat(p.amount),
+      0,
+    );
+
+    const confirmHtml = `
+      <div style="text-align:center; padding:12px 0;">
+        <div style="font-size:3rem; margin-bottom:12px;">💳</div>
+        <h3 style="color:var(--gold-light); margin-bottom:8px;">Quitar Dívida</h3>
+        <p style="color:var(--gray); font-size:0.95rem;">
+          Deseja quitar as <strong>${parcelasPendentes.length}</strong> parcelas restantes?
+        </p>
+        <div style="background:rgba(255,255,255,0.03); border-radius:10px; padding:12px; margin:12px 0;">
+          <p style="margin:4px 0;"><strong>${escapeHtml(divida.creditor)}</strong></p>
+          <p style="margin:4px 0; color:var(--gray); font-size:0.85rem;">
+            Total a pagar: ${formatCurrency(valorTotalParcelas)}
+          </p>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button class="btn btn-ghost" id="cancelarQuitacao" style="flex:1; padding:12px;">
+            <i class="ph ph-x-circle"></i> Cancelar
+          </button>
+          <button class="btn btn-primary" id="confirmarQuitacao" style="flex:1; padding:12px; background:var(--success);">
+            <i class="ph ph-check-circle"></i> Confirmar
+          </button>
+        </div>
+      </div>
+    `;
+
+    openModal("Quitar Dívida", confirmHtml);
+
+    document.getElementById("cancelarQuitacao")?.addEventListener("click", () => {
+      document.getElementById("modalContainer").innerHTML = "";
+    });
+
+    document.getElementById("confirmarQuitacao")?.addEventListener("click", async function () {
+      const loginResult = await abrirModalLogin("quitar dívida");
+      if (!loginResult.success) {
+        document.getElementById("modalContainer").innerHTML = "";
+        showFeedback("Ação cancelada", "Você precisa estar autenticado.", "warning");
+        return;
+      }
+
+      try {
+        const dataPag = todayISO();
+
+        // Buscar categoria de pagamento
+        const { data: categoria } = await supabase
+          .from("chart_of_accounts")
+          .select("id")
+          .eq("type", "despesa")
+          .ilike("name", "%pagamento%")
+          .limit(1)
+          .maybeSingle();
+
+        // Quitar todas as parcelas pendentes
+        for (const p of parcelasPendentes) {
+          await supabase
+            .from("debt_installments")
+            .update({
+              paid: true,
+              paid_date: dataPag,
+            })
+            .eq("id", p.id);
+        }
+
+        // Atualizar status da dívida
+        await supabase
+          .from("debts")
+          .update({ status: "quitada" })
+          .eq("id", id);
+
+        // Criar lançamento financeiro consolidado
+        if (categoria) {
+          await supabase.from("financial_transactions").insert({
+            type: "pagar",
+            amount: -valorTotalParcelas,
+            date: dataPag,
+            due_date: dataPag,
+            payment_date: dataPag,
+            status: "pago",
+            description: `Quitação total - ${divida.creditor}`,
+            category_id: categoria.id,
+          });
+        }
+
+        document.getElementById("modalContainer").innerHTML = "";
+        showFeedback("Sucesso", "Dívida totalmente quitada!", "success", () => {
+          loadGestaoDividas();
+          carregarDados();
+        });
+      } catch (error) {
+        console.error("Erro ao quitar dívida:", error);
+        showFeedback("Erro", "Falha ao quitar dívida.", "error");
+      }
+    });
+  };
+
+  // Inicializar aba de dívidas quando for ativada
+  function initAbaDividas() {
+    console.log("📊 Inicializando aba de dívidas...");
+    loadGestaoDividas();
   }
 
   // ============================================================
@@ -4471,7 +5799,14 @@
       renderizarProducao(dados);
       renderizarFinanceiro(dados);
       renderizarRH(dados);
-      renderizarDividas(dados);
+
+      // Se a aba atual for dívidas, carregar os dados específicos
+      if (abaAtual === "dividas") {
+        loadGestaoDividas();
+      }
+
+      // Renderizar dívidas no dashboard (cards de resumo)
+      renderizarDividasDashboard(dados);
 
       const totalPendencias =
         (osAtivas || []).filter(
@@ -4503,8 +5838,33 @@
     }
   }
 
+  // Renderizar cards de dívidas no dashboard
+  function renderizarDividasDashboard(dados) {
+    const { dividas, totalDividas, saldoDevedor } = dados;
+
+    // Atualizar os cards na aba geral
+    const kpiDividas = document.getElementById("kpiDividasAtivas");
+    if (kpiDividas) {
+      kpiDividas.textContent = formatCurrency(saldoDevedor);
+    }
+
+    // Atualizar o gauge de dívidas
+    const maxDivida = Math.max(saldoDevedor, 1000);
+    const pct = Math.min(Math.round((saldoDevedor / maxDivida) * 100), 100);
+    const circumference = 188.5;
+    const offset = circumference - (pct / 100) * circumference;
+    const gaugeFill = document.getElementById("gaugeFill");
+    if (gaugeFill) {
+      gaugeFill.style.strokeDashoffset = offset;
+    }
+    const gaugePercent = document.getElementById("gaugePercent");
+    if (gaugePercent) {
+      gaugePercent.textContent = pct + "%";
+    }
+  }
+
   // ============================================================
-  // NAVEGAÇÃO POR ABAS
+  // NAVEGAÇÃO POR ABAS - COM INICIALIZAÇÃO DA ABA DE DÍVIDAS
   // ============================================================
   const tabItems = document.querySelectorAll(".tab-item");
   const tabContents = {
@@ -4525,6 +5885,13 @@
     Object.keys(tabContents).forEach((key) => {
       tabContents[key].classList.toggle("active", key === aba);
     });
+
+    // Inicializar aba de dívidas quando for ativada
+    if (aba === "dividas") {
+      setTimeout(() => {
+        initAbaDividas();
+      }, 100);
+    }
 
     appContent.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -4605,7 +5972,7 @@
   // ============================================================
   document.addEventListener("DOMContentLoaded", async function () {
     const sessaoValida = carregarSessao();
-    
+
     if (sessaoValida && usuarioAutenticado) {
       console.log("✅ Sessão válida encontrada, carregando app...");
       const appContainer = document.querySelector(".app-container");
@@ -4621,18 +5988,21 @@
       if (appContainer) {
         appContainer.style.display = "none";
       }
-      
+
       await abrirModalLoginObrigatorio("acessar o app");
       setupActivityDetection();
-      
-      setInterval(() => {
-        if (isAutenticado()) {
-          renovarSessao();
-          console.log("🔄 Sessão renovada automaticamente (keep-alive)");
-        }
-      }, 25 * 60 * 1000);
+
+      setInterval(
+        () => {
+          if (isAutenticado()) {
+            renovarSessao();
+            console.log("🔄 Sessão renovada automaticamente (keep-alive)");
+          }
+        },
+        25 * 60 * 1000,
+      );
     }
-    
+
     setInterval(() => {
       if (isAutenticado()) {
         carregarDados();
@@ -4662,6 +6032,18 @@
   window.excluirLancamento = window.excluirLancamento;
   window.abrirBaixaParcelas = window.abrirBaixaParcelas;
   window.alternarVisualizacaoFinanceiro = alternarVisualizacaoFinanceiro;
-  window.selecionarDiaCalendarioFinanceiro = window.selecionarDiaCalendarioFinanceiro;
+  window.selecionarDiaCalendarioFinanceiro =
+    window.selecionarDiaCalendarioFinanceiro;
   window.buscarParcelasDaTransacao = buscarParcelasDaTransacao;
+  
+  // Exportar funções de dívidas
+  window.loadGestaoDividas = loadGestaoDividas;
+  window.novaDivida = window.novaDivida;
+  window.editarDivida = window.editarDivida;
+  window.excluirDivida = window.excluirDivida;
+  window.quitarParcela = window.quitarParcela;
+  window.quitarDivida = window.quitarDivida;
+  window.abrirModalDivida = window.abrirModalDivida;
+  window.initAbaDividas = initAbaDividas;
+
 })();
