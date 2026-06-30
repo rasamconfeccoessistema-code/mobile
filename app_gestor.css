@@ -1,7 +1,7 @@
 /* ============================================================
    APP GESTOR - FACÇÃO JEANS
    Estilos completos para o aplicativo do gestor
-   VERSÃO 2.1 - MELHORIAS VISUAIS NO MENU DE AÇÕES
+   VERSÃO 4.0 - MOBILE-FIRST COM SELETORES DE PERÍODO
    ============================================================ */
 
 /* ---------- RESET & BASE ---------- */
@@ -253,17 +253,117 @@ body {
 
 .pull-indicator {
   text-align: center;
-  padding: 6px 0 10px 0;
-  font-size: 11px;
-  color: var(--gray-dark);
+  padding: 12px 0 16px 0;
+  font-size: 13px;
+  color: var(--gray);
   display: none;
+  background: var(--black);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
+
 .pull-indicator.active {
   display: block;
+  animation: pullPulse 0.8s ease-in-out infinite;
 }
+
 .pull-indicator i {
   display: inline-block;
   transition: transform 0.3s;
+  font-size: 20px;
+}
+
+@keyframes pullPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pull-indicator .pull-arrow {
+  display: inline-block;
+  animation: bounceArrow 1.5s ease-in-out infinite;
+}
+
+@keyframes bounceArrow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ---------- SELETOR DE PERÍODO ---------- */
+.period-selector {
+  margin-bottom: 12px;
+}
+
+.period-selector-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--black-soft);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+.period-selector-content .period-nav {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  color: var(--gray);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.period-selector-content .period-nav:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.period-selector-content .period-display {
+  flex: 1;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gold-light);
+}
+
+.period-selector-content .period-today {
+  background: rgba(212, 160, 23, 0.15);
+  border: 1px solid rgba(212, 160, 23, 0.2);
+  color: var(--gold-light);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.period-selector-content .period-today:active {
+  transform: scale(0.95);
+  background: rgba(212, 160, 23, 0.25);
 }
 
 /* ---------- CARDS PREMIUM ---------- */
@@ -1065,13 +1165,14 @@ body {
 
 .modal-sheet {
   background: var(--black-soft);
-  border-radius: 20px 20px 0 0;
-  max-width: 500px;
+  border-radius: 24px 24px 0 0;
+  max-width: 100%;
   width: 100%;
-  max-height: 85vh;
+  max-height: 92vh;
   display: flex;
   flex-direction: column;
-  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 @keyframes slideUp {
@@ -1084,12 +1185,26 @@ body {
 }
 
 .modal-sheet .handle {
-  width: 40px;
-  height: 4px;
+  width: 48px;
+  height: 5px;
   background: var(--gray-dark);
-  border-radius: 2px;
-  margin: 10px auto 6px;
-  opacity: 0.5;
+  border-radius: 3px;
+  margin: 12px auto 8px;
+  opacity: 0.6;
+}
+
+.modal-sheet.dragging {
+  transition: none !important;
+}
+
+.modal-sheet .drag-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  cursor: grab;
+  z-index: 10;
 }
 
 .modal-sheet .modal-header {
@@ -1203,30 +1318,28 @@ body {
 
 /* Container do menu dropdown */
 .dropdown-actions-menu {
-  position: absolute;
-  bottom: 100%;
-  right: 0;
-  margin-bottom: 4px;
-  min-width: 200px;
-  max-height: 300px;
-  overflow-y: auto;
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  left: 16px;
+  margin-bottom: 0;
+  min-width: auto;
+  max-height: 60vh;
   background: var(--black-medium);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 6px;
-  z-index: 100;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  animation: menuSlideUp 0.2s ease;
+  border-radius: 16px;
+  padding: 8px;
+  z-index: 200;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  animation: menuSlideUpMobile 0.25s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-@keyframes menuSlideUp {
+@keyframes menuSlideUpMobile {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.96);
+    transform: translateY(20px) scale(0.95);
   }
   to {
     opacity: 1;
@@ -1251,9 +1364,9 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 14px 16px;
   border-radius: 8px;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 500;
   text-decoration: none;
   transition: all 0.2s ease;
@@ -1264,11 +1377,12 @@ body {
   width: 100%;
   text-align: left;
   position: relative;
+  min-height: 52px;
 }
 
 .dropdown-actions-menu .action-item i {
-  font-size: 1.1rem;
-  width: 20px;
+  font-size: 1.3rem;
+  width: 28px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -1371,6 +1485,18 @@ body {
   padding: 1px 8px;
   border-radius: 10px;
   font-weight: 400;
+}
+
+/* Backdrop para fechar menu ao tocar fora */
+.menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 199;
+  background: rgba(0, 0, 0, 0.4);
+  animation: fadeInOverlay 0.2s ease;
 }
 
 /* Responsividade do menu */
@@ -1556,35 +1682,37 @@ body {
   background: rgba(10, 10, 10, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   justify-content: space-around;
-  padding: 6px 0;
-  padding-bottom: calc(6px + var(--safe-bottom));
+  padding: 8px 0;
+  padding-bottom: calc(8px + var(--safe-bottom));
   max-width: 500px;
   margin: 0 auto;
   z-index: 100;
   flex-shrink: 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .tab-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  gap: 2px;
   background: none;
   border: none;
   color: var(--gray-dark);
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 500;
   cursor: pointer;
-  padding: 4px 10px;
+  padding: 6px 12px;
   transition: var(--transition);
   position: relative;
   -webkit-tap-highlight-color: transparent;
   font-family: inherit;
   border-radius: 12px;
-  min-width: 52px;
+  min-width: 60px;
+  min-height: 48px;
 }
 
 .tab-item:active {
@@ -1592,35 +1720,40 @@ body {
 }
 
 .tab-item i {
-  font-size: 20px;
+  font-size: 22px;
   transition: var(--transition);
+}
+
+.tab-item span {
+  font-size: 9px;
+  margin-top: 1px;
 }
 
 .tab-item.active {
   color: var(--gold-light);
-  background: rgba(212, 160, 23, 0.06);
+  background: rgba(212, 160, 23, 0.08);
 }
 
 .tab-item.active i {
-  color: var(--gold-light);
-  text-shadow: 0 0 20px rgba(212, 160, 23, 0.2);
+  transform: scale(1.1);
+  text-shadow: 0 0 30px rgba(212, 160, 23, 0.3);
 }
 
 .tab-item .tab-badge {
   position: absolute;
-  top: 0;
+  top: 2px;
   right: 4px;
   background: var(--error);
   color: white;
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 700;
-  min-width: 16px;
-  height: 16px;
+  min-width: 18px;
+  height: 18px;
   border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
+  padding: 0 5px;
   border: 2px solid var(--black);
   animation: pulseBadge 1.5s ease-in-out infinite;
 }
@@ -1628,16 +1761,17 @@ body {
 /* ---------- SCROLL TOP ---------- */
 .scroll-top-btn {
   position: fixed;
-  bottom: 80px;
+  bottom: 90px;
   right: 16px;
-  background: rgba(212, 160, 23, 0.12);
+  background: rgba(212, 160, 23, 0.15);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 160, 23, 0.15);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 160, 23, 0.2);
   color: var(--gold-light);
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
   display: none;
   align-items: center;
@@ -1646,8 +1780,7 @@ body {
   z-index: 50;
   max-width: 500px;
   margin: 0 auto;
-  right: calc(50% - 250px + 16px);
-  animation: fadeIn 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes fadeIn {
@@ -1666,6 +1799,7 @@ body {
 }
 .scroll-top-btn.visible {
   display: flex;
+  animation: fadeIn 0.3s ease;
 }
 
 /* ---------- DASHBOARD GRID ---------- */
@@ -1832,15 +1966,16 @@ body {
   margin-bottom: 12px;
 }
 .filtro-rapido-btn {
-  padding: 4px 12px;
+  padding: 8px 14px;
   border-radius: 20px;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 500;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
   color: var(--gray);
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 36px;
 }
 .filtro-rapido-btn:hover {
   border-color: var(--gold-light);
@@ -1928,6 +2063,101 @@ body {
 }
 .pulse-animation {
   animation: pulse 0.4s ease;
+}
+
+/* ---------- TOAST NOTIFICATIONS ---------- */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 16px;
+  right: 16px;
+  max-width: 500px;
+  margin: 0 auto;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--black-medium);
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: toastSlideDown 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: auto;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.toast.success {
+  border-left: 4px solid var(--success);
+}
+.toast.error {
+  border-left: 4px solid var(--error);
+}
+.toast.warning {
+  border-left: 4px solid var(--warning);
+}
+.toast.info {
+  border-left: 4px solid var(--info);
+}
+
+.toast .toast-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.toast .toast-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast .toast-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--white);
+}
+
+.toast .toast-message {
+  font-size: 0.75rem;
+  color: var(--gray);
+}
+
+.toast .toast-close {
+  background: none;
+  border: none;
+  color: var(--gray-dark);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+@keyframes toastSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toast.hide {
+  animation: toastSlideUp 0.3s ease forwards;
+}
+
+@keyframes toastSlideUp {
+  to {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
 }
 
 /* ---------- RESPONSIVIDADE ---------- */
@@ -2024,6 +2254,25 @@ body {
     font-size: 1rem;
     width: 18px;
   }
+  /* Seletor de período mobile */
+  .period-selector-content {
+    padding: 6px 10px;
+    gap: 4px;
+  }
+  .period-selector-content .period-nav {
+    width: 32px;
+    height: 32px;
+    min-height: 36px;
+    min-width: 36px;
+    font-size: 14px;
+  }
+  .period-selector-content .period-display {
+    font-size: 0.75rem;
+  }
+  .period-selector-content .period-today {
+    font-size: 0.55rem;
+    padding: 2px 10px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -2038,6 +2287,16 @@ body {
   }
   .session-indicator {
     display: none;
+  }
+  .period-selector-content .period-display {
+    font-size: 0.65rem;
+  }
+  .period-selector-content .period-nav {
+    width: 28px;
+    height: 28px;
+    min-height: 32px;
+    min-width: 32px;
+    font-size: 12px;
   }
 }
 
