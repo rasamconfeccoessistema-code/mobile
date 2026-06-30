@@ -1,7 +1,7 @@
 /* ============================================================
    APP GESTOR - FACÇÃO JEANS
    Estilos completos para o aplicativo do gestor
-   VERSÃO 4.0 - MOBILE-FIRST COM SELETORES DE PERÍODO
+   VERSÃO 4.4 - MOBILE-FIRST COMPLETO E CORRIGIDO
    ============================================================ */
 
 /* ---------- RESET & BASE ---------- */
@@ -785,7 +785,7 @@ body {
 .list-item {
   display: flex;
   flex-direction: column;
-  padding: 10px 12px;
+  padding: 14px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   gap: 6px;
   transition: var(--transition);
@@ -882,7 +882,6 @@ body {
 }
 
 /* ---------- BADGES ---------- */
-/* Melhoria #1: Status de pagamento com cores */
 .payment-badge-pendente {
   background: rgba(255, 193, 7, 0.2);
   color: #ffe082;
@@ -1305,13 +1304,6 @@ body {
   min-height: 32px;
 }
 
-.btn-action-ghost:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: var(--white);
-  transform: scale(1.05);
-}
-
 .btn-action-ghost:active {
   transform: scale(0.92);
 }
@@ -1387,12 +1379,6 @@ body {
   flex-shrink: 0;
 }
 
-.dropdown-actions-menu .action-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--white);
-  transform: translateX(3px);
-}
-
 .dropdown-actions-menu .action-item:active {
   transform: scale(0.98);
 }
@@ -1401,14 +1387,14 @@ body {
 .dropdown-actions-menu .action-item.action-view {
   color: var(--info);
 }
-.dropdown-actions-menu .action-item.action-view:hover {
+.dropdown-actions-menu .action-item.action-view:active {
   background: rgba(66, 165, 245, 0.12);
 }
 
 .dropdown-actions-menu .action-item.action-edit {
   color: var(--gold-light);
 }
-.dropdown-actions-menu .action-item.action-edit:hover {
+.dropdown-actions-menu .action-item.action-edit:active {
   background: rgba(212, 160, 23, 0.12);
 }
 
@@ -1416,50 +1402,50 @@ body {
 .dropdown-actions-menu .action-item.action-register {
   color: var(--info);
 }
-.dropdown-actions-menu .action-item.action-start:hover,
-.dropdown-actions-menu .action-item.action-register:hover {
+.dropdown-actions-menu .action-item.action-start:active,
+.dropdown-actions-menu .action-item.action-register:active {
   background: rgba(66, 165, 245, 0.12);
 }
 
 .dropdown-actions-menu .action-item.action-finish {
   color: #81c784;
 }
-.dropdown-actions-menu .action-item.action-finish:hover {
+.dropdown-actions-menu .action-item.action-finish:active {
   background: rgba(76, 175, 80, 0.12);
 }
 
 .dropdown-actions-menu .action-item.action-deliver {
   color: var(--gold-light);
 }
-.dropdown-actions-menu .action-item.action-deliver:hover {
+.dropdown-actions-menu .action-item.action-deliver:active {
   background: rgba(212, 160, 23, 0.12);
 }
 
 .dropdown-actions-menu .action-item.action-review {
   color: var(--warning);
 }
-.dropdown-actions-menu .action-item.action-review:hover {
+.dropdown-actions-menu .action-item.action-review:active {
   background: rgba(255, 193, 7, 0.12);
 }
 
 .dropdown-actions-menu .action-item.action-back {
   color: #4dd0e1;
 }
-.dropdown-actions-menu .action-item.action-back:hover {
+.dropdown-actions-menu .action-item.action-back:active {
   background: rgba(77, 208, 225, 0.12);
 }
 
 .dropdown-actions-menu .action-item.action-cancel {
   color: var(--warning);
 }
-.dropdown-actions-menu .action-item.action-cancel:hover {
+.dropdown-actions-menu .action-item.action-cancel:active {
   background: rgba(255, 193, 7, 0.12);
 }
 
 .dropdown-actions-menu .action-item.action-delete {
   color: var(--error);
 }
-.dropdown-actions-menu .action-item.action-delete:hover {
+.dropdown-actions-menu .action-item.action-delete:active {
   background: rgba(255, 82, 82, 0.12);
 }
 
@@ -1556,7 +1542,7 @@ body {
   color: #a5d6a7;
   border: 1px solid rgba(76, 175, 80, 0.3);
 }
-.btn-action-payment:hover {
+.btn-action-payment:active {
   background: rgba(76, 175, 80, 0.25);
 }
 
@@ -1578,10 +1564,6 @@ body {
 .btn-primary:active {
   transform: scale(0.95);
 }
-.btn-primary:hover {
-  box-shadow: 0 4px 20px rgba(233, 30, 99, 0.4);
-  transform: translateY(-1px);
-}
 
 .btn-ghost {
   background: transparent;
@@ -1598,10 +1580,6 @@ body {
 }
 .btn-ghost:active {
   transform: scale(0.95);
-}
-.btn-ghost:hover {
-  border-color: var(--gold-light);
-  color: var(--white);
 }
 
 /* Melhoria #9: Área de toque maior para mobile */
@@ -1977,9 +1955,8 @@ body {
   transition: all 0.2s ease;
   min-height: 36px;
 }
-.filtro-rapido-btn:hover {
-  border-color: var(--gold-light);
-  color: var(--white);
+.filtro-rapido-btn:active {
+  transform: scale(0.95);
 }
 .filtro-rapido-btn.active {
   background: rgba(212, 160, 23, 0.15);
@@ -2023,9 +2000,8 @@ body {
   background: rgba(212, 160, 23, 0.15);
   color: var(--gold-light);
 }
-.tab-detail-btn:hover {
+.tab-detail-btn:active {
   background: rgba(255, 255, 255, 0.05);
-  color: var(--white);
 }
 .tab-detail-content {
   display: none;
