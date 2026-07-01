@@ -410,100 +410,9 @@
           </div>
 
           <!-- ============================================================
-               SELETOR DE PERÍODO - PRODUÇÃO
+               SELETOR DE PERÍODO - PRODUÇÃO (DINÂMICO)
                ============================================================ -->
-          <div
-            class="period-selector"
-            id="periodSelectorProducao"
-            style="margin-bottom: 12px"
-          >
-            <div
-              class="period-selector-content"
-              style="
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: var(--black-soft);
-                border: 1px solid rgba(255, 255, 255, 0.06);
-                border-radius: 12px;
-                padding: 8px 12px;
-              "
-            >
-              <button
-                class="period-nav"
-                data-aba="producao"
-                data-direction="prev"
-                style="
-                  background: rgba(255, 255, 255, 0.05);
-                  border: none;
-                  color: var(--gray);
-                  width: 36px;
-                  height: 36px;
-                  border-radius: 50%;
-                  font-size: 16px;
-                  cursor: pointer;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  transition: all 0.2s ease;
-                "
-              >
-                <i class="ph ph-caret-left"></i>
-              </button>
-              <span
-                class="period-display"
-                id="periodDisplayProducao"
-                style="
-                  flex: 1;
-                  text-align: center;
-                  font-size: 0.85rem;
-                  font-weight: 600;
-                  color: var(--gold-light);
-                "
-              >
-                Janeiro 2026
-              </span>
-              <button
-                class="period-nav"
-                data-aba="producao"
-                data-direction="next"
-                style="
-                  background: rgba(255, 255, 255, 0.05);
-                  border: none;
-                  color: var(--gray);
-                  width: 36px;
-                  height: 36px;
-                  border-radius: 50%;
-                  font-size: 16px;
-                  cursor: pointer;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  transition: all 0.2s ease;
-                "
-              >
-                <i class="ph ph-caret-right"></i>
-              </button>
-              <button
-                class="period-today"
-                data-aba="producao"
-                style="
-                  background: rgba(212, 160, 23, 0.15);
-                  border: 1px solid rgba(212, 160, 23, 0.2);
-                  color: var(--gold-light);
-                  padding: 4px 12px;
-                  border-radius: 20px;
-                  font-size: 0.6rem;
-                  font-weight: 600;
-                  cursor: pointer;
-                  transition: all 0.2s ease;
-                  white-space: nowrap;
-                "
-              >
-                <i class="ph ph-calendar-check"></i> Hoje
-              </button>
-            </div>
-          </div>
+          <div id="periodSelectorContainer_producao"></div>
 
           <!-- ============================================================
                FILTROS RÁPIDOS
@@ -647,100 +556,9 @@
           </div>
 
           <!-- ============================================================
-               SELETOR DE PERÍODO - FINANCEIRO
+               SELETOR DE PERÍODO - FINANCEIRO (DINÂMICO)
                ============================================================ -->
-          <div
-            class="period-selector"
-            id="periodSelectorFinanceiro"
-            style="margin-bottom: 12px"
-          >
-            <div
-              class="period-selector-content"
-              style="
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: var(--black-soft);
-                border: 1px solid rgba(255, 255, 255, 0.06);
-                border-radius: 12px;
-                padding: 8px 12px;
-              "
-            >
-              <button
-                class="period-nav"
-                data-aba="financeiro"
-                data-direction="prev"
-                style="
-                  background: rgba(255, 255, 255, 0.05);
-                  border: none;
-                  color: var(--gray);
-                  width: 36px;
-                  height: 36px;
-                  border-radius: 50%;
-                  font-size: 16px;
-                  cursor: pointer;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  transition: all 0.2s ease;
-                "
-              >
-                <i class="ph ph-caret-left"></i>
-              </button>
-              <span
-                class="period-display"
-                id="periodDisplayFinanceiro"
-                style="
-                  flex: 1;
-                  text-align: center;
-                  font-size: 0.85rem;
-                  font-weight: 600;
-                  color: var(--gold-light);
-                "
-              >
-                Janeiro 2026
-              </span>
-              <button
-                class="period-nav"
-                data-aba="financeiro"
-                data-direction="next"
-                style="
-                  background: rgba(255, 255, 255, 0.05);
-                  border: none;
-                  color: var(--gray);
-                  width: 36px;
-                  height: 36px;
-                  border-radius: 50%;
-                  font-size: 16px;
-                  cursor: pointer;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  transition: all 0.2s ease;
-                "
-              >
-                <i class="ph ph-caret-right"></i>
-              </button>
-              <button
-                class="period-today"
-                data-aba="financeiro"
-                style="
-                  background: rgba(212, 160, 23, 0.15);
-                  border: 1px solid rgba(212, 160, 23, 0.2);
-                  color: var(--gold-light);
-                  padding: 4px 12px;
-                  border-radius: 20px;
-                  font-size: 0.6rem;
-                  font-weight: 600;
-                  cursor: pointer;
-                  transition: all 0.2s ease;
-                  white-space: nowrap;
-                "
-              >
-                <i class="ph ph-calendar-check"></i> Hoje
-              </button>
-            </div>
-          </div>
+          <div id="periodSelectorContainer_financeiro"></div>
 
           <!-- Cards de resumo com animação -->
           <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
@@ -811,100 +629,9 @@
           </div>
 
           <!-- ============================================================
-               SELETOR DE PERÍODO - RH
+               SELETOR DE PERÍODO - RH (DINÂMICO)
                ============================================================ -->
-          <div
-            class="period-selector"
-            id="periodSelectorRH"
-            style="margin-bottom: 12px"
-          >
-            <div
-              class="period-selector-content"
-              style="
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: var(--black-soft);
-                border: 1px solid rgba(255, 255, 255, 0.06);
-                border-radius: 12px;
-                padding: 8px 12px;
-              "
-            >
-              <button
-                class="period-nav"
-                data-aba="rh"
-                data-direction="prev"
-                style="
-                  background: rgba(255, 255, 255, 0.05);
-                  border: none;
-                  color: var(--gray);
-                  width: 36px;
-                  height: 36px;
-                  border-radius: 50%;
-                  font-size: 16px;
-                  cursor: pointer;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  transition: all 0.2s ease;
-                "
-              >
-                <i class="ph ph-caret-left"></i>
-              </button>
-              <span
-                class="period-display"
-                id="periodDisplayRH"
-                style="
-                  flex: 1;
-                  text-align: center;
-                  font-size: 0.85rem;
-                  font-weight: 600;
-                  color: var(--gold-light);
-                "
-              >
-                Janeiro 2026
-              </span>
-              <button
-                class="period-nav"
-                data-aba="rh"
-                data-direction="next"
-                style="
-                  background: rgba(255, 255, 255, 0.05);
-                  border: none;
-                  color: var(--gray);
-                  width: 36px;
-                  height: 36px;
-                  border-radius: 50%;
-                  font-size: 16px;
-                  cursor: pointer;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  transition: all 0.2s ease;
-                "
-              >
-                <i class="ph ph-caret-right"></i>
-              </button>
-              <button
-                class="period-today"
-                data-aba="rh"
-                style="
-                  background: rgba(212, 160, 23, 0.15);
-                  border: 1px solid rgba(212, 160, 23, 0.2);
-                  color: var(--gold-light);
-                  padding: 4px 12px;
-                  border-radius: 20px;
-                  font-size: 0.6rem;
-                  font-weight: 600;
-                  cursor: pointer;
-                  transition: all 0.2s ease;
-                  white-space: nowrap;
-                "
-              >
-                <i class="ph ph-calendar-check"></i> Hoje
-              </button>
-            </div>
-          </div>
+          <div id="periodSelectorContainer_rh"></div>
 
           <!-- Cards de resumo -->
           <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
@@ -1052,6 +779,11 @@
           <div class="tab-section-title">
             <i class="ph ph-warning-circle"></i> Dívidas
           </div>
+
+          <!-- ============================================================
+               SELETOR DE PERÍODO - DÍVIDAS (DINÂMICO)
+               ============================================================ -->
+          <div id="periodSelectorContainer_dividas"></div>
 
           <!-- Cards de resumo -->
           <div class="cards-grid cards-grid-2" style="margin-bottom: 12px">
@@ -1216,7 +948,7 @@
         // Verificar se o App foi inicializado
         if (typeof window.App === "undefined") {
           console.warn(
-            "⚠️ App não inicializado, tentando carregar manualmente...",
+            "⚠️ App não inicializado, tentando carregar manualmente..."
           );
           // Tentar carregar os dados manualmente
           if (
