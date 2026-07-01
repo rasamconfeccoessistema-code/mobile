@@ -1,13 +1,13 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // Módulo Dívidas (dividas.js) - Aba de Dívidas
-// Versão 2.1 - Com menu único de ações e filtros otimizados
+// Versão 3.0 - MODO LEITURA (APENAS VISUALIZAÇÃO)
 // ============================================================
 
 (function (global) {
   "use strict";
 
-  console.log("📦 Módulo Dívidas carregado");
+  console.log("📦 Módulo Dívidas carregado - Modo Leitura");
 
   // ============================================================
   // DEPENDÊNCIAS
@@ -99,7 +99,7 @@
 
       if (resetLimite) limiteAtual = LIMITE_PADRAO;
 
-      console.log("💰 Dívidas: Carregando dados...");
+      console.log("💰 Dívidas: Carregando dados (Modo Leitura)...");
 
       // ========== BUSCAR DÍVIDAS COM FILTROS ==========
       let query = supabase
@@ -247,7 +247,7 @@
       renderizarDividas(dados);
 
       console.log(
-        `✅ Dívidas: ${dividasComFornecedor.length} dívidas carregadas`
+        `✅ Dívidas: ${dividasComFornecedor.length} dívidas carregadas (Modo Leitura)`
       );
       return dados;
     } catch (e) {
@@ -260,11 +260,11 @@
   }
 
   // ============================================================
-  // RENDERIZAR - ABA DÍVIDAS
+  // RENDERIZAR - ABA DÍVIDAS (MODO LEITURA)
   // ============================================================
 
   function renderizarDividas(dados) {
-    console.log("📊 Dívidas: Renderizando...");
+    console.log("📊 Dívidas: Renderizando (Modo Leitura)...");
 
     const {
       dividas,
@@ -311,7 +311,7 @@
         <div class="empty-state" style="text-align:center;padding:40px 16px;color:var(--gray-dark);">
           <i class="ph ph-warning-circle" style="font-size:40px;display:block;margin-bottom:12px;color:var(--gray);"></i>
           <p style="font-size:15px;font-weight:500;">Nenhuma dívida cadastrada</p>
-          <p style="font-size:12px;color:var(--gray);margin-top:4px;">Clique em "Nova Dívida" para começar</p>
+          <p style="font-size:12px;color:var(--gray);margin-top:4px;">Não há dívidas para este período</p>
         </div>
       `;
       renderizarPaginacao(dados);
@@ -367,54 +367,6 @@
         else if (tipoLower.includes("fornecedor")) catIcon = "ph-truck";
         else if (tipoLower.includes("imposto")) catIcon = "ph-receipt";
         else if (tipoLower.includes("pessoal")) catIcon = "ph-user";
-
-        // ========== CONSTRUIR MENU DE AÇÕES ==========
-        const acoes = [];
-
-        // Ação Visualizar (sempre disponível)
-        acoes.push({
-          label: 'Visualizar',
-          icon: 'ph-eye',
-          color: 'var(--info)',
-          onclick: `window.Dividas.abrirModalDivida('${d.id}')`
-        });
-
-        // Ação Editar (sempre disponível)
-        acoes.push({
-          label: 'Editar',
-          icon: 'ph-pencil-simple',
-          color: 'var(--gold-light)',
-          onclick: `window.Dividas.editarDivida('${d.id}')`
-        });
-
-        // Ações específicas por status
-        if (d.status !== "quitada") {
-          acoes.push({
-            label: 'Quitar Parcela',
-            icon: 'ph-check-circle',
-            color: '#4caf50',
-            onclick: `window.Dividas.quitarParcela('${d.id}')`
-          });
-          acoes.push({
-            label: 'Quitar Tudo',
-            icon: 'ph-check-square',
-            color: '#2196f3',
-            onclick: `window.Dividas.quitarDivida('${d.id}')`
-          });
-        }
-
-        // Ação Excluir (sempre disponível)
-        acoes.push({
-          label: 'Excluir',
-          icon: 'ph-trash',
-          color: 'var(--error)',
-          onclick: `window.Dividas.excluirDivida('${d.id}')`
-        });
-
-        // Converter ações para string
-        const acoesStr = acoes.map(a => 
-          `{ label: '${a.label}', icon: '${a.icon}', color: '${a.color}', onclick: '${a.onclick}' }`
-        ).join(',');
 
         return `
           <div class="list-item" 
@@ -512,10 +464,10 @@
             </div>
 
             <div style="display: flex; justify-content: flex-end; margin-top: 4px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.04);">
-              <button class="btn-action-menu" 
-                      style="min-height: 34px; min-width: 34px; padding: 5px 10px;"
-                      onclick="event.stopPropagation(); window.UI.abrirMenuAcoesMobile('${d.id}', [${acoesStr}], 'Ações da Dívida');">
-                <i class="ph ph-gear-six"></i>
+              <button class="btn-action btn-action-ghost" 
+                      style="padding:4px 12px; font-size:0.6rem; border-radius:8px; min-height:36px;"
+                      onclick="event.stopPropagation(); window.Dividas.abrirModalDivida('${d.id}')">
+                <i class="ph ph-eye"></i> Visualizar
               </button>
             </div>
           </div>
@@ -529,7 +481,7 @@
     // Configurar filtros
     configurarFiltros();
 
-    console.log(`✅ Dívidas: ${dividas.length} dívidas renderizadas`);
+    console.log(`✅ Dívidas: ${dividas.length} dívidas renderizadas (Modo Leitura)`);
   }
 
   // ============================================================
@@ -745,214 +697,7 @@
   }
 
   // ============================================================
-  // FUNÇÕES DE CRUD DE DÍVIDAS
-  // ============================================================
-
-  /**
-   * Abre o modal para criar uma nova dívida
-   */
-  function novaDivida() {
-    console.log("📝 Dívidas: Criando nova dívida...");
-
-    const html = `
-      <div style="display:grid; gap:12px;">
-        <div class="form-group">
-          <label class="form-label"><i class="ph ph-user"></i> Credor *</label>
-          <input id="divCredor" class="form-input" placeholder="Nome do credor" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label"><i class="ph ph-tag"></i> Tipo *</label>
-          <select id="divTipo" class="form-select" required>
-            <option value="bancaria">🏦 Bancária</option>
-            <option value="fornecedor">🚚 Fornecedor</option>
-            <option value="imposto">📋 Imposto</option>
-            <option value="pessoal">👤 Pessoal</option>
-            <option value="outro">📌 Outro</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label"><i class="ph ph-currency-circle-dollar"></i> Valor Total *</label>
-          <input id="divTotal" type="number" step="0.01" min="0.01" class="form-input" placeholder="0,00" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label"><i class="ph ph-receipt"></i> Número de Parcelas *</label>
-          <input id="divParcelas" type="number" min="1" max="120" class="form-input" value="1" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label"><i class="ph ph-calendar-blank"></i> Data do Primeiro Vencimento *</label>
-          <input id="divPrimeiroVenc" type="date" class="form-input" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label"><i class="ph ph-percent"></i> Taxa de Juros Mensal (%)</label>
-          <input id="divJuros" type="number" step="0.01" class="form-input" placeholder="Ex: 2.5 (opcional)">
-          <small style="color:var(--gray); font-size:0.65rem;">Se houver juros, o valor das parcelas será recalculado</small>
-        </div>
-        <div class="form-group">
-          <label class="form-label"><i class="ph ph-note"></i> Observações</label>
-          <textarea id="divObs" class="form-input" rows="2" placeholder="Informações adicionais..."></textarea>
-        </div>
-      </div>
-    `;
-
-    UI.modalComConfirmacao(
-      "Nova Dívida",
-      html,
-      async () => {
-        await salvarNovaDivida();
-      },
-      null,
-      "560px"
-    );
-
-    // Definir data padrão
-    setTimeout(() => {
-      const dataInput = document.getElementById("divPrimeiroVenc");
-      if (dataInput && !dataInput.value) {
-        dataInput.value = todayISO();
-      }
-    }, 100);
-  }
-
-  /**
-   * Salva uma nova dívida no banco
-   */
-  async function salvarNovaDivida() {
-    try {
-      const supabase = Supabase.getSupabaseClient
-        ? Supabase.getSupabaseClient()
-        : null;
-      if (!supabase) {
-        UI.showToast("Erro", "Cliente Supabase não disponível", "error");
-        return;
-      }
-
-      const credor = document.getElementById("divCredor").value.trim();
-      const tipo = document.getElementById("divTipo").value;
-      const total = parseFloat(document.getElementById("divTotal").value);
-      const numParcelas = parseInt(
-        document.getElementById("divParcelas").value
-      );
-      const primeiroVenc = document.getElementById("divPrimeiroVenc").value;
-      const jurosMensal =
-        parseFloat(document.getElementById("divJuros").value) || 0;
-      const obs = document.getElementById("divObs").value.trim() || null;
-
-      if (!credor || !tipo || !total || !numParcelas || !primeiroVenc) {
-        UI.showToast("Erro", "Preencha todos os campos obrigatórios.", "error");
-        return;
-      }
-
-      if (total <= 0) {
-        UI.showToast("Erro", "Informe um valor total válido.", "error");
-        return;
-      }
-
-      if (numParcelas < 1 || numParcelas > 120) {
-        UI.showToast(
-          "Erro",
-          "Número de parcelas deve ser entre 1 e 120.",
-          "error"
-        );
-        return;
-      }
-
-      const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
-      if (!loginResult) {
-        UI.showToast(
-          "Ação cancelada",
-          "Você precisa estar autenticado.",
-          "warning"
-        );
-        return;
-      }
-
-      // Calcular valor da parcela com ou sem juros
-      let valorParcela = total / numParcelas;
-      let jurosEfetivo = 0;
-      if (jurosMensal > 0) {
-        const i = jurosMensal / 100;
-        const fator = Math.pow(1 + i, numParcelas);
-        valorParcela = total * ((i * fator) / (fator - 1));
-        jurosEfetivo = jurosMensal;
-      }
-
-      // Inserir dívida
-      const { data: nova, error: insertError } = await supabase
-        .from("debts")
-        .insert({
-          creditor: credor,
-          type: tipo,
-          total_amount: total,
-          original_total_amount: total,
-          interest_rate: jurosEfetivo,
-          late_fee_percent: 0,
-          total_installments: numParcelas,
-          installment_value: valorParcela,
-          due_date: primeiroVenc,
-          status: "ativa",
-          notes: obs,
-        })
-        .select("id")
-        .single();
-
-      if (insertError) {
-        UI.showToast(
-          "Erro",
-          `Falha ao criar dívida: ${insertError.message}`,
-          "error"
-        );
-        return;
-      }
-
-      // Gerar parcelas
-      const parcelas = [];
-      for (let i = 0; i < numParcelas; i++) {
-        const dataVenc = new Date(primeiroVenc + "T12:00:00");
-        dataVenc.setMonth(dataVenc.getMonth() + i);
-        const dataVencStr = dataVenc.toISOString().split("T")[0];
-        parcelas.push({
-          debt_id: nova.id,
-          installment_number: i + 1,
-          amount: valorParcela,
-          due_date: dataVencStr,
-          paid: false,
-        });
-      }
-
-      const { error: parcelasError } = await supabase
-        .from("debt_installments")
-        .insert(parcelas);
-
-      if (parcelasError) {
-        console.error("❌ Erro ao gerar parcelas:", parcelasError);
-        UI.showToast(
-          "Aviso",
-          "Dívida criada, mas houve falha ao gerar parcelas.",
-          "warning"
-        );
-      } else {
-        UI.showToast(
-          "Sucesso",
-          `Dívida com ${numParcelas} parcelas criada!`,
-          "success"
-        );
-      }
-
-      document.getElementById("modalContainer").innerHTML = "";
-      await carregarDividasPeriodo();
-
-      // Atualizar dados do dashboard
-      if (global.Dashboard && global.Dashboard.atualizarDados) {
-        global.Dashboard.atualizarDados();
-      }
-    } catch (e) {
-      console.error("Erro ao criar dívida:", e);
-      UI.showToast("Erro", "Falha ao criar dívida.", "error");
-    }
-  }
-
-  // ============================================================
-  // FUNÇÕES DE MODAL - DÍVIDA (REFATORADO COM PADRÃO)
+  // FUNÇÕES DE MODAL - DÍVIDA (MODO LEITURA)
   // ============================================================
 
   /**
@@ -1149,34 +894,15 @@
         });
       }
 
-      // ========== AÇÕES ==========
-      const acoes = [];
-      if (!isQuitada) {
-        acoes.push({
-          label: "Quitar Parcela",
-          icon: "ph-check-circle",
-          class: "success",
-          onclick: `window.Dividas.quitarParcela('${divida.id}')`,
-        });
-        acoes.push({
-          label: "Quitar Tudo",
-          icon: "ph-check-square",
-          class: "primary",
-          onclick: `window.Dividas.quitarDivida('${divida.id}')`,
-        });
-      }
-      acoes.push({
-        label: "Editar",
-        icon: "ph-pencil-simple",
-        class: "ghost",
-        onclick: `window.Dividas.editarDivida('${divida.id}')`,
-      });
-      acoes.push({
-        label: "Excluir",
-        icon: "ph-trash",
-        class: "ghost danger",
-        onclick: `window.Dividas.excluirDivida('${divida.id}')`,
-      });
+      // ========== AÇÕES (APENAS FECHAR) ==========
+      const acoes = [
+        {
+          label: "Fechar",
+          icon: "ph-x-circle",
+          class: "ghost",
+          onclick: "document.getElementById('modalContainer').innerHTML = ''",
+        }
+      ];
 
       // ========== CRIAR MODAL PADRONIZADO ==========
       UI.criarModalPadronizado(
@@ -1195,602 +921,16 @@
   };
 
   // ============================================================
-  // FUNÇÕES DE CRUD - EDIÇÃO E EXCLUSÃO
-  // ============================================================
-
-  /**
-   * Edita uma dívida
-   */
-  window.editarDivida = async function (id) {
-    try {
-      const supabase = Supabase.getSupabaseClient
-        ? Supabase.getSupabaseClient()
-        : null;
-      if (!supabase) {
-        UI.showToast("Erro", "Cliente Supabase não disponível", "error");
-        return;
-      }
-
-      const { data: divida } = await supabase
-        .from("debts")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (!divida) {
-        UI.showToast("Erro", "Dívida não encontrada.", "error");
-        return;
-      }
-
-      const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
-      if (!loginResult) {
-        UI.showToast(
-          "Ação cancelada",
-          "Você precisa estar autenticado.",
-          "warning"
-        );
-        return;
-      }
-
-      const html = `
-        <div style="display:grid; gap:12px;">
-          <div class="form-group">
-            <label class="form-label"><i class="ph ph-user"></i> Credor *</label>
-            <input id="editCredor" class="form-input" value="${escapeHtml(
-              divida.creditor
-            )}" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ph ph-tag"></i> Tipo *</label>
-            <select id="editTipo" class="form-select" required>
-              <option value="bancaria" ${
-                divida.type === "bancaria" ? "selected" : ""
-              }>🏦 Bancária</option>
-              <option value="fornecedor" ${
-                divida.type === "fornecedor" ? "selected" : ""
-              }>🚚 Fornecedor</option>
-              <option value="imposto" ${
-                divida.type === "imposto" ? "selected" : ""
-              }>📋 Imposto</option>
-              <option value="pessoal" ${
-                divida.type === "pessoal" ? "selected" : ""
-              }>👤 Pessoal</option>
-              <option value="outro" ${
-                divida.type === "outro" ? "selected" : ""
-              }>📌 Outro</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ph ph-currency-circle-dollar"></i> Valor Total *</label>
-            <input id="editTotal" type="number" step="0.01" class="form-input" value="${
-              divida.total_amount
-            }" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ph ph-info"></i> Status *</label>
-            <select id="editStatus" class="form-select" required>
-              <option value="ativa" ${
-                divida.status === "ativa" ? "selected" : ""
-              }>🟡 Ativa</option>
-              <option value="quitada" ${
-                divida.status === "quitada" ? "selected" : ""
-              }>✅ Quitada</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ph ph-note"></i> Observações</label>
-            <textarea id="editObs" class="form-input" rows="2">${
-              divida.notes || ""
-            }</textarea>
-          </div>
-        </div>
-      `;
-
-      UI.modalComConfirmacao(
-        "Editar Dívida",
-        html,
-        async () => {
-          const creditor = document.getElementById("editCredor").value.trim();
-          const type = document.getElementById("editTipo").value;
-          const total_amount = parseFloat(
-            document.getElementById("editTotal").value
-          );
-          const status = document.getElementById("editStatus").value;
-          const notes = document.getElementById("editObs").value.trim() || null;
-
-          if (!creditor || !total_amount) {
-            UI.showToast("Erro", "Preencha os campos obrigatórios.", "error");
-            return;
-          }
-
-          const { error } = await supabase
-            .from("debts")
-            .update({ creditor, type, total_amount, status, notes })
-            .eq("id", id);
-
-          if (error) {
-            UI.showToast("Erro", error.message, "error");
-          } else {
-            UI.showToast("Sucesso", "Dívida atualizada!", "success");
-            document.getElementById("modalContainer").innerHTML = "";
-            await carregarDividasPeriodo();
-
-            if (global.Dashboard && global.Dashboard.atualizarDados) {
-              global.Dashboard.atualizarDados();
-            }
-          }
-        },
-        null,
-        "560px"
-      );
-    } catch (e) {
-      console.error("Erro ao editar dívida:", e);
-      UI.showToast("Erro", "Falha ao carregar dados para edição.", "error");
-    }
-  };
-
-  /**
-   * Exclui uma dívida
-   */
-  window.excluirDivida = async function (id) {
-    try {
-      const supabase = Supabase.getSupabaseClient
-        ? Supabase.getSupabaseClient()
-        : null;
-      if (!supabase) {
-        UI.showToast("Erro", "Cliente Supabase não disponível", "error");
-        return;
-      }
-
-      const { data: divida } = await supabase
-        .from("debts")
-        .select("creditor, status")
-        .eq("id", id)
-        .single();
-
-      if (!divida) {
-        UI.showToast("Erro", "Dívida não encontrada.", "error");
-        return;
-      }
-
-      UI.openConfirmModal(
-        "Excluir Dívida",
-        `<p>Deseja excluir a dívida com <strong>${escapeHtml(
-          divida.creditor
-        )}</strong>?</p>
-         <p style="color:var(--gray-dark);font-size:0.8rem;">
-           Todas as parcelas e anexos serão removidos. 
-           Esta ação <strong style="color:var(--error);">não pode ser desfeita</strong>.
-         </p>`,
-        async () => {
-          const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
-          if (!loginResult) {
-            UI.showToast(
-              "Ação cancelada",
-              "Você precisa estar autenticado.",
-              "warning"
-            );
-            return;
-          }
-
-          try {
-            // Remover parcelas
-            await supabase
-              .from("debt_installments")
-              .delete()
-              .eq("debt_id", id);
-
-            // Remover anexos
-            await supabase.from("debt_attachments").delete().eq("debt_id", id);
-
-            // Remover dívida
-            const { error } = await supabase
-              .from("debts")
-              .delete()
-              .eq("id", id);
-
-            if (error) throw error;
-
-            UI.showToast("Sucesso", "Dívida excluída!", "success");
-            await carregarDividasPeriodo();
-
-            if (global.Dashboard && global.Dashboard.atualizarDados) {
-              global.Dashboard.atualizarDados();
-            }
-          } catch (error) {
-            console.error("Erro ao excluir dívida:", error);
-            UI.showToast("Erro", "Falha ao excluir dívida.", "error");
-          }
-        }
-      );
-    } catch (e) {
-      console.error("Erro ao excluir dívida:", e);
-      UI.showToast("Erro", "Falha ao excluir dívida.", "error");
-    }
-  };
-
-  // ============================================================
-  // FUNÇÕES DE QUITAÇÃO
-  // ============================================================
-
-  /**
-   * Quita uma parcela específica
-   */
-  window.quitarParcela = async function (id) {
-    try {
-      const supabase = Supabase.getSupabaseClient
-        ? Supabase.getSupabaseClient()
-        : null;
-      if (!supabase) {
-        UI.showToast("Erro", "Cliente Supabase não disponível", "error");
-        return;
-      }
-
-      const { data: divida, error: errDebt } = await supabase
-        .from("debts")
-        .select("id, creditor, interest_rate, late_fee_percent")
-        .eq("id", id)
-        .single();
-
-      if (errDebt || !divida) {
-        UI.showToast("Erro", "Dívida não encontrada.", "error");
-        return;
-      }
-
-      const { data: parcelasPendentes } = await supabase
-        .from("debt_installments")
-        .select("*")
-        .eq("debt_id", id)
-        .eq("paid", false)
-        .order("installment_number", { ascending: true });
-
-      if (!parcelasPendentes || parcelasPendentes.length === 0) {
-        UI.showToast("Aviso", "Não há parcelas pendentes.", "info");
-        return;
-      }
-
-      const options = parcelasPendentes
-        .map((p) => {
-          const diasAtraso = Math.max(
-            0,
-            Math.ceil(
-              (new Date() - new Date(p.due_date)) / (1000 * 60 * 60 * 24)
-            )
-          );
-          const jurosCalc =
-            (divida.interest_rate / 100) * p.amount * (diasAtraso / 30);
-          const multaCalc = (divida.late_fee_percent / 100) * p.amount;
-          return `<option value="${p.id}" data-juros="${jurosCalc.toFixed(
-            2
-          )}" data-multa="${multaCalc.toFixed(2)}" data-valor="${
-            p.amount
-          }" data-venc="${p.due_date}">
-            ${p.installment_number}ª - ${formatCurrency(p.amount)} (venc. ${formatDate(
-            p.due_date
-          )})
-          </option>`;
-        })
-        .join("");
-
-      const formHtml = `
-        <div class="form-group">
-          <label class="form-label"><i class="ph ph-receipt"></i> Selecione a parcela</label>
-          <select id="parcelaId" class="form-select" required>${options}</select>
-        </div>
-        <div class="form-group">
-          <label class="form-label"><i class="ph ph-calendar"></i> Data do Pagamento</label>
-          <input id="dataPagamento" type="date" class="form-input" value="${todayISO()}" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label"><i class="ph ph-credit-card"></i> Forma de Pagamento</label>
-          <select id="formaPagamento" class="form-select">
-            <option value="">Selecione...</option>
-            <option value="PIX">PIX</option>
-            <option value="Boleto">Boleto</option>
-            <option value="Transferência">Transferência</option>
-            <option value="Dinheiro">Dinheiro</option>
-            <option value="Cartão">Cartão</option>
-          </select>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-          <div class="form-group">
-            <label class="form-label"><i class="ph ph-percent"></i> Juros (R$)</label>
-            <input id="jurosParcela" type="number" step="0.01" class="form-input" value="0">
-          </div>
-          <div class="form-group">
-            <label class="form-label"><i class="ph ph-warning"></i> Multa (R$)</label>
-            <input id="multaParcela" type="number" step="0.01" class="form-input" value="0">
-          </div>
-        </div>
-      `;
-
-      UI.modalComConfirmacao(
-        `Quitar Parcela - ${divida.creditor}`,
-        formHtml,
-        async () => {
-          await confirmarQuitarParcela(id, divida);
-        },
-        null,
-        "560px"
-      );
-
-      // Auto calcular juros/multa ao selecionar parcela
-      setTimeout(() => {
-        const select = document.getElementById("parcelaId");
-        if (select) {
-          select.addEventListener("change", function () {
-            const option = this.options[this.selectedIndex];
-            document.getElementById("jurosParcela").value =
-              option.dataset.juros || "0";
-            document.getElementById("multaParcela").value =
-              option.dataset.multa || "0";
-          });
-          select.dispatchEvent(new Event("change"));
-        }
-      }, 100);
-    } catch (e) {
-      console.error("Erro ao quitar parcela:", e);
-      UI.showToast("Erro", "Falha ao carregar dados.", "error");
-    }
-  };
-
-  /**
-   * Confirma a quitação de uma parcela
-   */
-  async function confirmarQuitarParcela(debtId, divida) {
-    try {
-      const supabase = Supabase.getSupabaseClient
-        ? Supabase.getSupabaseClient()
-        : null;
-      if (!supabase) {
-        UI.showToast("Erro", "Cliente Supabase não disponível", "error");
-        return;
-      }
-
-      const parcelaId = document.getElementById("parcelaId").value;
-      const dataPag = document.getElementById("dataPagamento").value;
-      const formaPagamento =
-        document.getElementById("formaPagamento").value.trim() || null;
-      const juros =
-        parseFloat(document.getElementById("jurosParcela").value) || 0;
-      const multa =
-        parseFloat(document.getElementById("multaParcela").value) || 0;
-
-      if (!parcelaId || !dataPag) {
-        UI.showToast("Erro", "Preencha todos os campos.", "error");
-        return;
-      }
-
-      const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
-      if (!loginResult) {
-        UI.showToast(
-          "Ação cancelada",
-          "Você precisa estar autenticado.",
-          "warning"
-        );
-        return;
-      }
-
-      const { data: parcelaAtual } = await supabase
-        .from("debt_installments")
-        .select("*")
-        .eq("id", parcelaId)
-        .single();
-
-      if (!parcelaAtual) {
-        UI.showToast("Erro", "Parcela não encontrada.", "error");
-        return;
-      }
-
-      // Buscar categoria de despesa
-      const { data: categoria } = await supabase
-        .from("chart_of_accounts")
-        .select("id")
-        .eq("type", "despesa")
-        .ilike("name", "%pagamento%")
-        .limit(1)
-        .maybeSingle();
-
-      const valorTotal = parseFloat(parcelaAtual.amount) + juros + multa;
-
-      // Criar lançamento financeiro
-      if (categoria) {
-        await supabase.from("financial_transactions").insert({
-          type: "pagar",
-          amount: -valorTotal,
-          date: dataPag,
-          due_date: parcelaAtual.due_date,
-          payment_date: dataPag,
-          status: "pago",
-          description: `Parcela ${parcelaAtual.installment_number} - ${divida.creditor}`,
-          category_id: categoria.id,
-          payment_method: formaPagamento,
-          notes: `Quitação de parcela da dívida com ${divida.creditor}`,
-        });
-      }
-
-      // Atualizar parcela
-      await supabase
-        .from("debt_installments")
-        .update({
-          paid: true,
-          paid_date: dataPag,
-          payment_method: formaPagamento,
-          interest_paid: juros,
-          late_fee_paid: multa,
-        })
-        .eq("id", parcelaId);
-
-      // Verificar se todas as parcelas foram pagas
-      const { data: restantes } = await supabase
-        .from("debt_installments")
-        .select("id")
-        .eq("debt_id", debtId)
-        .eq("paid", false)
-        .limit(1);
-
-      if (!restantes || restantes.length === 0) {
-        await supabase
-          .from("debts")
-          .update({ status: "quitada" })
-          .eq("id", debtId);
-      }
-
-      UI.showToast("Sucesso", "Parcela quitada!", "success");
-      document.getElementById("modalContainer").innerHTML = "";
-      await carregarDividasPeriodo();
-
-      if (global.Dashboard && global.Dashboard.atualizarDados) {
-        global.Dashboard.atualizarDados();
-      }
-    } catch (e) {
-      console.error("Erro ao confirmar quitação:", e);
-      UI.showToast("Erro", "Falha ao quitar parcela.", "error");
-    }
-  }
-
-  /**
-   * Quita todas as parcelas de uma dívida
-   */
-  window.quitarDivida = async function (id) {
-    try {
-      const supabase = Supabase.getSupabaseClient
-        ? Supabase.getSupabaseClient()
-        : null;
-      if (!supabase) {
-        UI.showToast("Erro", "Cliente Supabase não disponível", "error");
-        return;
-      }
-
-      const { data: divida } = await supabase
-        .from("debts")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (!divida) {
-        UI.showToast("Erro", "Dívida não encontrada.", "error");
-        return;
-      }
-
-      const { data: parcelasPendentes } = await supabase
-        .from("debt_installments")
-        .select("*")
-        .eq("debt_id", id)
-        .eq("paid", false)
-        .order("installment_number", { ascending: true });
-
-      if (!parcelasPendentes || parcelasPendentes.length === 0) {
-        UI.showToast("Aviso", "Esta dívida já está quitada.", "info");
-        return;
-      }
-
-      const valorTotalParcelas = parcelasPendentes.reduce(
-        (s, p) => s + parseFloat(p.amount),
-        0
-      );
-
-      UI.openConfirmModal(
-        "Quitar Dívida",
-        `<p>Deseja quitar as <strong>${parcelasPendentes.length}</strong> parcelas restantes?</p>
-         <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:12px; margin:8px 0;">
-           <p style="margin:4px 0;"><strong>${escapeHtml(
-             divida.creditor
-           )}</strong></p>
-           <p style="margin:4px 0; color:var(--gray); font-size:0.85rem;">
-             Total a pagar: ${formatCurrency(valorTotalParcelas)}
-           </p>
-         </div>`,
-        async () => {
-          const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
-          if (!loginResult) {
-            UI.showToast(
-              "Ação cancelada",
-              "Você precisa estar autenticado.",
-              "warning"
-            );
-            return;
-          }
-
-          try {
-            const dataPag = todayISO();
-
-            // Buscar categoria de despesa
-            const { data: categoria } = await supabase
-              .from("chart_of_accounts")
-              .select("id")
-              .eq("type", "despesa")
-              .ilike("name", "%pagamento%")
-              .limit(1)
-              .maybeSingle();
-
-            // Quitar todas as parcelas pendentes
-            for (const p of parcelasPendentes) {
-              await supabase
-                .from("debt_installments")
-                .update({
-                  paid: true,
-                  paid_date: dataPag,
-                })
-                .eq("id", p.id);
-            }
-
-            // Atualizar status da dívida
-            await supabase
-              .from("debts")
-              .update({ status: "quitada" })
-              .eq("id", id);
-
-            // Criar lançamento financeiro consolidado
-            if (categoria) {
-              await supabase.from("financial_transactions").insert({
-                type: "pagar",
-                amount: -valorTotalParcelas,
-                date: dataPag,
-                due_date: dataPag,
-                payment_date: dataPag,
-                status: "pago",
-                description: `Quitação total - ${divida.creditor}`,
-                category_id: categoria.id,
-                notes: `Quitação completa da dívida com ${divida.creditor}`,
-              });
-            }
-
-            UI.showToast("Sucesso", "Dívida totalmente quitada!", "success");
-            await carregarDividasPeriodo();
-
-            if (global.Dashboard && global.Dashboard.atualizarDados) {
-              global.Dashboard.atualizarDados();
-            }
-          } catch (error) {
-            console.error("Erro ao quitar dívida:", error);
-            UI.showToast("Erro", "Falha ao quitar dívida.", "error");
-          }
-        }
-      );
-    } catch (e) {
-      console.error("Erro ao quitar dívida:", e);
-      UI.showToast("Erro", "Falha ao quitar dívida.", "error");
-    }
-  };
-
-  // ============================================================
   // INICIALIZAÇÃO
   // ============================================================
 
   async function init() {
-    console.log("💰 Dívidas: Inicializando...");
-
-    // Configurar eventos
-    const btnNovaDivida = document.getElementById("btnNovaDivida");
-    if (btnNovaDivida) {
-      btnNovaDivida.addEventListener("click", novaDivida);
-    }
+    console.log("💰 Dívidas: Inicializando (Modo Leitura)...");
 
     // Carregar dados iniciais
     await carregarDividasPeriodo();
 
-    console.log("✅ Dívidas: Inicializado com sucesso");
+    console.log("✅ Dívidas: Inicializado com sucesso (Modo Leitura)");
   }
 
   // ============================================================
@@ -1815,15 +955,6 @@
     // Renderização
     renderizarDividas,
 
-    // CRUD
-    novaDivida,
-    editarDivida: window.editarDivida,
-    excluirDivida: window.excluirDivida,
-
-    // Quitação
-    quitarParcela: window.quitarParcela,
-    quitarDivida: window.quitarDivida,
-
     // Visualização
     abrirModalDivida: window.abrirModalDivida,
 
@@ -1834,7 +965,7 @@
     init,
   };
 
-  console.log("✅ Dívidas exportado globalmente como window.Dividas");
+  console.log("✅ Dívidas exportado globalmente como window.Dividas (Modo Leitura)");
 
   // ============================================================
   // INICIALIZAÇÃO AUTOMÁTICA
