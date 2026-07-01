@@ -1,7 +1,7 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // Módulo de Interface (ui.js)
-// Versão 1.0 - Toasts, Modais, Drag, e elementos de UI
+// Versão 2.1 - Com seletores de período dinâmicos e modais padronizados
 // ============================================================
 
 (function (global) {
@@ -14,7 +14,7 @@
   // ============================================================
 
   const Utils = global.Utils || {};
-  const { escapeHtml, getIconForTitle } = Utils;
+  const { escapeHtml, getIconForTitle, getMonthName, formatPeriodDisplay } = Utils;
 
   // ============================================================
   // TOAST NOTIFICATIONS (Mobile-first)
@@ -178,7 +178,7 @@
         isDragging = true;
         modal.classList.add("dragging");
       },
-      { passive: true },
+      { passive: true }
     );
 
     dragArea.addEventListener(
@@ -193,7 +193,7 @@
           modal.style.transition = "none";
         }
       },
-      { passive: true },
+      { passive: true }
     );
 
     dragArea.addEventListener(
@@ -214,8 +214,322 @@
           modal.style.transition = "";
         }
       },
-      { passive: true },
+      { passive: true }
     );
+  }
+
+  // ============================================================
+  // FUNÇÃO PARA CRIAR MODAIS PADRONIZADOS
+  // ============================================================
+
+  /**
+   * Cria um modal padronizado com hierarquia visual clara
+   * @param {string} titulo - Título do modal
+   * @param {Object} config - Configuração do modal
+   * @param {string} config.status - 'success' | 'danger' | 'warning' | 'info' | 'neutral'
+   * @param {string} config.statusIcon - Ícone do status (ex: 'ph-check-circle')
+   * @param {string} config.statusTitle - Título do status
+   * @param {string} config.statusSub - Subtítulo do status
+   * @param {Array} config.infoItems - Array de {label, value, class?}
+   * @param {Array} config.secoes - Array de {titulo, icon, badge?, html}
+   * @param {Array} config.acoes - Array de {label, icon, class, onclick, id?}
+   * @param {string} config.extraHtml - HTML extra no final
+   */
+  function criarModalPadronizado(titulo, config = {}) {
+    let html = "";
+
+    // Banner de status (se existir)
+    if (config.status) {
+      const statusClass = config.status;
+      const icon = config.statusIcon || "ph-info";
+      const title = config.statusTitle || "Status";
+      const sub = config.statusSub || "";
+
+      html += `
+        <div class="modal-status-banner ${statusClass}">
+          <i class="ph ${icon} status-icon"></i>
+          <div class="status-content">
+            <div class="status-title">${escapeHtml(title)}</div>
+            ${sub ? `<div class="status-sub">${escapeHtml(sub)}</div>` : ""}
+          </div>
+        </div>
+      `;
+    }
+
+    // Grid de informações (se existir)
+    if (config.infoItems && config.infoItems.length > 0) {
+      html += `
+        <div class="modal-section">
+          <div class="modal-info-grid">
+            ${config.infoItems
+              .map(
+                (item) => `
+              <div class="modal-info-item">
+                <span class="label">${escapeHtml(item.label)}</span>
+                <span class="value ${item.class || ""}">${item.value}</span>
+              </div>
+            `
+              )
+              .join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    // Seções adicionais
+    if (config.secoes && config.secoes.length > 0) {
+      config.secoes.forEach((secao) => {
+        html += `
+          <div class="modal-section">
+            <div class="modal-section-title">
+              <i class="ph ${secao.icon || "ph-file"}"></i>
+              ${escapeHtml(secao.titulo)}
+              ${
+                secao.badge
+                  ? `<span class="section-badge">${escapeHtml(secao.badge)}</span>`
+                  : ""
+              }
+            </div>
+            ${secao.html}
+          </div>
+        `;
+      });
+    }
+
+    // HTML extra
+    if (config.extraHtml) {
+      html += config.extraHtml;
+    }
+
+    // Ações (rodapé)
+    if (config.acoes && config.acoes.length > 0) {
+      html += `
+        <div class="modal-actions">
+          ${config.acoes
+            .map(
+              (acao) => `
+            <button class="btn-action btn-action-${acao.class || "ghost"}" 
+                    onclick="${acao.onclick || "closeModal()"}"
+                    ${acao.id ? `id="${acao.id}"` : ""}>
+              ${acao.icon ? `<i class="ph ${acao.icon}"></i>` : ""}
+              ${escapeHtml(acao.label)}
+            </button>
+          `
+            )
+            .join("")}
+        </div>
+      `;
+    }
+
+    // Abrir o modal com o HTML gerado
+    openModal(titulo, html);
+  }
+
+  // ============================================================
+  // SELETOR DE PERÍODO DINÂMICO
+  // ============================================================
+
+  /**
+   * Renderiza o seletor de período dinâmico
+   * @param {string} containerId - ID do container
+   * @param {Date} periodo - Data atual do período
+   * @param {Function} onChange - Callback quando o período muda
+   * @param {string} modulo - Nome do módulo (producao, financeiro, rh, dividas)
+   */
+  function renderizarPeriodSelector(containerId, periodo, onChange, modulo) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+      console.warn(`⚠️ Container #${containerId} não encontrado`);
+      return;
+    }
+
+    const data = periodo || new Date();
+    const mesNome = getMonthName(data.getMonth());
+    const ano = data.getFullYear();
+    const displayText = `${mesNome} ${ano}`;
+
+    container.innerHTML = `
+      <div class="period-selector-modern">
+        <div class="period-controls">
+          <button class="period-nav" data-direction="prev" data-modulo="${modulo}" 
+                  title="Mês anterior" aria-label="Mês anterior">
+            <i class="ph ph-caret-left"></i>
+          </button>
+          
+          <button class="period-display-btn" data-modulo="${modulo}" 
+                  title="Clique para selecionar mês/ano" aria-label="Selecionar período">
+            <span class="period-month">${mesNome}</span>
+            <span class="period-year">${ano}</span>
+            <i class="ph ph-chevron-down period-arrow"></i>
+          </button>
+          
+          <button class="period-nav" data-direction="next" data-modulo="${modulo}"
+                  title="Próximo mês" aria-label="Próximo mês">
+            <i class="ph ph-caret-right"></i>
+          </button>
+          
+          <button class="period-today-btn" data-modulo="${modulo}"
+                  title="Voltar para o mês atual" aria-label="Hoje">
+            <i class="ph ph-calendar-check"></i>
+            <span>Hoje</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Eventos de navegação (setas)
+    container.querySelectorAll(".period-nav").forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const direction = parseInt(this.dataset.direction === "prev" ? -1 : 1);
+        const novoPeriodo = new Date(data);
+        novoPeriodo.setMonth(novoPeriodo.getMonth() + direction);
+        if (typeof onChange === "function") {
+          onChange(novoPeriodo);
+        }
+      });
+    });
+
+    // Evento do botão "Hoje"
+    container.querySelector(".period-today-btn")?.addEventListener("click", function (e) {
+      e.stopPropagation();
+      const hoje = new Date();
+      if (typeof onChange === "function") {
+        onChange(hoje);
+      }
+    });
+
+    // Evento do botão de exibição (abrir seletor)
+    container.querySelector(".period-display-btn")?.addEventListener("click", function (e) {
+      e.stopPropagation();
+      abrirSeletorPeriodo(modulo);
+    });
+  }
+
+  /**
+   * Abre modal para selecionar mês e ano
+   * @param {string} modulo - Nome do módulo
+   */
+  function abrirSeletorPeriodo(modulo) {
+    const periodo = global.App?.periodState?.[modulo] || new Date();
+    const mesAtual = periodo.getMonth();
+    const anoAtual = periodo.getFullYear();
+
+    // Gerar opções de meses
+    const meses = [
+      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+
+    const mesesOptions = meses.map((m, i) => 
+      `<option value="${i}" ${i === mesAtual ? 'selected' : ''}>${m}</option>`
+    ).join('');
+
+    // Gerar opções de anos (últimos 5 anos + próximos 5 anos)
+    const anoAtualNum = new Date().getFullYear();
+    let anosOptions = '';
+    for (let ano = anoAtualNum - 5; ano <= anoAtualNum + 5; ano++) {
+      anosOptions += `<option value="${ano}" ${ano === anoAtual ? 'selected' : ''}>${ano}</option>`;
+    }
+
+    const html = `
+      <div style="display:grid; gap:16px; padding:8px 0;">
+        <div style="text-align:center; color:var(--gray-dark); font-size:0.7rem;">
+          <i class="ph ph-calendar-blank"></i> Selecione o período desejado
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-calendar"></i> Mês</label>
+          <select id="periodSelectorMes" class="form-select">
+            ${mesesOptions}
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label"><i class="ph ph-calendar-check"></i> Ano</label>
+          <select id="periodSelectorAno" class="form-select">
+            ${anosOptions}
+          </select>
+        </div>
+        
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.05);">
+          <button class="btn btn-ghost" id="cancelarPeriodo" style="padding:8px 16px;">
+            <i class="ph ph-x-circle"></i> Cancelar
+          </button>
+          <button class="btn btn-primary" id="aplicarPeriodo" style="padding:8px 20px;">
+            <i class="ph ph-check-circle"></i> Aplicar
+          </button>
+        </div>
+      </div>
+    `;
+
+    openModal("📅 Selecionar Período", html);
+
+    document.getElementById("cancelarPeriodo")?.addEventListener("click", () => {
+      document.getElementById("modalContainer").innerHTML = "";
+    });
+
+    document.getElementById("aplicarPeriodo")?.addEventListener("click", () => {
+      const mes = parseInt(document.getElementById("periodSelectorMes").value);
+      const ano = parseInt(document.getElementById("periodSelectorAno").value);
+      const novoPeriodo = new Date(ano, mes, 1);
+      
+      document.getElementById("modalContainer").innerHTML = "";
+      
+      // Atualizar o período no módulo
+      if (global.App) {
+        global.App.periodState[modulo] = novoPeriodo;
+      }
+      
+      // Chamar a função de carregamento do módulo
+      const moduloMap = {
+        'producao': global.Producao?.carregarProducaoPeriodo,
+        'financeiro': global.Financeiro?.carregarFinanceiroPeriodo,
+        'rh': global.RH?.carregarRHPeriodo,
+        'dividas': global.Dividas?.carregarDividasPeriodo,
+      };
+      
+      if (moduloMap[modulo] && typeof moduloMap[modulo] === 'function') {
+        moduloMap[modulo](novoPeriodo);
+      }
+      
+      // Atualizar todos os seletores
+      atualizarTodosPeriodSelectors();
+    });
+  }
+
+  /**
+   * Atualiza todos os seletores de período
+   */
+  function atualizarTodosPeriodSelectors() {
+    const modulos = ['producao', 'financeiro', 'rh', 'dividas'];
+    
+    modulos.forEach(modulo => {
+      const containerId = `periodSelectorContainer_${modulo}`;
+      const container = document.getElementById(containerId);
+      if (container) {
+        const periodo = global.App?.periodState?.[modulo] || new Date();
+        renderizarPeriodSelector(
+          containerId,
+          periodo,
+          (novoPeriodo) => {
+            if (global.App) {
+              global.App.periodState[modulo] = novoPeriodo;
+            }
+            const moduloMap = {
+              'producao': global.Producao?.carregarProducaoPeriodo,
+              'financeiro': global.Financeiro?.carregarFinanceiroPeriodo,
+              'rh': global.RH?.carregarRHPeriodo,
+              'dividas': global.Dividas?.carregarDividasPeriodo,
+            };
+            if (moduloMap[modulo] && typeof moduloMap[modulo] === 'function') {
+              moduloMap[modulo](novoPeriodo);
+            }
+          },
+          modulo
+        );
+      }
+    });
   }
 
   // ============================================================
@@ -235,7 +549,9 @@
         <div class="modal-sheet" id="modalSheet" style="max-width:${maxWidth}; width:95%; max-height:92vh; display:flex; flex-direction:column;">
           <div class="handle"></div>
           <div class="modal-header" style="flex-shrink:0;">
-            <h2><i class="ph ph-${getIconForTitle(title)}"></i> ${escapeHtml(title)}</h2>
+            <h2><i class="ph ph-${getIconForTitle(title)}"></i> ${escapeHtml(
+      title
+    )}</h2>
             <button class="btn-close" id="closeFormModal"><i class="ph ph-x"></i> Fechar</button>
           </div>
           <div class="modal-body" style="flex:1; overflow-y:auto; padding:16px 20px;">
@@ -310,22 +626,28 @@
     onConfirm,
     onCancel = null,
     confirmText = "Sim",
-    cancelText = "Não",
+    cancelText = "Não"
   ) {
     const html = `
       <div class="modal-overlay" id="confirmOverlay">
         <div class="modal-sheet" style="max-width:450px; padding: 16px;">
           <div class="handle"></div>
           <div class="modal-header" style="margin-bottom: 8px;">
-            <h3 style="font-size: 1.1rem; color: var(--gold-light);">${escapeHtml(title)}</h3>
+            <h3 style="font-size: 1.1rem; color: var(--gold-light);">${escapeHtml(
+              title
+            )}</h3>
             <button class="btn-close" id="closeConfirmModal"><i class="ph ph-x"></i> Fechar</button>
           </div>
           <div style="margin-bottom: 16px; padding: 0 4px; font-size: 0.95rem; color: var(--gray);">
             ${message}
           </div>
           <div style="display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
-            <button class="btn btn-ghost" id="confirmCancelBtn" style="padding: 8px 16px;">${escapeHtml(cancelText)}</button>
-            <button class="btn btn-primary" id="confirmOkBtn" style="padding: 8px 20px; background: var(--success); border-color: var(--success);">${escapeHtml(confirmText)}</button>
+            <button class="btn btn-ghost" id="confirmCancelBtn" style="padding: 8px 16px;">${escapeHtml(
+              cancelText
+            )}</button>
+            <button class="btn btn-primary" id="confirmOkBtn" style="padding: 8px 20px; background: var(--success); border-color: var(--success);">${escapeHtml(
+              confirmText
+            )}</button>
           </div>
         </div>
       </div>
@@ -390,7 +712,7 @@
     formHtml,
     onSubmit,
     onCancel,
-    maxWidth = "650px",
+    maxWidth = "650px"
   ) {
     let formModificado = false;
     let modalAberto = true;
@@ -405,7 +727,9 @@
           <div class="handle"></div>
           <div class="modal-header" style="margin-bottom: 12px; flex-shrink: 0;">
             <h3 style="font-size: 1.1rem; color: var(--gold-light);">
-              <i class="ph ph-${getIconForTitle(title)}"></i> ${escapeHtml(title)}
+              <i class="ph ph-${getIconForTitle(title)}"></i> ${escapeHtml(
+      title
+    )}
             </h3>
             <button class="btn-close" id="closeFormModal" type="button"><i class="ph ph-x"></i> Fechar</button>
           </div>
@@ -448,7 +772,7 @@
           },
           () => {},
           "Sair",
-          "Continuar editando",
+          "Continuar editando"
         );
       } else {
         fecharModal();
@@ -477,7 +801,7 @@
 
     document
       .querySelectorAll(
-        ".modal-body input, .modal-body select, .modal-body textarea",
+        ".modal-body input, .modal-body select, .modal-body textarea"
       )
       .forEach((el) => {
         el.addEventListener("input", marcarModificado);
@@ -606,9 +930,15 @@
                 >
                   <i class="ph ${a.icon}" style="font-size: 1.3rem; color: ${a.color || "var(--gray)"}; width: 28px; text-align: center;"></i>
                   <span style="flex: 1;">${escapeHtml(a.label)}</span>
-                  ${a.shortcut ? `<span style="font-size: 0.6rem; color: var(--gray-dark); background: rgba(255,255,255,0.04); padding: 2px 8px; border-radius: 10px;">${escapeHtml(a.shortcut)}</span>` : ""}
+                  ${
+                    a.shortcut
+                      ? `<span style="font-size: 0.6rem; color: var(--gray-dark); background: rgba(255,255,255,0.04); padding: 2px 8px; border-radius: 10px;">${escapeHtml(
+                          a.shortcut
+                        )}</span>`
+                      : ""
+                  }
                 </button>
-              `,
+              `
                 )
                 .join("")}
             </div>
@@ -694,6 +1024,14 @@
     openConfirmModal,
     modalComConfirmacao,
     setupModalDrag,
+
+    // Modal Padronizado
+    criarModalPadronizado,
+
+    // Seletor de Período
+    renderizarPeriodSelector,
+    abrirSeletorPeriodo,
+    atualizarTodosPeriodSelectors,
 
     // Menu de Ações
     abrirMenuAcoesMobile,
