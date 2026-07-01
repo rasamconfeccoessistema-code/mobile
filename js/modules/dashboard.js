@@ -1,7 +1,7 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // Módulo Dashboard (dashboard.js) - Aba Geral
-// Versão 2.1 - Com correções de hierarquia visual e gráficos
+// Versão 2.2 - Correção de erros e melhorias de estabilidade
 // ============================================================
 
 (function (global) {
@@ -36,7 +36,7 @@
 
   let dados = {};
   let carregando = false;
-  let graficoPeriodo = "atual"; // atual, ultimo, 3m, 6m, 12m
+  let graficoPeriodo = "atual";
   let periodState = {
     producao: new Date(),
     financeiro: new Date(),
@@ -421,7 +421,6 @@
         dividasPorTipo: dividasPorTipo || {},
         totalDividasPorTipo: totalDividasPorTipo || {},
         mesRange: mesRange,
-        // Métricas de Produção
         totalOS: totalOS || 0,
         emCostura: emCostura || 0,
         costurados: costurados || 0,
@@ -432,7 +431,6 @@
         atrasados: atrasados || 0,
         valorTotalProducao: valorTotalProducao || 0,
         saldo: saldo || 0,
-        // Dados para gráficos
         dadosGraficos: dadosGraficos || {},
       };
 
@@ -467,7 +465,6 @@
         data.setMonth(data.getMonth() - i);
         const mes = data.getMonth() + 1;
         const ano = data.getFullYear();
-        const mesStr = `${ano}-${String(mes).padStart(2, "0")}`;
         const mesNome = getMonthName(data.getMonth());
 
         const mesRange = getMonthRangeForDate(data);
@@ -603,8 +600,6 @@
       totalDividasAtivas,
       saldoDevedorDividas,
       percentualQuitadoDividas,
-      dividasPorTipo,
-      totalDividasPorTipo,
       saldo,
       dadosGraficos,
     } = dados;
@@ -735,7 +730,7 @@
     }
 
     // ========== GRÁFICOS ==========
-    renderizarGraficos(dadosGraficos);
+    renderizarGraficos(dados);
 
     // ========== ALERTAS ==========
     const alertas = [];
@@ -854,12 +849,15 @@
   // FUNÇÃO PARA RENDERIZAR GRÁFICOS
   // ============================================================
 
-  function renderizarGraficos(dadosGraficos) {
+  function renderizarGraficos(dados) {
     const container = document.getElementById("graficosContainer");
     if (!container) {
       console.warn("⚠️ Container #graficosContainer não encontrado");
       return;
     }
+
+    // Extrair dadosGraficos do objeto dados
+    const dadosGraficos = dados.dadosGraficos || {};
 
     // Verificar se dadosGraficos existe e tem dados
     if (!dadosGraficos || !dadosGraficos.meses || dadosGraficos.meses.length === 0) {
@@ -959,7 +957,7 @@
     }
 
     // ========== GRÁFICO 2: Distribuição de Dívidas por Tipo ==========
-    const tipos = dados.dividasPorTipo || {};
+    const totalDividasPorTipo = dados.totalDividasPorTipo || {};
     const tiposLabels = {
       bancaria: "Bancária",
       fornecedor: "Fornecedor",
@@ -975,14 +973,14 @@
       outro: CORES_GRAFICO.outro,
     };
 
-    const totalDividasTipo = Object.values(totalDividasPorTipo || {}).reduce(
+    const totalDividasTipo = Object.values(totalDividasPorTipo).reduce(
       (s, v) => s + v,
       0
     );
 
     let graficoPizzaHtml = "";
     if (totalDividasTipo > 0) {
-      const tiposOrdenados = Object.entries(totalDividasPorTipo || {})
+      const tiposOrdenados = Object.entries(totalDividasPorTipo)
         .filter(([tipo, valor]) => valor > 0)
         .sort((a, b) => b[1] - a[1]);
 
@@ -1176,7 +1174,7 @@
 
   window.mudarPeriodoGrafico = function (periodo) {
     graficoPeriodo = periodo;
-    renderizarGraficos(dados.dadosGraficos);
+    renderizarGraficos(dados);
 
     // Atualizar estilo dos botões
     document.querySelectorAll(".period-grafico-btn").forEach((btn) => {
