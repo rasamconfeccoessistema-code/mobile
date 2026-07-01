@@ -1,7 +1,7 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // Módulo Produção (producao.js) - Aba de Produção
-// Versão 1.0 - Gestão de lotes, costura e entregas
+// Versão 2.1 - Com menu único de ações e seletor de período dinâmico
 // ============================================================
 
 (function (global) {
@@ -66,8 +66,13 @@
 
       const mesRange = getMonthRangeForDate(periodo || new Date());
       console.log(
-        `📊 Produção: Carregando para: ${mesRange.mes}/${mesRange.ano}`,
+        `📊 Produção: Carregando para: ${mesRange.mes}/${mesRange.ano}`
       );
+
+      // Atualizar período no estado global
+      if (global.App) {
+        global.App.periodState.producao = periodo || new Date();
+      }
 
       // Buscar OS do período
       let queryOS = supabase
@@ -78,10 +83,10 @@
           total_quantity, unit_price, status, payment_status, payment_date, payment_method,
           expected_delivery, received_date, notes, updated_at,
           customers(company_name, trade_name)
-        `,
+        `
         )
         .or(
-          `received_date.gte.${mesRange.inicio},received_date.lte.${mesRange.fim},expected_delivery.gte.${mesRange.inicio},expected_delivery.lte.${mesRange.fim}`,
+          `received_date.gte.${mesRange.inicio},received_date.lte.${mesRange.fim},expected_delivery.gte.${mesRange.inicio},expected_delivery.lte.${mesRange.fim}`
         )
         .order("created_at", { ascending: false });
 
@@ -92,7 +97,7 @@
       }
 
       const osAtivas = (todasOS || []).filter(
-        (o) => !["cancelado"].includes(o.status),
+        (o) => !["cancelado"].includes(o.status)
       );
 
       // Buscar progresso das OS
@@ -102,7 +107,7 @@
         const { data: items } = await supabase
           .from("service_order_items")
           .select(
-            "service_order_id, quantity, sewn_quantity, delivered_quantity",
+            "service_order_id, quantity, sewn_quantity, delivered_quantity"
           )
           .in("service_order_id", osIds);
 
@@ -132,6 +137,22 @@
 
       // Renderizar produção
       renderizarProducao(dados);
+
+      // Atualizar seletor de período
+      if (global.UI && typeof global.UI.renderizarPeriodSelector === 'function') {
+        const containerId = 'periodSelectorContainer_producao';
+        const container = document.getElementById(containerId);
+        if (container) {
+          global.UI.renderizarPeriodSelector(
+            containerId,
+            periodo || new Date(),
+            (novoPeriodo) => {
+              carregarProducaoPeriodo(novoPeriodo);
+            },
+            'producao'
+          );
+        }
+      }
 
       console.log(`✅ Produção: ${osAtivas.length} OS carregadas`);
       return dados;
@@ -171,7 +192,7 @@
     }).length;
 
     const aguardandoPagto = osAtivas.filter(
-      (o) => o.status === "entregue" && o.payment_status !== "pago",
+      (o) => o.status === "entregue" && o.payment_status !== "pago"
     ).length;
 
     const pagos = osAtivas.filter((o) => o.payment_status === "pago").length;
@@ -232,11 +253,11 @@
     if (filtroAtual && filtroAtual !== "todos") {
       if (filtroAtual === "pendente") {
         lotesFiltrados = lotesFiltrados.filter(
-          (o) => o.status === "entregue" && o.payment_status !== "pago",
+          (o) => o.status === "entregue" && o.payment_status !== "pago"
         );
       } else if (filtroAtual === "pago") {
         lotesFiltrados = lotesFiltrados.filter(
-          (o) => o.payment_status === "pago",
+          (o) => o.payment_status === "pago"
         );
       } else if (filtroAtual === "atrasado") {
         lotesFiltrados = lotesFiltrados.filter((o) => {
@@ -265,7 +286,7 @@
 
     container.innerHTML = lotesFiltrados
       .sort(
-        (a, b) => new Date(a.expected_delivery) - new Date(b.expected_delivery),
+        (a, b) => new Date(a.expected_delivery) - new Date(b.expected_delivery)
       )
       .map((os) => {
         const cliente =
@@ -307,10 +328,22 @@
               <div style="height:100%; width:${percentEntregue}%; background:var(--pink); border-radius:3px; transition:width 0.5s ease;"></div>
             </div>
             <div style="display:flex; justify-content:space-between; margin-top:2px; font-size:0.55rem; color:var(--gray-dark);">
-              <span>${faltamCosturar > 0 ? `⏳ Faltam ${faltamCosturar} para costurar` : "✅ Tudo costurado!"}</span>
-              <span>${faltamEntregar > 0 ? `📦 Faltam ${faltamEntregar} para entregar` : "✅ Tudo entregue!"}</span>
+              <span>${
+                faltamCosturar > 0
+                  ? `⏳ Faltam ${faltamCosturar} para costurar`
+                  : "✅ Tudo costurado!"
+              }</span>
+              <span>${
+                faltamEntregar > 0
+                  ? `📦 Faltam ${faltamEntregar} para entregar`
+                  : "✅ Tudo entregue!"
+              }</span>
             </div>
-            ${atrasado ? '<span style="font-size:0.55rem; color:var(--error);"><i class="ph ph-warning"></i> Atrasado</span>' : ""}
+            ${
+              atrasado
+                ? '<span style="font-size:0.55rem; color:var(--error);"><i class="ph ph-warning"></i> Atrasado</span>'
+                : ""
+            }
           </div>
         `;
 
@@ -318,55 +351,90 @@
         const statusProducaoLabel = formatStatus(os.status);
         const statusPagamentoLabel = paymentInfo.label;
 
-        // ========== BOTÕES PRINCIPAIS ==========
-        let botoesPrincipais = "";
+        // ========== BOTÃO ÚNICO DE AÇÕES (MENU) ==========
+        // Construir lista de ações dinamicamente
+        const acoes = [];
 
+        // Ação Visualizar (sempre disponível)
+        acoes.push({
+          label: 'Visualizar',
+          icon: 'ph-eye',
+          color: 'var(--info)',
+          onclick: `window.Producao.visualizarLote('${os.id}')`
+        });
+
+        // Ação Editar (sempre disponível)
+        acoes.push({
+          label: 'Editar',
+          icon: 'ph-pencil-simple',
+          color: 'var(--gold-light)',
+          onclick: `window.Producao.editarLote('${os.id}')`
+        });
+
+        // Ações específicas por status
         if (os.status === "recebido") {
-          botoesPrincipais = `
-            <button class="btn-action btn-action-primary" onclick="event.stopPropagation(); window.Producao.iniciarCosturaLote('${os.id}', '${os.order_number}')" style="padding:6px 14px; font-size:0.65rem;">
-              <i class="ph ph-play"></i> Iniciar Costura
-            </button>
-          `;
-        } else if (os.status === "em_costura") {
-          const pctText = percentCosturado > 0 ? ` (${percentCosturado}%)` : "";
-          botoesPrincipais = `
-            <button class="btn-action btn-action-ghost" onclick="event.stopPropagation(); window.Producao.registrarCosturaParcial('${os.id}')" style="padding:6px 14px; font-size:0.65rem;">
-              <i class="ph ph-thread"></i> Registrar
-            </button>
-            <button class="btn-action btn-action-success" onclick="event.stopPropagation(); window.Producao.finalizarCosturaLote('${os.id}', '${os.order_number}')" style="padding:6px 14px; font-size:0.65rem;">
-              <i class="ph ph-check-circle"></i> Finalizar${pctText}
-            </button>
-          `;
-        } else if (os.status === "costurado") {
-          botoesPrincipais = `
-            <button class="btn-action btn-action-success" onclick="event.stopPropagation(); window.Producao.marcarEntregue('${os.id}', '${os.order_number}')" style="padding:6px 14px; font-size:0.65rem;">
-              <i class="ph ph-truck"></i> Entregar
-            </button>
-          `;
-        } else if (os.status === "entregue") {
-          if (paymentStatus === "pendente") {
-            const totalPendente = valorTotal;
-            botoesPrincipais = `
-              <button class="btn-action btn-action-payment" onclick="event.stopPropagation(); window.Producao.marcarPago('${os.id}', '${os.order_number}')" style="padding:6px 14px; font-size:0.65rem; background:rgba(76,175,80,0.2); color:#a5d6a7; border:1px solid rgba(76,175,80,0.3);">
-                <i class="ph ph-currency-dollar"></i> Receber R$ ${formatCurrency(totalPendente)}
-              </button>
-            `;
-          } else {
-            botoesPrincipais = `
-              <span style="font-size:0.65rem; color:var(--success); padding:4px 12px; background:rgba(76,175,80,0.1); border-radius:20px;">
-                <i class="ph ph-check-circle"></i> Pagamento Recebido
-              </span>
-            `;
-          }
-        } else if (os.status === "cancelado") {
-          botoesPrincipais = `
-            <span style="font-size:0.65rem; color:var(--error); padding:4px 12px; background:rgba(255,82,82,0.1); border-radius:20px;">
-              <i class="ph ph-x-circle"></i> Cancelado
-            </span>
-          `;
-        } else {
-          botoesPrincipais = `<span style="font-size:0.65rem; color:var(--gray);">${formatStatus(os.status)}</span>`;
+          acoes.push({
+            label: 'Iniciar Costura',
+            icon: 'ph-play',
+            color: '#2196f3',
+            onclick: `window.Producao.iniciarCosturaLote('${os.id}', '${os.order_number}')`
+          });
         }
+
+        if (os.status === "em_costura") {
+          acoes.push({
+            label: 'Registrar Progresso',
+            icon: 'ph-thread',
+            color: '#42a5f5',
+            onclick: `window.Producao.registrarCosturaParcial('${os.id}')`
+          });
+          acoes.push({
+            label: 'Finalizar Costura',
+            icon: 'ph-check-circle',
+            color: '#4caf50',
+            onclick: `window.Producao.finalizarCosturaLote('${os.id}', '${os.order_number}')`
+          });
+        }
+
+        if (os.status === "costurado") {
+          acoes.push({
+            label: 'Marcar como Entregue',
+            icon: 'ph-truck',
+            color: 'var(--gold-light)',
+            onclick: `window.Producao.marcarEntregue('${os.id}', '${os.order_number}')`
+          });
+        }
+
+        if (os.status === "entregue" && paymentStatus === "pendente") {
+          acoes.push({
+            label: `Receber ${formatCurrency(valorTotal)}`,
+            icon: 'ph-currency-dollar',
+            color: '#4caf50',
+            onclick: `window.Producao.marcarPago('${os.id}', '${os.order_number}')`
+          });
+        }
+
+        if (os.status !== "cancelado" && os.status !== "pago") {
+          acoes.push({
+            label: 'Cancelar Lote',
+            icon: 'ph-x-circle',
+            color: 'var(--warning)',
+            onclick: `window.Producao.cancelarLote('${os.id}', '${os.order_number}')`
+          });
+        }
+
+        // Ação Excluir (sempre disponível, mas com confirmação)
+        acoes.push({
+          label: 'Excluir',
+          icon: 'ph-trash',
+          color: 'var(--error)',
+          onclick: `window.Producao.excluirLote('${os.id}', '${os.order_number}')`
+        });
+
+        // Converter ações para string para o menu
+        const acoesStr = acoes.map(a => 
+          `{ label: '${a.label}', icon: '${a.icon}', color: '${a.color}', onclick: '${a.onclick}' }`
+        ).join(',');
 
         const menuId = `menu-prod-${os.id}`;
         const borderColor = atrasado ? "#ff5252" : statusColor;
@@ -380,8 +448,8 @@
                style="
                  display: flex; 
                  flex-direction: column; 
-                 padding: 16px 18px; 
-                 margin-bottom: 14px;
+                 padding: 14px 16px; 
+                 margin-bottom: 12px;
                  border-radius: 12px;
                  border: 1px solid rgba(255,255,255,0.06);
                  border-left: 4px solid ${borderColor};
@@ -389,33 +457,47 @@
                  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
                  transition: all 0.25s ease;
                  cursor: pointer;
+                 gap: 6px;
                "
                onmouseenter="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.3)'; this.style.transform='translateY(-2px)';"
                onmouseleave="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)'; this.style.transform='translateY(0)';"
                onclick="window.Producao.visualizarLote('${os.id}')"
                >
             
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 6px; margin-bottom: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 4px;">
               <div style="flex: 1; min-width: 0;">
-                <div style="font-size: 17px; font-weight: 700; color: ${atrasado ? "var(--error)" : "var(--gold-light)"}; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                  <i class="ph ${statusIcon}" style="color: ${statusColor}; font-size: 18px;"></i>
-                  <span>Ref: ${referencia}</span>
+                <div style="font-size: 15px; font-weight: 700; color: ${
+                  atrasado ? "var(--error)" : "var(--gold-light)"
+                }; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <i class="ph ${statusIcon}" style="color: ${statusColor}; font-size: 16px;"></i>
+                  <span>${escapeHtml(referencia)}</span>
                 </div>
                 
-                <div style="font-size: 11px; color: var(--gray-dark); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 4px 14px;">
-                  <span><i class="ph ph-files"></i> OS: ${orderNumber}</span>
-                  <span><i class="ph ph-user"></i> ${cliente}</span>
+                <div style="font-size: 10px; color: var(--gray-dark); margin-top: 1px; display: flex; flex-wrap: wrap; gap: 4px 12px;">
+                  <span><i class="ph ph-user"></i> ${escapeHtml(cliente)}</span>
                   <span><i class="ph ph-package"></i> ${os.total_quantity || 0} peças</span>
-                  <span><i class="ph ph-currency-circle-dollar"></i> ${formatCurrency(os.unit_price || 0)}/un</span>
-                  ${os.expected_delivery ? ` <span><i class="ph ph-calendar"></i> Entrega: ${formatDate(os.expected_delivery)}</span>` : ""}
-                  ${atrasado ? ` <span style="color:var(--error);"><i class="ph ph-warning"></i> Atrasado</span>` : ""}
+                  <span><i class="ph ph-currency-circle-dollar"></i> ${formatCurrency(
+                    os.unit_price || 0
+                  )}</span>
+                  ${
+                    os.expected_delivery
+                      ? ` <span><i class="ph ph-calendar"></i> ${formatDate(
+                          os.expected_delivery
+                        )}</span>`
+                      : ""
+                  }
+                  ${
+                    atrasado
+                      ? ` <span style="color:var(--error);font-weight:600;"><i class="ph ph-warning"></i> Atrasado</span>`
+                      : ""
+                  }
                 </div>
                 
-                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
-                  <span style="font-size:0.6rem; color:${statusColor}; background:${statusColor}22; padding:3px 12px; border-radius:20px; border:1px solid ${statusColor}44; font-weight:500;">
+                <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px;">
+                  <span style="font-size:0.55rem; color:${statusColor}; background:${statusColor}22; padding:2px 10px; border-radius:20px; border:1px solid ${statusColor}44; font-weight:500;">
                     <i class="ph ${statusIcon}"></i> ${statusProducaoLabel}
                   </span>
-                  <span style="font-size:0.6rem; color:${paymentInfo.color}; background:${paymentInfo.bg}; padding:3px 12px; border-radius:20px; border:${paymentInfo.border}; font-weight:500;">
+                  <span style="font-size:0.55rem; color:${paymentInfo.color}; background:${paymentInfo.bg}; padding:2px 10px; border-radius:20px; border:${paymentInfo.border}; font-weight:500;">
                     <i class="ph ${paymentInfo.icon}"></i> ${statusPagamentoLabel}
                   </span>
                 </div>
@@ -424,32 +506,30 @@
 
             ${progressoHtml}
 
-            <div style="font-size:0.6rem; color:var(--gray-dark); margin-top:6px; display:flex; gap:16px; flex-wrap:wrap; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 8px;">
-              <span><strong>💰 Total:</strong> ${formatCurrency(valorTotal)}</span>
-              ${paymentStatus === "pago" && os.payment_date ? ` · <span><strong>📅 Pago em:</strong> ${formatDate(os.payment_date)}</span>` : ""}
-              ${paymentStatus === "pendente" && os.status === "entregue" ? ` · <span style="color:var(--warning);"><i class="ph ph-clock"></i> Aguardando pagamento</span>` : ""}
-              ${os.notes ? ` · <span><i class="ph ph-note"></i> ${os.notes}</span>` : ""}
+            <div style="font-size:0.55rem; color:var(--gray-dark); margin-top:4px; display:flex; gap:12px; flex-wrap:wrap; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 6px;">
+              <span><strong>💰 Total:</strong> ${formatCurrency(
+                valorTotal
+              )}</span>
+              ${
+                paymentStatus === "pago" && os.payment_date
+                  ? ` · <span><strong>📅 Pago em:</strong> ${formatDate(
+                      os.payment_date
+                    )}</span>`
+                  : ""
+              }
+              ${
+                paymentStatus === "pendente" && os.status === "entregue"
+                  ? ` · <span style="color:var(--warning);"><i class="ph ph-clock"></i> Aguardando pagamento</span>`
+                  : ""
+              }
             </div>
 
-            <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 10px; align-items: center;">
-              ${botoesPrincipais}
-              
-              <div style="position:relative; display:inline-block;">
-                <button class="btn-action btn-action-ghost" 
-                        style="padding:4px 10px; font-size:0.65rem; border-radius:8px; min-height:36px; min-width:36px;"
-                        onclick="event.stopPropagation(); window.UI.abrirMenuAcoesMobile('${os.id}', [
-                          { label: 'Visualizar', icon: 'ph-eye', color: 'var(--info)', onclick: 'window.Producao.visualizarLote(\'${os.id}\')' },
-                          { label: 'Editar', icon: 'ph-pencil-simple', color: 'var(--gold-light)', onclick: 'window.Producao.editarLote(\'${os.id}\')' },
-                          ${os.status === "recebido" ? `{ label: 'Iniciar Costura', icon: 'ph-play', color: '#2196f3', onclick: 'window.Producao.iniciarCosturaLote(\'${os.id}\', \'${os.order_number}\')' }` : ""}
-                          ${os.status === "em_costura" ? `{ label: 'Finalizar Costura', icon: 'ph-check-circle', color: '#4caf50', onclick: 'window.Producao.finalizarCosturaLote(\'${os.id}\', \'${os.order_number}\')' }` : ""}
-                          ${os.status === "costurado" ? `{ label: 'Marcar como Entregue', icon: 'ph-truck', color: 'var(--gold-light)', onclick: 'window.Producao.marcarEntregue(\'${os.id}\', \'${os.order_number}\')' }` : ""}
-                          ${os.status === "entregue" && paymentStatus === "pendente" ? `{ label: 'Marcar como Pago', icon: 'ph-currency-dollar', color: '#4caf50', onclick: 'window.Producao.marcarPago(\'${os.id}\', \'${os.order_number}\')' }` : ""}
-                          ${os.status !== "cancelado" ? `{ label: 'Cancelar Lote', icon: 'ph-x-circle', color: 'var(--warning)', onclick: 'window.Producao.cancelarLote(\'${os.id}\', \'${os.order_number}\')' }` : ""}
-                          { label: 'Excluir', icon: 'ph-trash', color: 'var(--error)', onclick: 'window.Producao.excluirLote(\'${os.id}\', \'${os.order_number}\')' }
-                        ]);">
-                  <i class="ph ph-gear-six"></i>
-                </button>
-              </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 4px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.04);">
+              <button class="btn-action-menu" 
+                      style="min-height: 36px; min-width: 36px; padding: 6px 12px;"
+                      onclick="event.stopPropagation(); window.UI.abrirMenuAcoesMobile('${os.id}', [${acoesStr}], 'Ações do Lote');">
+                <i class="ph ph-gear-six"></i>
+              </button>
             </div>
           </div>
         `;
@@ -521,10 +601,10 @@
           .value.trim();
         const qtd = parseInt(document.getElementById("novoLoteQtd").value);
         const preco = parseFloat(
-          document.getElementById("novoLotePreco").value,
+          document.getElementById("novoLotePreco").value
         );
         const recebimento = document.getElementById(
-          "novoLoteRecebimento",
+          "novoLoteRecebimento"
         ).value;
         const prazo = document.getElementById("novoLotePrazo").value;
         const obs = document.getElementById("novoLoteObs").value.trim() || null;
@@ -541,19 +621,17 @@
           UI.showToast(
             "Erro",
             "Preencha todos os campos obrigatórios.",
-            "error",
+            "error"
           );
           return;
         }
 
-        const loginResult = (await Auth.fazerLogin)
-          ? Auth.fazerLogin()
-          : { success: true };
-        if (!loginResult.success) {
+        const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
+        if (!loginResult) {
           UI.showToast(
             "Ação cancelada",
             "Você precisa estar autenticado.",
-            "warning",
+            "warning"
           );
           return;
         }
@@ -593,7 +671,7 @@
             UI.showToast(
               "Erro",
               "Não foi possível identificar o cliente.",
-              "error",
+              "error"
             );
             return;
           }
@@ -638,13 +716,13 @@
             total,
             `Lote ${orderNumber} - ${produto}`,
             prazo,
-            cliente,
+            cliente
           );
 
           UI.showToast(
             "Sucesso",
             `Lote ${orderNumber} criado com referência ${referencia}!`,
-            "success",
+            "success"
           );
 
           // Recarregar dados
@@ -655,11 +733,11 @@
           UI.showToast(
             "Erro",
             "Falha ao criar lote: " + error.message,
-            "error",
+            "error"
           );
         }
       },
-      "520px",
+      "520px"
     );
   }
 
@@ -671,7 +749,7 @@
     valorTotal,
     descricao,
     dataReferencia,
-    clienteNome,
+    clienteNome
   ) {
     try {
       const supabase = Supabase.getSupabaseClient
@@ -690,7 +768,7 @@
 
       if (!categoria) {
         console.warn(
-          "⚠️ Categoria de receita não encontrada. Conta não criada.",
+          "⚠️ Categoria de receita não encontrada. Conta não criada."
         );
         return;
       }
@@ -717,11 +795,11 @@
   }
 
   // ============================================================
-  // FUNÇÕES DE AÇÕES DOS LOTES
+  // FUNÇÕES DE AÇÕES DOS LOTES (VISUALIZAR - REFATORADO)
   // ============================================================
 
   /**
-   * Visualiza um lote em detalhes
+   * Visualiza um lote em detalhes usando o padrão de modal padronizado
    */
   window.visualizarLote = async function (id) {
     console.log(`👁️ Produção: Visualizando lote ${id}`);
@@ -741,7 +819,7 @@
           `
           *, 
           customers(company_name, trade_name, contact_name, phone)
-        `,
+        `
         )
         .eq("id", id)
         .single();
@@ -764,7 +842,7 @@
           *, 
           employees(full_name),
           service_order_items!inner(service_order_id)
-        `,
+        `
         )
         .eq("service_order_items.service_order_id", id)
         .order("start_time", { ascending: false })
@@ -783,79 +861,167 @@
       const paymentInfo = getPaymentStatusInfo(paymentStatus);
       const statusColor = getStatusColor(lote.status);
       const statusIcon = getStatusIcon(lote.status);
-      const headerColor = atrasado
-        ? "#ff5252"
-        : paymentStatus === "pago"
-          ? "#4caf50"
-          : lote.status === "em_costura"
-            ? "#2196f3"
-            : lote.status === "costurado"
-              ? "#4caf50"
-              : lote.status === "entregue"
-                ? "#d4a017"
-                : "#9e9e9e";
 
+      // ========== DEFINIR STATUS DO BANNER ==========
+      let statusConfig = {};
+      if (lote.status === "entregue" && paymentStatus === "pago") {
+        statusConfig = {
+          status: "success",
+          statusIcon: "ph-check-circle",
+          statusTitle: "✅ Lote Entregue e Pago",
+          statusSub: `Pago em ${formatDate(lote.payment_date) || "data não informada"}`,
+        };
+      } else if (lote.status === "entregue" && paymentStatus === "pendente") {
+        statusConfig = {
+          status: "warning",
+          statusIcon: "ph-clock",
+          statusTitle: "📦 Lote Entregue - Aguardando Pagamento",
+          statusSub: `Valor a receber: ${formatCurrency(valorTotal)}`,
+        };
+      } else if (lote.status === "costurado") {
+        statusConfig = {
+          status: "info",
+          statusIcon: "ph-check-circle",
+          statusTitle: "✅ Lote Costurado",
+          statusSub: "Aguardando entrega",
+        };
+      } else if (lote.status === "em_costura") {
+        const progresso =
+          totalPecas > 0
+            ? Math.round(
+                (items?.reduce((s, i) => s + (i.sewn_quantity || 0), 0) /
+                  totalPecas) *
+                  100
+              )
+            : 0;
+        statusConfig = {
+          status: "info",
+          statusIcon: "ph-sewing-needle",
+          statusTitle: `🧵 Em Costura (${progresso}%)`,
+          statusSub: `${items?.reduce((s, i) => s + (i.sewn_quantity || 0), 0) || 0}/${totalPecas} peças costuradas`,
+        };
+      } else if (atrasado) {
+        statusConfig = {
+          status: "danger",
+          statusIcon: "ph-warning-circle",
+          statusTitle: "🔴 Lote Atrasado",
+          statusSub: `Prazo vencido em ${formatDate(lote.expected_delivery)}`,
+        };
+      } else {
+        statusConfig = {
+          status: "neutral",
+          statusIcon: "ph-info",
+          statusTitle: `📋 ${formatStatus(lote.status)}`,
+          statusSub: `Entrega prevista: ${formatDate(lote.expected_delivery)}`,
+        };
+      }
+
+      // ========== INFORMAÇÕES PRINCIPAIS ==========
+      const infoItems = [
+        {
+          label: "Cliente",
+          value: escapeHtml(cliente),
+          class: "highlight",
+        },
+        { label: "Produto", value: escapeHtml(lote.product_description || "-") },
+        {
+          label: "Referência",
+          value: escapeHtml(lote.product_reference || "-"),
+        },
+        { label: "Peças", value: totalPecas },
+        {
+          label: "Valor Unitário",
+          value: formatCurrency(lote.unit_price),
+        },
+        {
+          label: "Valor Total",
+          value: formatCurrency(valorTotal),
+          class: "highlight",
+        },
+        {
+          label: "Recebimento",
+          value: formatDate(lote.received_date),
+        },
+        {
+          label: "Entrega",
+          value: formatDate(lote.expected_delivery),
+          class: atrasado ? "danger" : "",
+        },
+      ];
+
+      // ========== HTML DOS ITENS (GRADE) ==========
       let itemsHtml = "";
       if (items && items.length > 0) {
+        const itemsListHtml = items
+          .map(
+            (item) => `
+              <div style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 6px 12px;
+                margin-bottom: 4px;
+                background: rgba(255,255,255,0.02);
+                border-radius: 6px;
+                font-size: 0.75rem;
+              ">
+                <span style="font-weight:600; min-width:60px;">${escapeHtml(
+                  item.size
+                )}</span>
+                <span style="color:var(--gray);">Solic: ${item.quantity}</span>
+                <span style="color:var(--gold-light);">Cost: ${
+                  item.sewn_quantity || 0
+                }</span>
+                <span style="color:var(--pink-light);">Entr: ${
+                  item.delivered_quantity || 0
+                }</span>
+                <span style="color:var(--gray-dark);">Pend: ${item.quantity - (item.delivered_quantity || 0)}</span>
+              </div>
+            `
+          )
+          .join("");
+
         itemsHtml = `
-          <div style="overflow-x:auto; margin-top:8px;">
-            <table style="width:100%; font-size:0.7rem; border-collapse:collapse;">
-              <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                <th style="text-align:left;padding:4px;">Tamanho</th>
-                <th style="text-align:center;padding:4px;">Solic.</th>
-                <th style="text-align:center;padding:4px;">Cost.</th>
-                <th style="text-align:center;padding:4px;">Entr.</th>
-                <th style="text-align:center;padding:4px;">Pend.</th>
-              </tr></thead>
-              <tbody>
-                ${items
-                  .map(
-                    (item) => `
-                  <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <td style="padding:4px;"><strong>${item.size}</strong></td>
-                    <td style="text-align:center;padding:4px;">${item.quantity}</td>
-                    <td style="text-align:center;padding:4px;">${item.sewn_quantity || 0}</td>
-                    <td style="text-align:center;padding:4px;">${item.delivered_quantity || 0}</td>
-                    <td style="text-align:center;padding:4px;">${item.quantity - (item.delivered_quantity || 0)}</td>
-                  </tr>
-                `,
-                  )
-                  .join("")}
-              </tbody>
-            </table>
+          <div style="display:flex; flex-direction:column; gap:2px;">
+            ${itemsListHtml}
           </div>
         `;
       }
 
+      // ========== HTML DA COSTURA ==========
       let costuraHtml = "";
       if (sewingRecords && sewingRecords.length > 0) {
+        const recordsListHtml = sewingRecords
+          .map(
+            (r) => `
+              <div style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 4px 10px;
+                margin-bottom: 2px;
+                background: rgba(255,255,255,0.02);
+                border-radius: 4px;
+                font-size: 0.65rem;
+              ">
+                <span style="color:var(--gray);">${formatDateTime(
+                  r.start_time
+                )}</span>
+                <span style="color:var(--gold-light);">${r.employees?.full_name || "-"}</span>
+                <span style="color:var(--success);">${r.pieces_sewn} peças</span>
+                ${
+                  r.defects > 0
+                    ? `<span style="color:var(--error);">${r.defects} defeitos</span>`
+                    : ""
+                }
+              </div>
+            `
+          )
+          .join("");
+
         costuraHtml = `
-          <div style="margin-top:8px;">
-            <strong style="font-size:0.75rem;">🧵 Apontamentos de Costura:</strong>
-            <div style="overflow-x:auto; margin-top:4px;">
-              <table style="width:100%; font-size:0.65rem; border-collapse:collapse;">
-                <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                  <th style="text-align:left;padding:4px;">Data</th>
-                  <th style="text-align:left;padding:4px;">Funcionário</th>
-                  <th style="text-align:center;padding:4px;">Peças</th>
-                  <th style="text-align:center;padding:4px;">Defeitos</th>
-                </tr></thead>
-                <tbody>
-                  ${sewingRecords
-                    .map(
-                      (r) => `
-                    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                      <td style="padding:4px;">${new Date(r.start_time).toLocaleString("pt-BR")}</td>
-                      <td style="padding:4px;">${r.employees?.full_name || "-"}</td>
-                      <td style="text-align:center;padding:4px;">${r.pieces_sewn}</td>
-                      <td style="text-align:center;padding:4px;">${r.defects || 0}</td>
-                    </tr>
-                  `,
-                    )
-                    .join("")}
-                </tbody>
-              </table>
-            </div>
+          <div style="display:flex; flex-direction:column; gap:2px;">
+            ${recordsListHtml}
           </div>
         `;
       }
@@ -863,65 +1029,32 @@
       const progresso =
         totalPecas > 0
           ? Math.round(
-              ((items?.reduce((s, i) => s + (i.sewn_quantity || 0), 0) || 0) /
+              (items?.reduce((s, i) => s + (i.sewn_quantity || 0), 0) /
                 totalPecas) *
-                100,
+                100
             )
           : 0;
 
-      const html = `
-        <div style="display:grid; gap:10px;">
-          <div style="background: ${headerColor}22; border: 2px solid ${headerColor}; border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-            <div>
-              <h4 style="color: var(--gold-light); margin: 0; font-size: 1rem;">
-                <i class="ph ${statusIcon}"></i> ${lote.order_number}
-              </h4>
-              <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
-                <span class="status-badge status-${lote.status}" style="font-size:0.65rem;">${formatStatus(lote.status)}</span>
-                ${atrasado ? '<span style="color:var(--error);font-size:0.7rem;"><i class="ph ph-warning"></i> Atrasado</span>' : ""}
-              </div>
-            </div>
-            <div style="text-align:right;">
-              <span style="font-weight:700; font-size:1.1rem; color:${paymentInfo.color};">${paymentInfo.label}</span>
-              <div style="font-size:0.65rem; color:var(--gray);">${paymentInfo.description}</div>
-            </div>
-          </div>
+      // ========== SEÇÕES DO MODAL ==========
+      const secoes = [];
 
-          <div style="display:flex; gap:4px; overflow-x:auto; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-            <button class="tab-detail-btn active" data-tab="info" style="padding:6px 12px; border:none; background:rgba(212,160,23,0.15); border-radius:8px; color:var(--gold-light); font-size:0.7rem; cursor:pointer; white-space:nowrap; transition:all 0.2s;">
-              <i class="ph ph-info"></i> Info
-            </button>
-            <button class="tab-detail-btn" data-tab="grade" style="padding:6px 12px; border:none; background:transparent; border-radius:8px; color:var(--gray); font-size:0.7rem; cursor:pointer; white-space:nowrap; transition:all 0.2s;">
-              <i class="ph ph-list-numbers"></i> Grade
-            </button>
-            <button class="tab-detail-btn" data-tab="costura" style="padding:6px 12px; border:none; background:transparent; border-radius:8px; color:var(--gray); font-size:0.7rem; cursor:pointer; white-space:nowrap; transition:all 0.2s;">
-              <i class="ph ph-sewing-needle"></i> Costura
-            </button>
-            <button class="tab-detail-btn" data-tab="financeiro" style="padding:6px 12px; border:none; background:transparent; border-radius:8px; color:var(--gray); font-size:0.7rem; cursor:pointer; white-space:nowrap; transition:all 0.2s;">
-              <i class="ph ph-currency-circle-dollar"></i> Financeiro
-            </button>
-          </div>
+      // Seção: Grade
+      if (items && items.length > 0) {
+        secoes.push({
+          titulo: "Grade de Tamanhos",
+          icon: "ph-list-numbers",
+          html: itemsHtml,
+        });
+      }
 
-          <div id="tab-info" class="tab-detail-content" style="display:block;">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; font-size:0.75rem;">
-              <div><strong>Cliente:</strong> ${cliente}</div>
-              <div><strong>Produto:</strong> ${lote.product_description || "-"}</div>
-              <div><strong>Referência:</strong> ${lote.product_reference || "-"}</div>
-              <div><strong>Peças:</strong> ${totalPecas}</div>
-              <div><strong>Valor Unit:</strong> ${formatCurrency(lote.unit_price)}</div>
-              <div><strong>Total:</strong> ${formatCurrency(valorTotal)}</div>
-              <div><strong>Recebimento:</strong> ${formatDate(lote.received_date)}</div>
-              <div><strong>Entrega:</strong> ${formatDate(lote.expected_delivery)}</div>
-            </div>
-            ${lote.notes ? `<div style="font-size:0.7rem;color:var(--gray);margin-top:8px;"><strong>Obs:</strong> ${lote.notes}</div>` : ""}
-          </div>
-
-          <div id="tab-grade" class="tab-detail-content" style="display:none;">
-            ${itemsHtml || '<div style="color:var(--gray);font-size:0.7rem;">Nenhuma grade cadastrada</div>'}
-          </div>
-
-          <div id="tab-costura" class="tab-detail-content" style="display:none;">
-            <div style="width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; margin-bottom:6px;">
+      // Seção: Costura
+      if (sewingRecords && sewingRecords.length > 0) {
+        secoes.push({
+          titulo: "Apontamentos de Costura",
+          icon: "ph-sewing-needle",
+          badge: `${sewingRecords.length} registros`,
+          html: `
+            <div style="width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; margin-bottom:8px;">
               <div style="width:${progresso}%; height:100%; background:linear-gradient(90deg, var(--gold), var(--pink)); border-radius:2px; transition:width 0.5s ease;"></div>
             </div>
             <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--gray); margin-bottom:6px;">
@@ -929,58 +1062,100 @@
               <span>${items?.reduce((s, i) => s + (i.sewn_quantity || 0), 0) || 0}/${totalPecas} peças</span>
             </div>
             ${costuraHtml || '<div style="color:var(--gray);font-size:0.7rem;">Nenhum apontamento de costura</div>'}
-          </div>
-
-          <div id="tab-financeiro" class="tab-detail-content" style="display:none;">
-            <div style="background:rgba(255,255,255,0.02); border-radius:8px; padding:12px;">
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.75rem;">
-                <div><strong>Status Pagamento:</strong></div>
-                <div style="color:${paymentInfo.color};">${paymentInfo.label}</div>
-                <div><strong>Valor Total:</strong></div>
-                <div>${formatCurrency(valorTotal)}</div>
-                ${
-                  paymentStatus === "pago" && lote.payment_date
-                    ? `
-                  <div><strong>Data Pagamento:</strong></div>
-                  <div>${formatDate(lote.payment_date)}</div>
-                `
-                    : ""
-                }
-                ${
-                  lote.payment_method
-                    ? `
-                  <div><strong>Forma Pagamento:</strong></div>
-                  <div>${lote.payment_method}</div>
-                `
-                    : ""
-                }
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      UI.openModal(`📋 ${lote.order_number}`, html);
-
-      // Configurar abas do modal
-      setTimeout(() => {
-        const tabBtns = document.querySelectorAll(".tab-detail-btn");
-        const tabContents = document.querySelectorAll(".tab-detail-content");
-        tabBtns.forEach((btn) => {
-          btn.addEventListener("click", function () {
-            const tab = this.dataset.tab;
-            tabBtns.forEach((b) => {
-              b.style.background = "transparent";
-              b.style.color = "var(--gray)";
-            });
-            tabContents.forEach((c) => (c.style.display = "none"));
-            this.style.background = "rgba(212,160,23,0.15)";
-            this.style.color = "var(--gold-light)";
-            const content = document.getElementById(`tab-${tab}`);
-            if (content) content.style.display = "block";
-          });
+          `,
         });
-      }, 100);
+      }
+
+      // Seção: Observações
+      if (lote.notes) {
+        secoes.push({
+          titulo: "Observações",
+          icon: "ph-note",
+          html: `<div style="font-size:0.85rem;color:var(--gray);padding:4px 0;">${escapeHtml(
+            lote.notes
+          )}</div>`,
+        });
+      }
+
+      // ========== AÇÕES ==========
+      const acoes = [];
+      
+      if (lote.status === "recebido") {
+        acoes.push({
+          label: "Iniciar Costura",
+          icon: "ph-play",
+          class: "primary",
+          onclick: `window.Producao.iniciarCosturaLote('${lote.id}', '${lote.order_number}')`,
+        });
+      }
+      
+      if (lote.status === "em_costura") {
+        acoes.push({
+          label: "Registrar Progresso",
+          icon: "ph-thread",
+          class: "primary",
+          onclick: `window.Producao.registrarCosturaParcial('${lote.id}')`,
+        });
+        acoes.push({
+          label: "Finalizar Costura",
+          icon: "ph-check-circle",
+          class: "success",
+          onclick: `window.Producao.finalizarCosturaLote('${lote.id}', '${lote.order_number}')`,
+        });
+      }
+      
+      if (lote.status === "costurado") {
+        acoes.push({
+          label: "Marcar como Entregue",
+          icon: "ph-truck",
+          class: "success",
+          onclick: `window.Producao.marcarEntregue('${lote.id}', '${lote.order_number}')`,
+        });
+      }
+      
+      if (lote.status === "entregue" && paymentStatus === "pendente") {
+        acoes.push({
+          label: `Receber ${formatCurrency(valorTotal)}`,
+          icon: "ph-currency-dollar",
+          class: "success",
+          onclick: `window.Producao.marcarPago('${lote.id}', '${lote.order_number}')`,
+        });
+      }
+      
+      if (lote.status !== "cancelado" && lote.status !== "entregue" && lote.status !== "pago") {
+        acoes.push({
+          label: "Cancelar Lote",
+          icon: "ph-x-circle",
+          class: "warning",
+          onclick: `window.Producao.cancelarLote('${lote.id}', '${lote.order_number}')`,
+        });
+      }
+      
+      acoes.push({
+        label: "Editar",
+        icon: "ph-pencil-simple",
+        class: "ghost",
+        onclick: `window.Producao.editarLote('${lote.id}')`,
+      });
+      
+      acoes.push({
+        label: "Excluir",
+        icon: "ph-trash",
+        class: "ghost danger",
+        onclick: `window.Producao.excluirLote('${lote.id}', '${lote.order_number}')`,
+      });
+
+      // ========== CRIAR MODAL PADRONIZADO ==========
+      UI.criarModalPadronizado(
+        `📋 ${lote.order_number} - ${escapeHtml(lote.product_reference || "Lote")}`,
+        {
+          ...statusConfig,
+          infoItems,
+          secoes,
+          acoes,
+        }
+      );
+
     } catch (e) {
       console.error("Erro ao visualizar lote:", e);
       UI.showToast("Erro", "Falha ao carregar detalhes do lote.", "error");
@@ -995,14 +1170,12 @@
    * Inicia a costura de um lote
    */
   window.iniciarCosturaLote = async function (id, orderNumber) {
-    const loginResult = (await Auth.fazerLogin)
-      ? Auth.fazerLogin()
-      : { success: true };
-    if (!loginResult.success) {
+    const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
+    if (!loginResult) {
       UI.showToast(
         "Ação cancelada",
         "Você precisa estar autenticado.",
-        "warning",
+        "warning"
       );
       return;
     }
@@ -1038,14 +1211,12 @@
    * Finaliza a costura de um lote
    */
   window.finalizarCosturaLote = async function (id, orderNumber) {
-    const loginResult = (await Auth.fazerLogin)
-      ? Auth.fazerLogin()
-      : { success: true };
-    if (!loginResult.success) {
+    const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
+    if (!loginResult) {
       UI.showToast(
         "Ação cancelada",
         "Você precisa estar autenticado.",
-        "warning",
+        "warning"
       );
       return;
     }
@@ -1069,7 +1240,7 @@
       UI.showToast(
         "Sucesso",
         `✅ Lote ${orderNumber} costurado! Aguardando entrega.`,
-        "success",
+        "success"
       );
       await carregarProducaoPeriodo();
     } catch (error) {
@@ -1112,7 +1283,7 @@
         UI.showToast(
           "Erro",
           "Esta OS não possui grade de tamanhos cadastrada.",
-          "error",
+          "error"
         );
         return;
       }
@@ -1156,7 +1327,9 @@
         <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:12px; margin-bottom:12px;">
           <p style="font-size:0.8rem;"><strong>OS:</strong> ${os.order_number}</p>
           <p style="font-size:0.8rem;"><strong>Total de peças:</strong> ${os.total_quantity}</p>
-          <p style="font-size:0.8rem;"><strong>Status atual:</strong> <span class="status-badge status-${os.status}" style="font-size:0.65rem;">${formatStatus(os.status)}</span></p>
+          <p style="font-size:0.8rem;"><strong>Status atual:</strong> <span class="status-badge status-${os.status}" style="font-size:0.65rem;">${formatStatus(
+        os.status
+      )}</span></p>
         </div>
         <h4 style="font-size:0.85rem; margin-bottom:8px;"><i class="ph ph-thread"></i> Informar Produção</h4>
         ${gradeFields}
@@ -1189,7 +1362,7 @@
             const itemId = input.dataset.itemId;
             const qtd = parseInt(input.value) || 0;
             const defeitosInput = document.querySelector(
-              `.costura-defeitos-item[data-item-id="${itemId}"]`,
+              `.costura-defeitos-item[data-item-id="${itemId}"]`
             );
             const defeitos = parseInt(defeitosInput?.value) || 0;
             if (qtd > 0) {
@@ -1210,19 +1383,17 @@
             UI.showToast(
               "Aviso",
               "Informe pelo menos uma quantidade costurada.",
-              "warning",
+              "warning"
             );
             return;
           }
 
-          const loginResult = (await Auth.fazerLogin)
-            ? Auth.fazerLogin()
-            : { success: true };
-          if (!loginResult.success) {
+          const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
+          if (!loginResult) {
             UI.showToast(
               "Ação cancelada",
               "Você precisa estar autenticado.",
-              "warning",
+              "warning"
             );
             return;
           }
@@ -1249,7 +1420,7 @@
             const totalCosturado = itemsAtualizados
               ? itemsAtualizados.reduce(
                   (sum, i) => sum + (i.sewn_quantity || 0),
-                  0,
+                  0
                 )
               : 0;
 
@@ -1275,19 +1446,19 @@
                   UI.showToast(
                     "Sucesso",
                     "Costura registrada e lote marcado como Costurado!",
-                    "success",
+                    "success"
                   );
                   await carregarProducaoPeriodo();
                 },
                 null,
                 "Concluir",
-                "Depois",
+                "Depois"
               );
             } else {
               UI.showToast(
                 "Sucesso",
                 `${totalCosturadoAgora} peça(s) registrada(s)! Total costurado: ${totalCosturado}/${os.total_quantity}`,
-                "success",
+                "success"
               );
               await carregarProducaoPeriodo();
             }
@@ -1296,7 +1467,7 @@
             UI.showToast("Erro", "Falha ao registrar costura.", "error");
           }
         },
-        "520px",
+        "520px"
       );
     } catch (e) {
       console.error("Erro ao registrar costura parcial:", e);
@@ -1312,14 +1483,12 @@
    * Marca um lote como entregue
    */
   window.marcarEntregue = async function (id, orderNumber) {
-    const loginResult = (await Auth.fazerLogin)
-      ? Auth.fazerLogin()
-      : { success: true };
-    if (!loginResult.success) {
+    const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
+    if (!loginResult) {
       UI.showToast(
         "Ação cancelada",
         "Você precisa estar autenticado.",
-        "warning",
+        "warning"
       );
       return;
     }
@@ -1365,7 +1534,7 @@
         valorTotal,
         descricao,
         lote.expected_delivery,
-        clienteNome,
+        clienteNome
       );
 
       UI.showToast("Sucesso", `📦 Lote ${orderNumber} entregue!`, "success");
@@ -1380,14 +1549,12 @@
    * Marca um lote como pago
    */
   window.marcarPago = async function (id, orderNumber) {
-    const loginResult = (await Auth.fazerLogin)
-      ? Auth.fazerLogin()
-      : { success: true };
-    if (!loginResult.success) {
+    const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
+    if (!loginResult) {
       UI.showToast(
         "Ação cancelada",
         "Você precisa estar autenticado.",
-        "warning",
+        "warning"
       );
       return;
     }
@@ -1420,7 +1587,7 @@
       UI.showToast(
         "Sucesso",
         `💳 Lote ${orderNumber} marcado como pago!`,
-        "success",
+        "success"
       );
       await carregarProducaoPeriodo();
     } catch (error) {
@@ -1436,7 +1603,7 @@
     osId,
     status,
     paymentDate,
-    paymentMethod,
+    paymentMethod
   ) {
     try {
       const supabase = Supabase.getSupabaseClient
@@ -1505,14 +1672,12 @@
         return;
       }
 
-      const loginResult = (await Auth.fazerLogin)
-        ? Auth.fazerLogin()
-        : { success: true };
-      if (!loginResult.success) {
+      const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
+      if (!loginResult) {
         UI.showToast(
           "Ação cancelada",
           "Você precisa estar autenticado.",
-          "warning",
+          "warning"
         );
         return;
       }
@@ -1561,41 +1726,73 @@
             <div class="form-group">
               <label>Status de Produção</label>
               <select id="editStatus" class="form-select">
-                <option value="recebido" ${lote.status === "recebido" ? "selected" : ""}>📥 Lote Recebido</option>
-                <option value="em_costura" ${lote.status === "em_costura" ? "selected" : ""}>🧵 Em Costura</option>
-                <option value="costurado" ${lote.status === "costurado" ? "selected" : ""}>✅ Costurado</option>
-                <option value="entregue" ${lote.status === "entregue" ? "selected" : ""}>📦 Entregue</option>
-                <option value="cancelado" ${lote.status === "cancelado" ? "selected" : ""}>❌ Cancelado</option>
+                <option value="recebido" ${
+                  lote.status === "recebido" ? "selected" : ""
+                }>📥 Lote Recebido</option>
+                <option value="em_costura" ${
+                  lote.status === "em_costura" ? "selected" : ""
+                }>🧵 Em Costura</option>
+                <option value="costurado" ${
+                  lote.status === "costurado" ? "selected" : ""
+                }>✅ Costurado</option>
+                <option value="entregue" ${
+                  lote.status === "entregue" ? "selected" : ""
+                }>📦 Entregue</option>
+                <option value="cancelado" ${
+                  lote.status === "cancelado" ? "selected" : ""
+                }>❌ Cancelado</option>
               </select>
             </div>
             <div class="form-group">
               <label>Status de Pagamento</label>
               <select id="editPagamento" class="form-select">
-                <option value="pendente" ${lote.payment_status === "pendente" || !lote.payment_status ? "selected" : ""}>⏳ Pagamento Pendente</option>
-                <option value="pago" ${lote.payment_status === "pago" ? "selected" : ""}>✅ Pagamento Recebido</option>
+                <option value="pendente" ${
+                  lote.payment_status === "pendente" || !lote.payment_status
+                    ? "selected"
+                    : ""
+                }>⏳ Pagamento Pendente</option>
+                <option value="pago" ${
+                  lote.payment_status === "pago" ? "selected" : ""
+                }>✅ Pagamento Recebido</option>
               </select>
             </div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" id="camposPagamento" style="${lote.payment_status === "pago" ? "" : "display:none;"}">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" id="camposPagamento" style="${
+            lote.payment_status === "pago" ? "" : "display:none;"
+          }">
             <div class="form-group">
               <label>Data de Pagamento</label>
-              <input id="editDataPagamento" type="date" class="form-input" value="${lote.payment_date || todayISO()}">
+              <input id="editDataPagamento" type="date" class="form-input" value="${
+                lote.payment_date || todayISO()
+              }">
             </div>
             <div class="form-group">
               <label>Forma de Pagamento</label>
               <select id="editFormaPagamento" class="form-select">
                 <option value="">Selecione...</option>
-                <option value="PIX" ${lote.payment_method === "PIX" ? "selected" : ""}>PIX</option>
-                <option value="Boleto" ${lote.payment_method === "Boleto" ? "selected" : ""}>Boleto</option>
-                <option value="Transferência" ${lote.payment_method === "Transferência" ? "selected" : ""}>Transferência</option>
-                <option value="Dinheiro" ${lote.payment_method === "Dinheiro" ? "selected" : ""}>Dinheiro</option>
-                <option value="Cartão" ${lote.payment_method === "Cartão" ? "selected" : ""}>Cartão</option>
+                <option value="PIX" ${
+                  lote.payment_method === "PIX" ? "selected" : ""
+                }>PIX</option>
+                <option value="Boleto" ${
+                  lote.payment_method === "Boleto" ? "selected" : ""
+                }>Boleto</option>
+                <option value="Transferência" ${
+                  lote.payment_method === "Transferência" ? "selected" : ""
+                }>Transferência</option>
+                <option value="Dinheiro" ${
+                  lote.payment_method === "Dinheiro" ? "selected" : ""
+                }>Dinheiro</option>
+                <option value="Cartão" ${
+                  lote.payment_method === "Cartão" ? "selected" : ""
+                }>Cartão</option>
               </select>
             </div>
           </div>
           <div class="form-group">
             <label>Observações</label>
-            <textarea id="editObs" class="form-input" rows="2">${lote.notes || ""}</textarea>
+            <textarea id="editObs" class="form-input" rows="2">${
+              lote.notes || ""
+            }</textarea>
           </div>
         </div>
       `;
@@ -1631,7 +1828,7 @@
             UI.showToast(
               "Erro",
               "Preencha todos os campos obrigatórios.",
-              "error",
+              "error"
             );
             return;
           }
@@ -1671,14 +1868,14 @@
               id,
               paymentStatus,
               dataPagamento,
-              formaPagamento,
+              formaPagamento
             );
 
             document.getElementById("modalContainer").innerHTML = "";
             UI.showToast(
               "Sucesso",
               `✅ Lote ${lote.order_number} atualizado!`,
-              "success",
+              "success"
             );
             await carregarProducaoPeriodo();
           } catch (error) {
@@ -1686,11 +1883,11 @@
             UI.showToast(
               "Erro",
               "Falha ao editar lote: " + error.message,
-              "error",
+              "error"
             );
           }
         },
-        "520px",
+        "520px"
       );
 
       // Configurar evento para mostrar/ocultar campos de pagamento
@@ -1744,11 +1941,13 @@
         "⚠️ Ação Bloqueada",
         `<p style="color:var(--error);">Não é possível cancelar este lote!</p>
          <p>Este lote já possui <strong style="color:var(--success);">pagamento confirmado</strong>.</p>
-         <p style="color:var(--gray-dark);font-size:0.85rem;">Valor: ${formatCurrency(conta.amount)}</p>
+         <p style="color:var(--gray-dark);font-size:0.85rem;">Valor: ${formatCurrency(
+           conta.amount
+         )}</p>
          <p style="color:var(--gray);font-size:0.8rem;"><i class="ph ph-info"></i> Para cancelar, primeiro estorne o pagamento.</p>`,
         null,
         null,
-        "Entendi",
+        "Entendi"
       );
       return;
     }
@@ -1758,14 +1957,12 @@
       `<p>Deseja cancelar o lote <strong>${orderNumber}</strong>?</p>
        <p style="color:var(--gray-dark);font-size:0.8rem;">Esta ação não pode ser desfeita.</p>`,
       async () => {
-        const loginResult = (await Auth.fazerLogin)
-          ? Auth.fazerLogin()
-          : { success: true };
-        if (!loginResult.success) {
+        const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
+        if (!loginResult) {
           UI.showToast(
             "Ação cancelada",
             "Você precisa estar autenticado.",
-            "warning",
+            "warning"
           );
           return;
         }
@@ -1792,14 +1989,14 @@
           UI.showToast(
             "Sucesso",
             `❌ Lote ${orderNumber} cancelado.`,
-            "success",
+            "success"
           );
           await carregarProducaoPeriodo();
         } catch (error) {
           console.error("Erro ao cancelar lote:", error);
           UI.showToast("Erro", "Falha ao cancelar lote.", "error");
         }
-      },
+      }
     );
   };
 
@@ -1828,11 +2025,13 @@
         "⚠️ Ação Bloqueada",
         `<p style="color:var(--error);">Não é possível excluir este lote!</p>
          <p>Este lote já possui <strong style="color:var(--success);">pagamento confirmado</strong>.</p>
-         <p style="color:var(--gray-dark);font-size:0.85rem;">Valor: ${formatCurrency(conta.amount)}</p>
+         <p style="color:var(--gray-dark);font-size:0.85rem;">Valor: ${formatCurrency(
+           conta.amount
+         )}</p>
          <p style="color:var(--gray);font-size:0.8rem;"><i class="ph ph-info"></i> Para excluir, primeiro estorne o pagamento.</p>`,
         null,
         null,
-        "Entendi",
+        "Entendi"
       );
       return;
     }
@@ -1842,7 +2041,9 @@
       mensagemAdicional = `
         <div style="background: rgba(255,193,7,0.08); border-radius: 8px; padding: 12px; margin-top: 8px; border-left: 3px solid var(--warning);">
           <p style="color: var(--gray); font-size: 0.8rem; margin: 0;">
-            <i class="ph ph-info"></i> A conta a receber de <strong>${formatCurrency(conta.amount)}</strong> 
+            <i class="ph ph-info"></i> A conta a receber de <strong>${formatCurrency(
+              conta.amount
+            )}</strong> 
             será removida automaticamente.
           </p>
         </div>
@@ -1855,14 +2056,12 @@
        <p style="color:var(--gray-dark);font-size:0.8rem;">Esta ação <strong style="color:var(--error);">não pode ser desfeita</strong>.</p>
        ${mensagemAdicional}`,
       async () => {
-        const loginResult = (await Auth.fazerLogin)
-          ? Auth.fazerLogin()
-          : { success: true };
-        if (!loginResult.success) {
+        const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
+        if (!loginResult) {
           UI.showToast(
             "Ação cancelada",
             "Você precisa estar autenticado.",
-            "warning",
+            "warning"
           );
           return;
         }
@@ -1914,7 +2113,7 @@
           UI.showToast(
             "Sucesso",
             `Lote ${orderNumber} excluído com sucesso!`,
-            "success",
+            "success"
           );
           await carregarProducaoPeriodo();
         } catch (error) {
@@ -1922,13 +2121,13 @@
           UI.showToast(
             "Erro",
             "Falha ao excluir lote: " + error.message,
-            "error",
+            "error"
           );
         }
       },
       null,
       "Excluir",
-      "Cancelar",
+      "Cancelar"
     );
   };
 
@@ -1941,7 +2140,7 @@
    */
   function configurarFiltros() {
     const filtros = document.querySelectorAll(
-      "#filtrosRapidosProducao .filtro-rapido-btn",
+      "#filtrosRapidosProducao .filtro-rapido-btn"
     );
 
     filtros.forEach((btn) => {
@@ -1975,37 +2174,6 @@
 
     // Configurar filtros
     configurarFiltros();
-
-    // Configurar seletor de período
-    const periodNavs = document.querySelectorAll(
-      "#periodSelectorProducao .period-nav",
-    );
-    periodNavs.forEach((btn) => {
-      btn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        const direction = parseInt(this.dataset.direction === "prev" ? -1 : 1);
-        const date = new Date(global.App?.periodState?.producao || new Date());
-        date.setMonth(date.getMonth() + direction);
-        if (global.App) {
-          global.App.periodState.producao = date;
-        }
-        carregarProducaoPeriodo(date);
-      });
-    });
-
-    const todayBtn = document.querySelector(
-      "#periodSelectorProducao .period-today",
-    );
-    if (todayBtn) {
-      todayBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        const date = new Date();
-        if (global.App) {
-          global.App.periodState.producao = date;
-        }
-        carregarProducaoPeriodo(date);
-      });
-    }
 
     // Carregar dados iniciais
     const periodo = global.App?.periodState?.producao || new Date();
