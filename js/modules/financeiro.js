@@ -1,13 +1,13 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // Módulo Financeiro (financeiro.js) - Aba de Finanças
-// Versão 2.1 - Com menu único de ações e seletor de período dinâmico
+// Versão 3.0 - MODO LEITURA (APENAS VISUALIZAÇÃO)
 // ============================================================
 
 (function (global) {
   "use strict";
 
-  console.log("📦 Módulo Financeiro carregado");
+  console.log("📦 Módulo Financeiro carregado - Modo Leitura");
 
   // ============================================================
   // DEPENDÊNCIAS
@@ -211,6 +211,10 @@
       let totalPagar = 0,
         totalReceber = 0;
       let contasVencidas = 0;
+      let contasVencerProximas = 0;
+      const hoje = new Date();
+      const dataLimiteProxima = new Date();
+      dataLimiteProxima.setDate(dataLimiteProxima.getDate() + 7);
 
       for (const e of eventosFinanceiros) {
         if (e.tipo === "receber") {
@@ -225,8 +229,16 @@
           }
         }
 
-        if (e.status === "pendente" && new Date(e.vencimento) < new Date()) {
+        if (e.status === "pendente" && new Date(e.vencimento) < hoje) {
           contasVencidas++;
+        }
+
+        if (
+          e.status === "pendente" &&
+          new Date(e.vencimento) >= hoje &&
+          new Date(e.vencimento) <= dataLimiteProxima
+        ) {
+          contasVencerProximas++;
         }
       }
 
@@ -237,6 +249,7 @@
         totalPagar: totalPagar || 0,
         totalReceber: totalReceber || 0,
         contasVencidas: contasVencidas || 0,
+        contasVencerProximas: contasVencerProximas || 0,
         mesRange: mesRange,
       };
 
@@ -455,13 +468,13 @@
   }
 
   // ============================================================
-  // RENDERIZAR - ABA FINANCEIRO
+  // RENDERIZAR - ABA FINANCEIRO (MODO LEITURA)
   // ============================================================
 
   function renderizarFinanceiro(dados) {
-    console.log("📊 Financeiro: Renderizando...");
+    console.log("📊 Financeiro: Renderizando (Modo Leitura)...");
 
-    const { eventosFinanceiros, totalPagar, totalReceber, contasVencidas } =
+    const { eventosFinanceiros, totalPagar, totalReceber, contasVencidas, contasVencerProximas } =
       dados;
 
     // ========== ATUALIZAR KPIs ==========
@@ -499,7 +512,7 @@
         <div class="empty-state" style="text-align:center;padding:40px 16px;color:var(--gray-dark);">
           <i class="ph ph-currency-circle-dollar" style="font-size:40px;display:block;margin-bottom:12px;color:var(--gray);"></i>
           <p style="font-size:15px;font-weight:500;">Nenhuma conta no mês</p>
-          <p style="font-size:12px;color:var(--gray);margin-top:4px;">Clique em "Novo Lançamento" para começar</p>
+          <p style="font-size:12px;color:var(--gray);margin-top:4px;">Não há lançamentos para este período</p>
         </div>
       `;
       return;
@@ -575,68 +588,6 @@
           catIcon = "ph-lightning";
         else if (catLower.includes("internet") || catLower.includes("telefone"))
           catIcon = "ph-wifi";
-
-        const transactionId = e.transaction_id;
-
-        // ========== CONSTRUIR MENU DE AÇÕES ==========
-        const acoes = [];
-
-        // Ação Visualizar (sempre disponível)
-        acoes.push({
-          label: 'Visualizar',
-          icon: 'ph-eye',
-          color: 'var(--info)',
-          onclick: `window.Financeiro.abrirModalConta('${e.id}')`
-        });
-
-        // Ação Editar (sempre disponível)
-        acoes.push({
-          label: 'Editar',
-          icon: 'ph-pencil-simple',
-          color: 'var(--gold-light)',
-          onclick: `window.Financeiro.editarLancamento('${transactionId}')`
-        });
-
-        // Ações específicas por status
-        if (!pago) {
-          if (e.isParcela) {
-            acoes.push({
-              label: 'Baixar Parcelas',
-              icon: 'ph-receipt',
-              color: '#42a5f5',
-              onclick: `window.Financeiro.baixarParcelas('${transactionId}')`
-            });
-          } else {
-            acoes.push({
-              label: 'Baixar',
-              icon: 'ph-check-circle',
-              color: '#4caf50',
-              onclick: `window.Financeiro.baixarLancamento('${transactionId}')`
-            });
-          }
-        }
-
-        if (pago) {
-          acoes.push({
-            label: 'Estornar',
-            icon: 'ph-arrow-counter-clockwise',
-            color: 'var(--warning)',
-            onclick: `window.Financeiro.estornarLancamento('${transactionId}')`
-          });
-        }
-
-        // Ação Excluir (sempre disponível)
-        acoes.push({
-          label: 'Excluir',
-          icon: 'ph-trash',
-          color: 'var(--error)',
-          onclick: `window.Financeiro.excluirLancamento('${transactionId}')`
-        });
-
-        // Converter ações para string
-        const acoesStr = acoes.map(a => 
-          `{ label: '${a.label}', icon: '${a.icon}', color: '${a.color}', onclick: '${a.onclick}' }`
-        ).join(',');
 
         return `
           <div class="card-financeiro" 
@@ -751,10 +702,10 @@
               padding-top: 8px;
               border-top: 1px solid rgba(255,255,255,0.04);
             ">
-              <button class="btn-action-menu" 
-                      style="min-height: 36px; min-width: 36px; padding: 6px 12px;"
-                      onclick="event.stopPropagation(); window.UI.abrirMenuAcoesMobile('${e.id}', [${acoesStr}], 'Ações da Conta');">
-                <i class="ph ph-gear-six"></i>
+              <button class="btn-action btn-action-ghost" 
+                      style="padding:6px 14px; font-size:0.65rem; border-radius:8px; min-height:36px;"
+                      onclick="event.stopPropagation(); window.Financeiro.abrirModalConta('${e.id}')">
+                <i class="ph ph-eye"></i> Visualizar
               </button>
             </div>
           </div>
@@ -762,472 +713,35 @@
       })
       .join("");
 
-    console.log(`✅ Financeiro: ${ordenados.length} contas renderizadas`);
+    console.log(`✅ Financeiro: ${ordenados.length} contas renderizadas (Modo Leitura)`);
   }
 
   // ============================================================
-  // FUNÇÕES DE CRUD DE LANÇAMENTOS
+  // FUNÇÃO PARA ALTERNAR VISUALIZAÇÃO
   // ============================================================
 
-  /**
-   * Abre o modal para criar um novo lançamento
-   */
-  function novoLancamento() {
-    console.log("📝 Financeiro: Criando novo lançamento...");
+  function alternarVisualizacaoFinanceiro() {
+    visualizacaoAtual =
+      visualizacaoAtual === "cards" ? "calendario" : "cards";
+    console.log(`📊 Alternando visualização para: ${visualizacaoAtual}`);
+    renderizarFinanceiro(dados);
 
-    const html = `
-      <div style="max-height:85vh; overflow-y:auto; padding-right:4px;">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <div class="form-group" style="margin-bottom:6px;">
-            <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-arrows-left-right"></i> Tipo *</label>
-            <select id="finTipo" class="form-select" style="padding:6px 10px; font-size:0.8rem;" required>
-              <option value="pagar">A Pagar</option>
-              <option value="receber">A Receber</option>
-            </select>
-          </div>
-          <div class="form-group" style="margin-bottom:6px;">
-            <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-tag"></i> Categoria *</label>
-            <select id="finCategoria" class="form-select" style="padding:6px 10px; font-size:0.8rem;" required>
-              <option value="">Carregando categorias...</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group" style="margin-bottom:6px;">
-          <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-text-aa"></i> Descrição *</label>
-          <input id="finDesc" class="form-input" style="padding:6px 10px; font-size:0.8rem;" placeholder="Ex: Venda OS-123, Aluguel..." required>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <div class="form-group" style="margin-bottom:6px;">
-            <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-currency-circle-dollar"></i> Valor Total *</label>
-            <input id="finValorTotal" type="number" step="0.01" min="0.01" class="form-input" style="padding:6px 10px; font-size:0.8rem;" required>
-          </div>
-          <div class="form-group" style="margin-bottom:6px;">
-            <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-credit-card"></i> Forma de Pagamento</label>
-            <select id="finFormaPag" class="form-select" style="padding:6px 10px; font-size:0.8rem;">
-              <option value="">Selecione</option>
-              <option value="PIX">PIX</option>
-              <option value="Boleto">Boleto</option>
-              <option value="Dinheiro">Dinheiro</option>
-              <option value="Transferência">Transferência</option>
-              <option value="Cartão">Cartão</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group" style="margin-bottom:6px;">
-          <label style="font-size:0.8rem;"><input type="checkbox" id="finParcelado" onchange="toggleParcelamento()"> <i class="ph ph-receipt"></i> Parcelado com entrada</label>
-        </div>
-        <div id="parcelaFields" style="display:none; margin-top:6px;">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <div class="form-group" style="margin-bottom:4px;">
-              <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-currency-dollar"></i> Entrada (R$)</label>
-              <input id="finEntrada" type="number" step="0.01" min="0" class="form-input" style="padding:4px 8px; font-size:0.8rem;" value="0">
-            </div>
-            <div class="form-group" style="margin-bottom:4px;">
-              <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-calendar"></i> Data Entrada</label>
-              <input id="finDataEntrada" type="date" class="form-input" style="padding:4px 8px; font-size:0.8rem;" value="${todayISO()}">
-            </div>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin:4px 0 6px;">
-            <span style="font-size:0.8rem; font-weight:600;"><i class="ph ph-list-numbers"></i> Parcelas</span>
-            <div>
-              <button type="button" class="btn btn-ghost btn-sm" style="padding:2px 10px; font-size:0.7rem;" id="btnAdicionarParcela"><i class="ph ph-plus-circle"></i> Adicionar</button>
-              <button type="button" class="btn btn-ghost btn-sm" style="padding:2px 10px; font-size:0.7rem;" id="btnRemoverParcela"><i class="ph ph-minus-circle"></i> Remover</button>
-            </div>
-          </div>
-          <div style="overflow-x:auto; max-height:180px; overflow-y:auto; border:1px solid rgba(255,255,255,0.06); border-radius:6px;">
-            <table class="table" style="font-size:0.75rem; margin:0;">
-              <thead><tr><th style="padding:4px 6px;">#</th><th style="padding:4px 6px;">Valor</th><th style="padding:4px 6px;">Vencimento</th><th style="padding:4px 6px; width:40px;">Ação</th></tr></thead>
-              <tbody id="parcelasBody">
-                <tr class="parcela-row">
-                  <td class="text-center" style="padding:4px 6px;">1</td>
-                  <td style="padding:4px 6px;"><input type="number" step="0.01" class="form-input parcela-valor" style="width:90px; padding:3px 6px; font-size:0.75rem;" value="0"></td>
-                  <td style="padding:4px 6px;"><input type="date" class="form-input parcela-data" style="width:130px; padding:3px 6px; font-size:0.75rem;" value="${todayISO()}"></td>
-                  <td style="padding:4px 6px; text-align:center;"><button type="button" class="btn btn-ghost btn-sm remove-parcela" style="padding:0 4px; font-size:0.7rem; color:var(--error);"><i class="ph ph-x"></i></button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div style="display:flex; gap:16px; margin-top:6px; flex-wrap:wrap; font-size:0.75rem;">
-            <span><strong>Total Parcelas:</strong> <span id="somaParcelas">R$ 0,00</span></span>
-            <span><strong>Total com Entrada:</strong> <span id="totalComEntrada">R$ 0,00</span></span>
-          </div>
-        </div>
-        <div id="vencimentoSimples" class="form-group" style="margin-bottom:6px;">
-          <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-calendar-blank"></i> Vencimento *</label>
-          <input id="finVencimento" type="date" class="form-input" style="padding:6px 10px; font-size:0.8rem;" required>
-        </div>
-        <div class="form-group" style="margin-bottom:6px;">
-          <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-note"></i> Observações</label>
-          <textarea id="finObs" class="form-input" style="padding:6px 10px; font-size:0.8rem; height:50px;" rows="2"></textarea>
-        </div>
-        <div class="form-group" style="margin-bottom:4px;">
-          <label style="font-size:0.8rem;"><input type="checkbox" id="finRecorrente"> <i class="ph ph-arrows-clockwise"></i> Conta recorrente (todo mês)</label>
-        </div>
-      </div>
-    `;
-
-    // Carregar categorias
-    carregarCategoriasSelect();
-
-    UI.modalComConfirmacao(
-      "Novo Lançamento",
-      html,
-      async () => {
-        await salvarNovoLancamento();
-      },
-      null,
-      "750px"
+    const btnToggle = document.getElementById(
+      "btnToggleVisualizacaoFinanceiro"
     );
-
-    // Configurar eventos do parcelamento
-    setTimeout(() => {
-      window.toggleParcelamento = function () {
-        const checked = document.getElementById("finParcelado").checked;
-        document.getElementById("parcelaFields").style.display = checked
-          ? "block"
-          : "none";
-        document.getElementById("vencimentoSimples").style.display = checked
-          ? "none"
-          : "block";
-        if (checked) {
-          const total =
-            parseFloat(document.getElementById("finValorTotal").value) || 0;
-          const entrada = Math.round(total * 0.3 * 100) / 100;
-          document.getElementById("finEntrada").value = entrada.toFixed(2);
-          const restante = total - entrada;
-          const numParcelas = 3;
-          const valorParcela = Math.round((restante / numParcelas) * 100) / 100;
-          const tbody = document.getElementById("parcelasBody");
-          tbody.innerHTML = "";
-          for (let i = 1; i <= numParcelas; i++) {
-            const data = new Date();
-            data.setMonth(data.getMonth() + i);
-            const dataStr = data.toISOString().split("T")[0];
-            tbody.innerHTML += criarLinhaParcela(
-              i,
-              valorParcela.toFixed(2),
-              dataStr
-            );
-          }
-          calcularTotalParcelas();
-        } else {
-          document.getElementById("somaParcelas").textContent = "R$ 0,00";
-          document.getElementById("totalComEntrada").textContent = "R$ 0,00";
-        }
-      };
-
-      window.calcularTotalParcelas = function () {
-        if (!document.getElementById("finParcelado")?.checked) {
-          const parcelas = document.querySelectorAll(".parcela-valor");
-          let soma = 0;
-          parcelas.forEach((inp) => (soma += parseFloat(inp.value) || 0));
-          const entrada =
-            parseFloat(document.getElementById("finEntrada")?.value) || 0;
-          document.getElementById("somaParcelas").textContent =
-            formatCurrency(soma);
-          document.getElementById("totalComEntrada").textContent =
-            formatCurrency(entrada + soma);
-          return;
-        }
-
-        const parcelas = document.querySelectorAll(".parcela-valor");
-        let soma = 0;
-        parcelas.forEach((inp) => (soma += parseFloat(inp.value) || 0));
-        const entrada =
-          parseFloat(document.getElementById("finEntrada")?.value) || 0;
-        const total = entrada + soma;
-        document.getElementById("finValorTotal").value = total.toFixed(2);
-        document.getElementById("somaParcelas").textContent =
-          formatCurrency(soma);
-        document.getElementById("totalComEntrada").textContent =
-          formatCurrency(total);
-      };
-
-      function criarLinhaParcela(numero, valor, data) {
-        return `
-          <tr class="parcela-row">
-            <td class="text-center" style="padding:4px 6px;">${numero}</td>
-            <td style="padding:4px 6px;"><input type="number" step="0.01" class="form-input parcela-valor" style="width:90px; padding:3px 6px; font-size:0.75rem;" value="${valor}" oninput="calcularTotalParcelas()"></td>
-            <td style="padding:4px 6px;"><input type="date" class="form-input parcela-data" style="width:130px; padding:3px 6px; font-size:0.75rem;" value="${data}"></td>
-            <td style="padding:4px 6px; text-align:center;"><button type="button" class="btn btn-ghost btn-sm remove-parcela" style="padding:0 4px; font-size:0.7rem; color:var(--error);"><i class="ph ph-x"></i></button></td>
-          </tr>
-        `;
-      }
-
-      document
-        .getElementById("btnAdicionarParcela")
-        ?.addEventListener("click", function () {
-          const tbody = document.getElementById("parcelasBody");
-          const rows = tbody.querySelectorAll(".parcela-row");
-          const nextNum = rows.length + 1;
-          const lastRow = rows[rows.length - 1];
-          const lastValor = lastRow
-            ? parseFloat(lastRow.querySelector(".parcela-valor").value) || 0
-            : 0;
-          const lastData = lastRow
-            ? lastRow.querySelector(".parcela-data").value
-            : todayISO();
-          const nextDate = new Date(lastData);
-          nextDate.setMonth(nextDate.getMonth() + 1);
-          const dataStr = nextDate.toISOString().split("T")[0];
-          tbody.insertAdjacentHTML(
-            "beforeend",
-            criarLinhaParcela(nextNum, lastValor.toFixed(2), dataStr)
-          );
-          calcularTotalParcelas();
-        });
-
-      document
-        .getElementById("btnRemoverParcela")
-        ?.addEventListener("click", function () {
-          const tbody = document.getElementById("parcelasBody");
-          if (tbody.children.length > 1) {
-            tbody.removeChild(tbody.lastChild);
-            tbody.querySelectorAll(".parcela-row").forEach((row, idx) => {
-              row.querySelector("td:first-child").textContent = idx + 1;
-            });
-            calcularTotalParcelas();
-          }
-        });
-
-      document
-        .getElementById("parcelasBody")
-        ?.addEventListener("click", function (e) {
-          const btn = e.target.closest(".remove-parcela");
-          if (btn) {
-            const row = btn.closest(".parcela-row");
-            if (row && row.parentElement.children.length > 1) {
-              row.remove();
-              this.querySelectorAll(".parcela-row").forEach((r, idx) => {
-                r.querySelector("td:first-child").textContent = idx + 1;
-              });
-              calcularTotalParcelas();
-            }
-          }
-        });
-
-      document
-        .getElementById("finEntrada")
-        ?.addEventListener("input", calcularTotalParcelas);
-      document
-        .getElementById("finValorTotal")
-        ?.addEventListener("input", function () {
-          if (document.getElementById("finParcelado").checked) {
-            const total = parseFloat(this.value) || 0;
-            document.getElementById("totalComEntrada").textContent =
-              formatCurrency(total);
-          }
-        });
-
-      toggleParcelamento();
-    }, 200);
-  }
-
-  async function carregarCategoriasSelect() {
-    try {
-      const supabase = Supabase.getSupabaseClient
-        ? Supabase.getSupabaseClient()
-        : null;
-      if (!supabase) return;
-
-      const { data: categorias } = await supabase
-        .from("chart_of_accounts")
-        .select("id, name, type")
-        .order("name");
-
-      const select = document.getElementById("finCategoria");
-      if (!select) return;
-
-      if (categorias?.length) {
-        select.innerHTML = categorias
-          .map((c) => `<option value="${c.id}">${c.name} (${c.type})</option>`)
-          .join("");
+    if (btnToggle) {
+      if (visualizacaoAtual === "cards") {
+        btnToggle.innerHTML = '<i class="ph ph-calendar"></i> Calendário';
+        btnToggle.title = "Alternar para visão em calendário";
       } else {
-        select.innerHTML =
-          '<option value="">Nenhuma categoria disponível</option>';
+        btnToggle.innerHTML = '<i class="ph ph-list"></i> Lista';
+        btnToggle.title = "Alternar para visão em lista";
       }
-    } catch (e) {
-      console.error("Erro ao carregar categorias:", e);
-    }
-  }
-
-  async function salvarNovoLancamento() {
-    try {
-      const supabase = Supabase.getSupabaseClient
-        ? Supabase.getSupabaseClient()
-        : null;
-      if (!supabase) {
-        UI.showToast("Erro", "Cliente Supabase não disponível", "error");
-        return;
-      }
-
-      const tipo = document.getElementById("finTipo").value;
-      const categoriaId = document.getElementById("finCategoria").value;
-      const descricao = document.getElementById("finDesc").value.trim();
-      const formaPag = document.getElementById("finFormaPag").value || null;
-      const obs = document.getElementById("finObs").value.trim() || null;
-      const parcelado = document.getElementById("finParcelado").checked;
-      const recorrente = document.getElementById("finRecorrente").checked;
-
-      if (!descricao || !categoriaId) {
-        UI.showToast("Erro", "Preencha os campos obrigatórios.", "error");
-        return;
-      }
-
-      let valorTotal = parseFloat(
-        document.getElementById("finValorTotal").value
-      );
-      if (isNaN(valorTotal) || valorTotal <= 0) {
-        UI.showToast("Erro", "Informe um valor total válido.", "error");
-        return;
-      }
-
-      let entryAmount = 0;
-      let entryDate = null;
-      let parcelasData = [];
-
-      if (parcelado) {
-        entryAmount =
-          parseFloat(document.getElementById("finEntrada").value) || 0;
-        entryDate = document.getElementById("finDataEntrada").value || null;
-
-        const rows = document.querySelectorAll("#parcelasBody .parcela-row");
-        let somaParcelas = 0;
-        rows.forEach((row, index) => {
-          const valor =
-            parseFloat(row.querySelector(".parcela-valor").value) || 0;
-          const data = row.querySelector(".parcela-data").value;
-          if (valor > 0 && data) {
-            parcelasData.push({
-              numero: index + 1,
-              valor: valor,
-              vencimento: data,
-              status: "pendente",
-            });
-            somaParcelas += valor;
-          }
-        });
-
-        const totalComEntrada = entryAmount + somaParcelas;
-        if (Math.abs(totalComEntrada - valorTotal) > 0.01) {
-          UI.showToast(
-            "Erro",
-            `A soma da entrada + parcelas (${formatCurrency(
-              totalComEntrada
-            )}) não coincide com o valor total (${formatCurrency(
-              valorTotal
-            )}).`,
-            "error"
-          );
-          return;
-        }
-        if (parcelasData.length === 0) {
-          UI.showToast("Erro", "Adicione pelo menos uma parcela.", "error");
-          return;
-        }
-      } else {
-        const vencimento = document.getElementById("finVencimento").value;
-        if (!vencimento) {
-          UI.showToast("Erro", "Informe o vencimento.", "error");
-          return;
-        }
-      }
-
-      const loginResult = Auth.isAutenticado ? Auth.isAutenticado() : false;
-      if (!loginResult) {
-        UI.showToast(
-          "Ação cancelada",
-          "Você precisa estar autenticado.",
-          "warning"
-        );
-        return;
-      }
-
-      const insert = {
-        type: tipo,
-        account_id: categoriaId,
-        category_id: categoriaId,
-        description: descricao,
-        amount: tipo === "pagar" ? -Math.abs(valorTotal) : Math.abs(valorTotal),
-        date: parcelado
-          ? entryDate || todayISO()
-          : document.getElementById("finVencimento").value,
-        due_date: parcelado
-          ? parcelasData[0]?.vencimento || entryDate || todayISO()
-          : document.getElementById("finVencimento").value,
-        status: "pendente",
-        payment_method: formaPag,
-        notes: obs,
-        installments: parcelado,
-        total_installments: parcelado ? parcelasData.length : 1,
-        entry_amount: entryAmount || 0,
-      };
-
-      if (recorrente) {
-        const dia = new Date(insert.due_date + "T12:00:00").getDate();
-        const { data: rec, error: recError } = await supabase
-          .from("recurring_transactions")
-          .insert({
-            description: descricao,
-            amount: Math.abs(valorTotal),
-            category_id: categoriaId,
-            due_day: dia,
-            type: tipo,
-            active: true,
-          })
-          .select("id")
-          .single();
-
-        if (recError) {
-          UI.showToast(
-            "Erro",
-            `Falha ao criar recorrência: ${recError.message}`,
-            "error"
-          );
-          return;
-        }
-        insert.recurring_id = rec.id;
-      }
-
-      const { data: novaTrans, error: insertError } = await supabase
-        .from("financial_transactions")
-        .insert(insert)
-        .select("id")
-        .single();
-
-      if (insertError) {
-        UI.showToast("Erro", `Falha ao criar: ${insertError.message}`, "error");
-        return;
-      }
-
-      if (parcelado && parcelasData.length > 0) {
-        const parcelasToInsert = parcelasData.map((p) => ({
-          transaction_id: novaTrans.id,
-          numero_parcela: p.numero,
-          valor: p.valor,
-          vencimento: p.vencimento,
-          status: p.status,
-          type: tipo,
-        }));
-        const { error: parcelasError } = await supabase
-          .from("financial_installments")
-          .insert(parcelasToInsert);
-        if (parcelasError) {
-          console.error("❌ Erro ao inserir parcelas:", parcelasError);
-        }
-      }
-
-      UI.showToast("Sucesso", "Lançamento criado com sucesso!", "success");
-      document.getElementById("modalContainer").innerHTML = "";
-      await carregarFinanceiroPeriodo();
-    } catch (e) {
-      console.error("Erro ao criar lançamento:", e);
-      UI.showToast("Erro", "Falha ao criar lançamento.", "error");
     }
   }
 
   // ============================================================
-  // FUNÇÕES DE AÇÕES DOS LANÇAMENTOS (REFATORADO COM PADRÃO)
+  // FUNÇÃO PARA ABRIR MODAL DA CONTA (MODO LEITURA)
   // ============================================================
 
   window.abrirModalConta = async function (id) {
@@ -1273,7 +787,6 @@
             .reduce((sum, p) => sum + parseFloat(p.valor), 0);
           const percentual = totalParcelas > 0 ? (pagas / totalParcelas) * 100 : 0;
 
-          // Construir HTML das parcelas com o novo padrão
           let parcelasListHtml = todasParcelas
             .map((p) => {
               const isPaga = p.status === "pago";
@@ -1354,7 +867,6 @@
         evento.status === "pendente" && new Date(evento.vencimento) < new Date();
       const pago = evento.status === "pago" || evento.status === "recebido";
 
-      // ========== DEFINIR STATUS DO BANNER ==========
       let statusConfig = {};
       if (pago) {
         statusConfig = {
@@ -1379,7 +891,6 @@
         };
       }
 
-      // ========== INFORMAÇÕES PRINCIPAIS ==========
       const infoItems = [
         {
           label: "Descrição",
@@ -1427,7 +938,6 @@
           : []),
       ];
 
-      // ========== SEÇÕES DO MODAL ==========
       const secoes = [];
       if (isParcelada && todasParcelas && todasParcelas.length > 0) {
         secoes.push({
@@ -1438,47 +948,16 @@
         });
       }
 
-      // ========== AÇÕES ==========
-      const acoes = [];
-      if (!pago) {
-        if (isParcelada && todasParcelas && todasParcelas.length > 0) {
-          acoes.push({
-            label: "Baixar Parcelas",
-            icon: "ph-receipt",
-            class: "primary",
-            onclick: `window.Financeiro.baixarParcelas('${transactionId}')`,
-          });
-        } else {
-          acoes.push({
-            label: "Baixar",
-            icon: "ph-check-circle",
-            class: "success",
-            onclick: `window.Financeiro.baixarLancamento('${transactionId}')`,
-          });
+      // Apenas visualização - sem botões de ação
+      const acoes = [
+        {
+          label: "Fechar",
+          icon: "ph-x-circle",
+          class: "ghost",
+          onclick: "document.getElementById('modalContainer').innerHTML = ''",
         }
-      }
-      if (pago) {
-        acoes.push({
-          label: "Estornar",
-          icon: "ph-arrow-counter-clockwise",
-          class: "warning",
-          onclick: `window.Financeiro.estornarLancamento('${transactionId}')`,
-        });
-      }
-      acoes.push({
-        label: "Editar",
-        icon: "ph-pencil-simple",
-        class: "ghost",
-        onclick: `window.Financeiro.editarLancamento('${transactionId}')`,
-      });
-      acoes.push({
-        label: "Excluir",
-        icon: "ph-trash",
-        class: "ghost danger",
-        onclick: `window.Financeiro.excluirLancamento('${transactionId}')`,
-      });
+      ];
 
-      // ========== CRIAR MODAL PADRONIZADO ==========
       UI.criarModalPadronizado(
         `💰 ${escapeHtml(evento.descricao)}`,
         {
@@ -1509,7 +988,6 @@
         return;
       }
 
-      // Calcular totais
       let totalReceber = 0,
         totalPagar = 0,
         totalGeral = 0;
@@ -1528,7 +1006,6 @@
         year: "numeric",
       });
 
-      // Construir tabela HTML para o PDF
       const tableRows = eventos
         .map((e) => {
           const isPagar = e.tipo === "pagar";
@@ -1572,7 +1049,6 @@
         })
         .join("");
 
-      // Construir HTML completo do PDF
       const htmlContent = `
         <html>
           <head>
@@ -1728,7 +1204,6 @@
         </html>
       `;
 
-      // Criar blob e download
       const blob = new Blob([htmlContent], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -1747,399 +1222,336 @@
   }
 
   // ============================================================
-  // FUNÇÕES DE BAIXA E EDIÇÃO
+  // RENDERIZAR CALENDÁRIO
   // ============================================================
 
-  window.baixarLancamento = async function (transactionId) {
-    try {
-      const supabase = Supabase.getSupabaseClient
-        ? Supabase.getSupabaseClient()
-        : null;
-      if (!supabase) {
-        UI.showToast("Erro", "Cliente Supabase não disponível", "error");
-        return;
+  function renderizarCalendarioFinanceiro(eventos) {
+    const container = document.getElementById("listaFinanceiro");
+
+    if (!window.calendarioState) {
+      const hoje = new Date();
+      window.calendarioState = {
+        mes: hoje.getMonth(),
+        ano: hoje.getFullYear(),
+        diaSelecionado: hoje.getDate(),
+      };
+    }
+
+    const { mes, ano, diaSelecionado } = window.calendarioState;
+
+    const nomeMes = new Date(ano, mes, 1).toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric",
+    });
+
+    const diasSemana = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+
+    const primeiroDia = new Date(ano, mes, 1);
+    const ultimoDia = new Date(ano, mes + 1, 0);
+    const diasNoMes = ultimoDia.getDate();
+    const primeiroDiaSemana = primeiroDia.getDay();
+
+    const eventosPorDia = {};
+    for (const e of eventos) {
+      if (!e.vencimento) continue;
+      const data = new Date(e.vencimento);
+      const dia = data.getDate();
+      const mesEvento = data.getMonth();
+      const anoEvento = data.getFullYear();
+      if (mesEvento === mes && anoEvento === ano) {
+        if (!eventosPorDia[dia]) eventosPorDia[dia] = [];
+        eventosPorDia[dia].push(e);
       }
+    }
 
-      // Verificar se tem parcelas
-      const { data: parcelas } = await supabase
-        .from("financial_installments")
-        .select("*")
-        .eq("transaction_id", transactionId);
-
-      if (parcelas && parcelas.length > 0) {
-        await baixarParcelas(transactionId);
-        return;
-      }
-
-      const { data: t } = await supabase
-        .from("financial_transactions")
-        .select("*")
-        .eq("id", transactionId)
-        .single();
-
-      if (!t) {
-        UI.showToast("Erro", "Lançamento não encontrado.", "error");
-        return;
-      }
-
-      const html = `
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <div class="form-group" style="margin-bottom:4px;">
-            <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-calendar"></i> Data Pagamento *</label>
-            <input id="baixaData" type="date" class="form-input" style="padding:4px 8px; font-size:0.8rem;" value="${todayISO()}" required>
+    let calendarioHtml = `
+      <div style="background: rgba(255,255,255,0.02); border-radius: 16px; padding: 16px; border: 1px solid rgba(255,255,255,0.06);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="btn btn-ghost btn-sm" id="btnMesAnteriorFinanceiro" style="padding: 4px 8px;">
+              <i class="ph ph-caret-left"></i>
+            </button>
+            <h4 style="margin: 0; color: var(--gold-light); font-size: 1rem;">
+              ${capitalizeFirst(nomeMes)}
+            </h4>
+            <button class="btn btn-ghost btn-sm" id="btnMesProximoFinanceiro" style="padding: 4px 8px;">
+              <i class="ph ph-caret-right"></i>
+            </button>
           </div>
-          <div class="form-group" style="margin-bottom:4px;">
-            <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-credit-card"></i> Forma de Pagamento</label>
-            <select id="baixaFormaPag" class="form-select" style="padding:4px 8px; font-size:0.8rem;">
-              <option value="">Selecione</option>
-              <option value="PIX">PIX</option>
-              <option value="Boleto">Boleto</option>
-              <option value="Dinheiro">Dinheiro</option>
-              <option value="Transferência">Transferência</option>
-              <option value="Cartão">Cartão</option>
-            </select>
-          </div>
+          <button class="btn btn-ghost btn-sm" id="btnHojeFinanceiro" style="font-size: 0.65rem;">
+            <i class="ph ph-calendar-check"></i> Hoje
+          </button>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-          <div class="form-group" style="margin-bottom:4px;">
-            <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-percent"></i> Juros (R$)</label>
-            <input id="baixaJuros" type="number" step="0.01" class="form-input" style="padding:4px 8px; font-size:0.8rem;" value="0">
-          </div>
-          <div class="form-group" style="margin-bottom:4px;">
-            <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-warning"></i> Multa (R$)</label>
-            <input id="baixaMulta" type="number" step="0.01" class="form-input" style="padding:4px 8px; font-size:0.8rem;" value="0">
-          </div>
-          <div class="form-group" style="margin-bottom:4px;">
-            <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-tag"></i> Desconto (R$)</label>
-            <input id="baixaDesconto" type="number" step="0.01" class="form-input" style="padding:4px 8px; font-size:0.8rem;" value="0">
+
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 12px;">
+          ${diasSemana
+            .map(
+              (d) => `
+            <div style="text-align: center; font-size: 0.6rem; color: var(--gray-dark); font-weight: 600; padding: 4px 0;">
+              ${d}
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
+    `;
+
+    for (let i = 0; i < primeiroDiaSemana; i++) {
+      calendarioHtml += `<div style="opacity: 0.2; padding: 8px; text-align: center; font-size: 0.7rem;">&nbsp;</div>`;
+    }
+
+    const hoje = new Date();
+    const hojeNum = hoje.getDate();
+    const hojeMes = hoje.getMonth();
+    const hojeAno = hoje.getFullYear();
+
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+      const eventosDia = eventosPorDia[dia] || [];
+      const temEventos = eventosDia.length > 0;
+      const isHoje = dia === hojeNum && mes === hojeMes && ano === hojeAno;
+      const isSelecionado =
+        dia === diaSelecionado &&
+        mes === window.calendarioState.mes &&
+        ano === window.calendarioState.ano;
+
+      let corFundo = "transparent";
+      let corBorda = "transparent";
+      let indicador = "";
+      let tooltip = "";
+
+      if (temEventos) {
+        const temPago = eventosDia.some(
+          (e) => e.status === "pago" || e.status === "recebido"
+        );
+        const temVencido = eventosDia.some(
+          (e) => e.status === "pendente" && new Date(e.vencimento) < new Date()
+        );
+        const temPendente = eventosDia.some(
+          (e) => e.status === "pendente" || e.status === "atrasado"
+        );
+
+        if (temVencido) {
+          corFundo = "rgba(255,82,82,0.12)";
+          corBorda = "2px solid var(--error)";
+          indicador = "🔴";
+          tooltip = `${eventosDia.length} conta(s) - Vencidas!`;
+        } else if (temPago && !temPendente) {
+          corFundo = "rgba(76,175,80,0.08)";
+          corBorda = "2px solid var(--success)";
+          indicador = "✅";
+          tooltip = `${eventosDia.length} conta(s) pagas`;
+        } else if (temPendente) {
+          corFundo = "rgba(255,193,7,0.08)";
+          corBorda = "2px solid var(--warning)";
+          indicador = "⏳";
+          tooltip = `${eventosDia.length} conta(s) pendentes`;
+        }
+      }
+
+      const isDiaComEvento = temEventos ? "cursor: pointer;" : "";
+
+      calendarioHtml += `
+        <div 
+          class="dia-calendario-financeiro"
+          data-dia="${dia}"
+          data-mes="${mes}"
+          data-ano="${ano}"
+          onclick="${temEventos ? `selecionarDiaCalendarioFinanceiro(${dia}, ${mes}, ${ano})` : ""}"
+          style="
+            background: ${corFundo};
+            border: ${isSelecionado ? "2px solid var(--gold-light)" : isHoje ? "1px solid rgba(212,160,23,0.3)" : corBorda};
+            border-radius: 8px;
+            padding: 6px 4px;
+            text-align: center;
+            ${isDiaComEvento}
+            transition: all 0.2s ease;
+            min-height: 48px;
+            position: relative;
+            ${isHoje ? "box-shadow: 0 0 12px rgba(212,160,23,0.1);" : ""}
+          "
+          ${temEventos ? `title="${tooltip}"` : ""}
+        >
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+            <span style="
+              font-size: 0.8rem; 
+              font-weight: ${isHoje ? "700" : "400"};
+              color: ${isHoje ? "var(--gold-light)" : "var(--white)"};
+            ">
+              ${dia}
+            </span>
+            ${
+              temEventos
+                ? `
+              <span style="font-size: 0.55rem; color: var(--gray);">
+                ${indicador} ${eventosDia.length}
+              </span>
+            `
+                : ""
+            }
+            ${isHoje ? '<span style="font-size: 0.45rem; color: var(--gold-light);">●</span>' : ""}
           </div>
         </div>
       `;
+    }
 
-      UI.modalComConfirmacao(
-        "Baixar Lançamento",
-        html,
-        async () => {
-          const dataPag = document.getElementById("baixaData").value;
-          const formaPag =
-            document.getElementById("baixaFormaPag").value || null;
-          const juros =
-            parseFloat(document.getElementById("baixaJuros").value) || 0;
-          const multa =
-            parseFloat(document.getElementById("baixaMulta").value) || 0;
-          const desconto =
-            parseFloat(document.getElementById("baixaDesconto").value) || 0;
+    calendarioHtml += `
+        </div>
 
-          if (!dataPag) {
-            UI.showToast("Erro", "Informe a data do pagamento.", "error");
-            return;
-          }
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.6rem; color: var(--gray);">
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--error);margin-right:4px;"></span> Vencidas</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--warning);margin-right:4px;"></span> Pendentes</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--success);margin-right:4px;"></span> Pagas</span>
+        </div>
+      </div>
+    `;
 
-          const { error } = await supabase
-            .from("financial_transactions")
-            .update({
-              status: "pago",
-              payment_date: dataPag,
-              payment_method: formaPag,
-              interest: juros,
-              discount: desconto,
-            })
-            .eq("id", transactionId);
+    const eventosDiaSelecionado = eventos.filter((e) => {
+      if (!e.vencimento) return false;
+      const data = new Date(e.vencimento);
+      return (
+        data.getDate() === diaSelecionado &&
+        data.getMonth() === mes &&
+        data.getFullYear() === ano
+      );
+    });
 
-          if (error) {
-            UI.showToast("Erro", `Falha ao baixar: ${error.message}`, "error");
+    let detalhesHtml = `
+      <div style="margin-top: 16px; background: rgba(255,255,255,0.02); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.06);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h5 style="margin: 0; color: var(--gold-light); font-size: 0.9rem;">
+            <i class="ph ph-calendar-check"></i> ${String(diaSelecionado).padStart(2, "0")}/${String(mes + 1).padStart(2, "0")}/${ano}
+          </h5>
+          <span style="font-size: 0.7rem; color: var(--gray);">${eventosDiaSelecionado.length} conta(s)</span>
+        </div>
+    `;
+
+    if (eventosDiaSelecionado.length === 0) {
+      detalhesHtml += `
+        <div style="text-align: center; padding: 20px 0; color: var(--gray-dark);">
+          <i class="ph ph-calendar-blank" style="font-size: 1.5rem; display: block; margin-bottom: 8px;"></i>
+          Nenhuma conta neste dia
+        </div>
+      `;
+    } else {
+      detalhesHtml += eventosDiaSelecionado
+        .sort((a, b) => {
+          const vA = a.status === "pago" ? 1 : a.status === "pendente" ? 0 : 2;
+          const vB = b.status === "pago" ? 1 : b.status === "pendente" ? 0 : 2;
+          return vA - vB;
+        })
+        .map((e) => {
+          const isPagar = e.tipo === "pagar";
+          const vencido =
+            e.status === "pendente" && new Date(e.vencimento) < new Date();
+          const pago = e.status === "pago" || e.status === "recebido";
+          const valor = e.valor || 0;
+          const sinal = isPagar ? "-" : "+";
+          const corValor = isPagar ? "var(--error)" : "var(--success)";
+
+          let statusBadge = "";
+          let statusColor = "";
+          if (pago) {
+            statusBadge = "✅ Pago";
+            statusColor = "var(--success)";
+          } else if (vencido) {
+            statusBadge = "🔴 Vencido";
+            statusColor = "var(--error)";
           } else {
-            document.getElementById("modalContainer").innerHTML = "";
-            UI.showToast("Sucesso", "Lançamento baixado!", "success");
-            await carregarFinanceiroPeriodo();
+            statusBadge = "⏳ Pendente";
+            statusColor = "var(--warning)";
           }
-        },
-        null,
-        "550px"
-      );
-    } catch (e) {
-      console.error("Erro ao baixar lançamento:", e);
-      UI.showToast("Erro", "Falha ao baixar lançamento.", "error");
+
+          return `
+            <div style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 8px 12px;
+              margin-bottom: 6px;
+              background: rgba(255,255,255,0.02);
+              border-radius: 8px;
+              border-left: 3px solid ${statusColor};
+              cursor: pointer;
+              transition: all 0.2s ease;
+            "
+            onclick="window.Financeiro.abrirModalConta('${e.id}')"
+            onmouseenter="this.style.background='rgba(255,255,255,0.05)'"
+            onmouseleave="this.style.background='rgba(255,255,255,0.02)'"
+            >
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 600; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  ${e.descricao}
+                </div>
+                <div style="font-size: 0.65rem; color: var(--gray);">
+                  ${e.categoria || "Sem categoria"} ${e.isParcela ? `• Parcela ${e.numero_parcela}/${e.total_parcelas}` : ""}
+                </div>
+              </div>
+              <div style="text-align: right; flex-shrink: 0; margin-left: 12px;">
+                <div style="font-weight: 700; color: ${corValor};">
+                  ${sinal} ${formatCurrency(valor)}
+                </div>
+                <div style="font-size: 0.6rem; color: ${statusColor};">
+                  ${statusBadge}
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
     }
-  };
 
-  window.baixarParcelas = async function (transactionId) {
-    try {
-      const supabase = Supabase.getSupabaseClient
-        ? Supabase.getSupabaseClient()
-        : null;
-      if (!supabase) {
-        UI.showToast("Erro", "Cliente Supabase não disponível", "error");
-        return;
-      }
+    detalhesHtml += `</div>`;
+    calendarioHtml += detalhesHtml;
 
-      const { data: t } = await supabase
-        .from("financial_transactions")
-        .select("*, financial_installments(*)")
-        .eq("id", transactionId)
-        .single();
+    container.innerHTML = calendarioHtml;
 
-      if (!t) {
-        UI.showToast("Erro", "Lançamento não encontrado.", "error");
-        return;
-      }
+    document
+      .getElementById("btnMesAnteriorFinanceiro")
+      ?.addEventListener("click", () => {
+        window.calendarioState.mes--;
+        if (window.calendarioState.mes < 0) {
+          window.calendarioState.mes = 11;
+          window.calendarioState.ano--;
+        }
+        renderizarFinanceiro(dados);
+      });
 
-      const parcelasPendentes =
-        t.financial_installments?.filter((p) => p.status !== "pago") || [];
-      if (parcelasPendentes.length === 0) {
-        UI.showToast("Aviso", "Não há parcelas pendentes para baixar.", "info");
-        return;
-      }
+    document
+      .getElementById("btnMesProximoFinanceiro")
+      ?.addEventListener("click", () => {
+        window.calendarioState.mes++;
+        if (window.calendarioState.mes > 11) {
+          window.calendarioState.mes = 0;
+          window.calendarioState.ano++;
+        }
+        renderizarFinanceiro(dados);
+      });
 
-      const html = `
-        <div style="max-height:70vh; overflow-y:auto; padding-right:4px;">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <div class="form-group" style="margin-bottom:4px;">
-              <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-calendar"></i> Data Pagamento *</label>
-              <input id="baixaParcelasData" type="date" class="form-input" style="padding:4px 8px; font-size:0.8rem;" value="${todayISO()}">
-            </div>
-            <div class="form-group" style="margin-bottom:4px;">
-              <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-credit-card"></i> Forma de Pagamento</label>
-              <select id="baixaParcelasForma" class="form-select" style="padding:4px 8px; font-size:0.8rem;">
-                <option value="">Selecione</option>
-                <option value="PIX">PIX</option>
-                <option value="Boleto">Boleto</option>
-                <option value="Dinheiro">Dinheiro</option>
-                <option value="Transferência">Transferência</option>
-                <option value="Cartão">Cartão</option>
-              </select>
-            </div>
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-            <div class="form-group" style="margin-bottom:4px;">
-              <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-percent"></i> Juros (R$)</label>
-              <input id="baixaParcelasJuros" type="number" step="0.01" class="form-input" style="padding:4px 8px; font-size:0.8rem;" value="0">
-            </div>
-            <div class="form-group" style="margin-bottom:4px;">
-              <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-warning"></i> Multa (R$)</label>
-              <input id="baixaParcelasMulta" type="number" step="0.01" class="form-input" style="padding:4px 8px; font-size:0.8rem;" value="0">
-            </div>
-            <div class="form-group" style="margin-bottom:4px;">
-              <label class="form-label" style="font-size:0.65rem;"><i class="ph ph-tag"></i> Desconto (R$)</label>
-              <input id="baixaParcelasDesconto" type="number" step="0.01" class="form-input" style="padding:4px 8px; font-size:0.8rem;" value="0">
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom:4px;">
-            <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px; cursor:pointer;">
-              <input type="checkbox" id="selecionarTodasParcelas"> <i class="ph ph-check-square"></i> Selecionar todas
-            </label>
-          </div>
-          <div style="overflow-x:auto; max-height:250px; overflow-y:auto; border:1px solid rgba(255,255,255,0.06); border-radius:6px;">
-            <table class="table" style="font-size:0.75rem; margin:0;">
-              <thead><tr><th style="padding:4px 6px;"><input type="checkbox" id="selecionarTodasParcelasTable"></th><th style="padding:4px 6px;">#</th><th style="padding:4px 6px;">Vencimento</th><th style="padding:4px 6px;">Valor</th></tr></thead>
-              <tbody>
-                ${parcelasPendentes
-                  .map(
-                    (p) => `
-                  <tr>
-                    <td style="padding:4px 6px; text-align:center;"><input type="checkbox" class="parcela-baixa-check" data-id="${p.id}" data-valor="${p.valor}" checked></td>
-                    <td class="text-center" style="padding:4px 6px;">${p.numero_parcela}ª</td>
-                    <td style="padding:4px 6px;">${formatDate(
-                      p.vencimento
-                    )}</td>
-                    <td class="text-right" style="padding:4px 6px;">${formatCurrency(
-                      p.valor
-                    )}</td>
-                  </tr>
-                `
-                  )
-                  .join("")}
-              </tbody>
-            </table>
-          </div>
-          <div style="margin-top:8px; display:flex; gap:16px; font-size:0.75rem;">
-            <span><strong>Total a pagar:</strong> <span id="totalBaixaParcelas">${formatCurrency(
-              parcelasPendentes.reduce((s, p) => s + p.valor, 0)
-            )}</span></span>
-          </div>
-        </div>
-      `;
+    document
+      .getElementById("btnHojeFinanceiro")
+      ?.addEventListener("click", () => {
+        const hoje = new Date();
+        window.calendarioState.mes = hoje.getMonth();
+        window.calendarioState.ano = hoje.getFullYear();
+        window.calendarioState.diaSelecionado = hoje.getDate();
+        renderizarFinanceiro(dados);
+      });
+  }
 
-      UI.modalComConfirmacao(
-        "Baixar Parcelas",
-        html,
-        async () => {
-          const dataPag = document.getElementById("baixaParcelasData").value;
-          const formaPag =
-            document.getElementById("baixaParcelasForma").value || null;
-          const juros =
-            parseFloat(document.getElementById("baixaParcelasJuros").value) || 0;
-          const multa =
-            parseFloat(document.getElementById("baixaParcelasMulta").value) || 0;
-          const desconto =
-            parseFloat(
-              document.getElementById("baixaParcelasDesconto").value
-            ) || 0;
-
-          if (!dataPag) {
-            UI.showToast("Erro", "Informe a data do pagamento.", "error");
-            return;
-          }
-
-          const checks = document.querySelectorAll(
-            ".parcela-baixa-check:checked"
-          );
-          if (checks.length === 0) {
-            UI.showToast("Erro", "Selecione pelo menos uma parcela.", "error");
-            return;
-          }
-
-          const idsPagar = Array.from(checks).map((cb) => cb.dataset.id);
-
-          for (const parcelaId of idsPagar) {
-            await supabase
-              .from("financial_installments")
-              .update({ status: "pago" })
-              .eq("id", parcelaId);
-          }
-
-          const { data: todasParcelas } = await supabase
-            .from("financial_installments")
-            .select("status")
-            .eq("transaction_id", transactionId);
-
-          const restantes =
-            todasParcelas?.filter((p) => p.status !== "pago") || [];
-          const todasPagas = restantes.length === 0;
-
-          const updateData = {
-            status: todasPagas ? "pago" : "pendente",
-            payment_date: dataPag,
-            payment_method: formaPag,
-            interest: juros,
-            discount: desconto,
-          };
-
-          if (todasPagas) {
-            const { data: todasParcelasComValor } = await supabase
-              .from("financial_installments")
-              .select("valor")
-              .eq("transaction_id", transactionId);
-            const totalPago =
-              todasParcelasComValor?.reduce(
-                (s, p) => s + parseFloat(p.valor),
-                0
-              ) || 0;
-            updateData.amount =
-              t.type === "pagar" ? -Math.abs(totalPago) : Math.abs(totalPago);
-          }
-
-          await supabase
-            .from("financial_transactions")
-            .update(updateData)
-            .eq("id", transactionId);
-
-          document.getElementById("modalContainer").innerHTML = "";
-          UI.showToast(
-            "Sucesso",
-            `${checks.length} parcela(s) baixada(s)!`,
-            "success"
-          );
-          await carregarFinanceiroPeriodo();
-        },
-        null,
-        "650px"
-      );
-
-      setTimeout(() => {
-        document
-          .getElementById("selecionarTodasParcelas")
-          ?.addEventListener("change", function () {
-            const checked = this.checked;
-            document
-              .querySelectorAll(".parcela-baixa-check")
-              .forEach((cb) => (cb.checked = checked));
-          });
-        document
-          .getElementById("selecionarTodasParcelasTable")
-          ?.addEventListener("change", function () {
-            const checked = this.checked;
-            document
-              .querySelectorAll(".parcela-baixa-check")
-              .forEach((cb) => (cb.checked = checked));
-          });
-      }, 100);
-    } catch (e) {
-      console.error("Erro ao baixar parcelas:", e);
-      UI.showToast("Erro", "Falha ao baixar parcelas.", "error");
+  window.selecionarDiaCalendarioFinanceiro = function (dia, mes, ano) {
+    if (!window.calendarioState) {
+      window.calendarioState = {
+        mes: new Date().getMonth(),
+        ano: new Date().getFullYear(),
+        diaSelecionado: new Date().getDate(),
+      };
     }
-  };
-
-  window.editarLancamento = async function (transactionId) {
-    UI.showToast("Info", "Edição de lançamento em desenvolvimento.", "info");
-  };
-
-  window.excluirLancamento = async function (transactionId) {
-    UI.openConfirmModal(
-      "Excluir Lançamento",
-      "Deseja realmente excluir este lançamento? Esta ação não pode ser desfeita.",
-      async () => {
-        try {
-          const supabase = Supabase.getSupabaseClient
-            ? Supabase.getSupabaseClient()
-            : null;
-          if (!supabase) {
-            UI.showToast("Erro", "Cliente Supabase não disponível", "error");
-            return;
-          }
-
-          await supabase
-            .from("financial_installments")
-            .delete()
-            .eq("transaction_id", transactionId);
-
-          await supabase
-            .from("financial_transactions")
-            .delete()
-            .eq("id", transactionId);
-
-          UI.showToast("Sucesso", "Lançamento excluído!", "success");
-          await carregarFinanceiroPeriodo();
-        } catch (e) {
-          console.error("Erro ao excluir lançamento:", e);
-          UI.showToast("Erro", "Falha ao excluir lançamento.", "error");
-        }
-      }
-    );
-  };
-
-  window.estornarLancamento = async function (transactionId) {
-    UI.openConfirmModal(
-      "Estornar Lançamento",
-      "Deseja realmente estornar este lançamento?",
-      async () => {
-        try {
-          const supabase = Supabase.getSupabaseClient
-            ? Supabase.getSupabaseClient()
-            : null;
-          if (!supabase) {
-            UI.showToast("Erro", "Cliente Supabase não disponível", "error");
-            return;
-          }
-
-          await supabase
-            .from("financial_transactions")
-            .update({
-              status: "pendente",
-              payment_date: null,
-              interest: 0,
-              discount: 0,
-            })
-            .eq("id", transactionId);
-
-          UI.showToast("Sucesso", "Lançamento estornado!", "success");
-          await carregarFinanceiroPeriodo();
-        } catch (e) {
-          console.error("Erro ao estornar lançamento:", e);
-          UI.showToast("Erro", "Falha ao estornar lançamento.", "error");
-        }
-      }
-    );
+    window.calendarioState.diaSelecionado = dia;
+    window.calendarioState.mes = mes;
+    window.calendarioState.ano = ano;
+    renderizarFinanceiro(dados);
   };
 
   // ============================================================
@@ -2147,7 +1559,7 @@
   // ============================================================
 
   async function init() {
-    console.log("🏦 Financeiro: Inicializando...");
+    console.log("🏦 Financeiro: Inicializando (Modo Leitura)...");
 
     // Configurar eventos
     const btnExportPDF = document.getElementById("btnExportPDFFinanceiro");
@@ -2159,7 +1571,7 @@
     const periodo = global.App?.periodState?.financeiro || new Date();
     await carregarFinanceiroPeriodo(periodo);
 
-    console.log("✅ Financeiro: Inicializado com sucesso");
+    console.log("✅ Financeiro: Inicializado com sucesso (Modo Leitura)");
   }
 
   // ============================================================
@@ -2180,19 +1592,15 @@
     // Renderização
     renderizarFinanceiro,
 
-    // CRUD
-    novoLancamento,
-    editarLancamento: window.editarLancamento,
-    excluirLancamento: window.excluirLancamento,
-
     // Ações
     abrirModalConta: window.abrirModalConta,
-    baixarLancamento: window.baixarLancamento,
-    baixarParcelas: window.baixarParcelas,
-    estornarLancamento: window.estornarLancamento,
+    alternarVisualizacao: alternarVisualizacaoFinanceiro,
 
     // Exportação
     exportarPDFFinanceiro,
+
+    // Calendário
+    selecionarDiaCalendario: window.selecionarDiaCalendarioFinanceiro,
 
     // Utilitários
     gerarEventosFinanceiros,
@@ -2201,7 +1609,7 @@
     init,
   };
 
-  console.log("✅ Financeiro exportado globalmente como window.Financeiro");
+  console.log("✅ Financeiro exportado globalmente como window.Financeiro (Modo Leitura)");
 
   // ============================================================
   // INICIALIZAÇÃO AUTOMÁTICA
