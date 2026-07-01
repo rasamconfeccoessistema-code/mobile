@@ -1,7 +1,7 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // Ponto de Entrada Principal (main.js)
-// Versão 1.4 - Com suporte aos módulos Produção, Financeiro, RH e Dívidas
+// Versão 1.5 - Com suporte aos módulos Produção, Financeiro, RH, Dívidas e seletores dinâmicos
 // ============================================================
 
 (function (global) {
@@ -218,7 +218,10 @@
       }
 
       // Carregar dados do RH se a aba atual for rh
-      if (abaAtual === "rh" && typeof RH.carregarRHPeriodo === "function") {
+      if (
+        abaAtual === "rh" &&
+        typeof RH.carregarRHPeriodo === "function"
+      ) {
         const periodo = periodState.rh || new Date();
         await RH.carregarRHPeriodo(periodo);
       }
@@ -242,6 +245,9 @@
       // Atualizar badges das abas
       atualizarBadges();
 
+      // Atualizar seletores de período
+      atualizarTodosPeriodSelectors();
+
       console.log("✅ Dados iniciais carregados com sucesso!");
     } catch (e) {
       console.error("❌ Erro ao carregar dados:", e);
@@ -249,7 +255,7 @@
         UI.showToast(
           "Erro",
           "Falha ao carregar dados. Verifique sua conexão.",
-          "error",
+          "error"
         );
       }
     } finally {
@@ -290,14 +296,14 @@
       if (badgeRH) {
         let ferias = dados.ferias || [];
         let afastamentos = dados.afastamentos || [];
-
+        
         if (RH.dados) {
           ferias = RH.dados.ferias || ferias;
           afastamentos = RH.dados.afastamentos || afastamentos;
         }
-
+        
         const ativos = afastamentos.filter(
-          (a) => a.status !== "encerrado" && new Date(a.end_date) >= new Date(),
+          (a) => a.status !== "encerrado" && new Date(a.end_date) >= new Date()
         );
         const count = ferias.length + ativos.length;
         badgeRH.textContent = count;
@@ -311,7 +317,9 @@
         if (Dividas.dados && Dividas.dados.dividas) {
           dividas = Dividas.dados.dividas;
         }
-        const count = dividas.filter((d) => d.status !== "quitada").length;
+        const count = dividas.filter(
+          (d) => d.status !== "quitada"
+        ).length;
         badgeDiv.textContent = count;
         badgeDiv.style.display = count > 0 ? "flex" : "none";
       }
@@ -321,15 +329,13 @@
   }
 
   // ============================================================
-  // ATUALIZAR PERIOD DISPLAY
+  // ATUALIZAR SELETORES DE PERÍODO
   // ============================================================
 
-  function atualizarPeriodDisplay(periodo, elementId) {
-    const el = document.getElementById(elementId);
-    if (!el) return;
-    const mes = periodo.toLocaleDateString("pt-BR", { month: "long" });
-    const ano = periodo.getFullYear();
-    el.textContent = `${mes.charAt(0).toUpperCase() + mes.slice(1)} ${ano}`;
+  function atualizarTodosPeriodSelectors() {
+    if (global.UI && typeof global.UI.atualizarTodosPeriodSelectors === 'function') {
+      global.UI.atualizarTodosPeriodSelectors();
+    }
   }
 
   // ============================================================
@@ -466,7 +472,7 @@
           pullIndicator.classList.remove("active");
         }
       },
-      { passive: true },
+      { passive: true }
     );
 
     appContent.addEventListener(
@@ -496,7 +502,7 @@
           }
         }
       },
-      { passive: true },
+      { passive: true }
     );
 
     appContent.addEventListener(
@@ -518,7 +524,7 @@
         pullTouchStartY = 0;
         pullTouchMoved = false;
       },
-      { passive: true },
+      { passive: true }
     );
   }
 
@@ -537,7 +543,7 @@
       touchStartY = e.touches[0].clientY;
       isSwiping = false;
     },
-    { passive: true },
+    { passive: true }
   );
 
   document.addEventListener(
@@ -549,7 +555,7 @@
         isSwiping = true;
       }
     },
-    { passive: true },
+    { passive: true }
   );
 
   document.addEventListener(
@@ -585,7 +591,7 @@
 
       isSwiping = false;
     },
-    { passive: true },
+    { passive: true }
   );
 
   // ============================================================
@@ -614,7 +620,7 @@
     carregarDadosIniciais,
     carregarDados: carregarDadosIniciais,
     atualizarBadges,
-    atualizarPeriodDisplay,
+    atualizarTodosPeriodSelectors,
     init: initApp,
     // Expor referências dos módulos
     Utils,
