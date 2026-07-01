@@ -1,7 +1,7 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // Módulo Dashboard (dashboard.js) - Aba Geral
-// Versão 2.2 - Correção de erros e melhorias de estabilidade
+// Versão 2.3 - Com cards verticais, gráficos horizontais e filtros no topo
 // ============================================================
 
 (function (global) {
@@ -36,7 +36,7 @@
 
   let dados = {};
   let carregando = false;
-  let graficoPeriodo = "atual";
+  let graficoPeriodo = "atual"; // atual, ultimo, 3m, 6m, 12m
   let periodState = {
     producao: new Date(),
     financeiro: new Date(),
@@ -601,7 +601,6 @@
       saldoDevedorDividas,
       percentualQuitadoDividas,
       saldo,
-      dadosGraficos,
     } = dados;
 
     // ========== ATUALIZAR RELÓGIO ==========
@@ -621,47 +620,50 @@
       });
     }
 
-    // ========== KPI CARDS COM HIERARQUIA VERTICAL ==========
+    // ========== CONFIGURAR FILTROS DE PERÍODO ==========
+    configurarFiltrosPeriodo();
 
-    // Card: Produção
+    // ========== KPI CARDS NA VERTICAL ==========
+
+    // Card: Produção (Vertical)
     const kpiProducao = document.getElementById("kpiProducao");
     if (kpiProducao) {
       kpiProducao.innerHTML = `
         <div class="kpi-label"><i class="ph ph-factory"></i> Produção</div>
-        <div class="kpi-value">${totalOS || 0} lotes</div>
-        <div class="kpi-detail" style="display:flex; flex-direction:column; align-items:center; gap:2px; margin-top:4px;">
-          <span><i class="ph ph-inbox"></i> Recebidos: ${recebidos || 0}</span>
-          <span><i class="ph ph-sewing-needle"></i> Em Costura: ${emCostura || 0}</span>
-          <span><i class="ph ph-check-circle"></i> Costurados: ${costurados || 0}</span>
-          <span><i class="ph ph-truck"></i> Entregues: ${entregues || 0}</span>
-          <span><i class="ph ph-currency-dollar"></i> Pagos: ${pagos || 0}</span>
-          <span><i class="ph ph-clock"></i> Pendentes: ${pendentes || 0}</span>
-          <span style="color:var(--gold-light); font-weight:600; margin-top:2px;">
-            <i class="ph ph-currency-circle-dollar"></i> Valor total: ${formatCurrency(valorTotalProducao || 0)}
+        <div class="kpi-value" style="font-size:20px;">${totalOS || 0} lotes</div>
+        <div class="kpi-detail" style="display:flex; flex-direction:column; align-items:flex-start; gap:3px; margin-top:6px; font-size:10px;">
+          <span><i class="ph ph-inbox" style="font-size:12px;"></i> Recebidos: ${recebidos || 0}</span>
+          <span><i class="ph ph-sewing-needle" style="font-size:12px;"></i> Em Costura: ${emCostura || 0}</span>
+          <span><i class="ph ph-check-circle" style="font-size:12px;"></i> Costurados: ${costurados || 0}</span>
+          <span><i class="ph ph-truck" style="font-size:12px;"></i> Entregues: ${entregues || 0}</span>
+          <span><i class="ph ph-currency-dollar" style="font-size:12px;"></i> Pagos: ${pagos || 0}</span>
+          <span><i class="ph ph-clock" style="font-size:12px;"></i> Pendentes: ${pendentes || 0}</span>
+          <span style="color:var(--gold-light); font-weight:600; margin-top:4px; font-size:11px;">
+            <i class="ph ph-currency-circle-dollar" style="font-size:12px;"></i> Valor total: ${formatCurrency(valorTotalProducao || 0)}
           </span>
         </div>
         <div class="deco-line gold"></div>
       `;
     }
 
-    // Card: Financeiro
+    // Card: Financeiro (Vertical)
     const kpiFinanceiro = document.getElementById("kpiFinanceiro");
     if (kpiFinanceiro) {
       const saldoClass = saldo >= 0 ? "success" : "danger";
       kpiFinanceiro.innerHTML = `
         <div class="kpi-label"><i class="ph ph-currency-circle-dollar"></i> Financeiro</div>
-        <div class="kpi-value ${saldoClass}">${formatCurrency(saldo || 0)}</div>
-        <div class="kpi-detail" style="display:flex; flex-direction:column; align-items:center; gap:2px; margin-top:4px;">
-          <span><i class="ph ph-arrow-circle-up"></i> A Receber: ${formatCurrency(totalReceber || 0)}</span>
-          <span><i class="ph ph-arrow-circle-down"></i> A Pagar: ${formatCurrency(totalPagar || 0)}</span>
-          <span><i class="ph ph-warning-circle"></i> Vencidas: ${contasVencidas || 0}</span>
-          <span><i class="ph ph-clock"></i> Vencem em 7 dias: ${contasVencerProximas || 0}</span>
+        <div class="kpi-value ${saldoClass}" style="font-size:20px;">${formatCurrency(saldo || 0)}</div>
+        <div class="kpi-detail" style="display:flex; flex-direction:column; align-items:flex-start; gap:3px; margin-top:6px; font-size:10px;">
+          <span><i class="ph ph-arrow-circle-up" style="font-size:12px;"></i> A Receber: ${formatCurrency(totalReceber || 0)}</span>
+          <span><i class="ph ph-arrow-circle-down" style="font-size:12px;"></i> A Pagar: ${formatCurrency(totalPagar || 0)}</span>
+          <span><i class="ph ph-warning-circle" style="font-size:12px;"></i> Vencidas: ${contasVencidas || 0}</span>
+          <span><i class="ph ph-clock" style="font-size:12px;"></i> Vencem em 7 dias: ${contasVencerProximas || 0}</span>
         </div>
         <div class="deco-line green"></div>
       `;
     }
 
-    // Card: RH
+    // Card: RH (Vertical)
     const kpiRH = document.getElementById("kpiRH");
     if (kpiRH) {
       const totalFuncionarios = funcionarios?.length || 0;
@@ -672,10 +674,10 @@
 
       kpiRH.innerHTML = `
         <div class="kpi-label"><i class="ph ph-users"></i> Recursos Humanos</div>
-        <div class="kpi-value">${totalFuncionarios}</div>
-        <div class="kpi-detail" style="display:flex; flex-direction:column; align-items:center; gap:2px; margin-top:4px;">
-          <span><i class="ph ph-sun"></i> Em férias: ${totalFerias}</span>
-          <span><i class="ph ph-hospital"></i> Em afastamento: ${totalAfastamentos}</span>
+        <div class="kpi-value" style="font-size:20px;">${totalFuncionarios}</div>
+        <div class="kpi-detail" style="display:flex; flex-direction:column; align-items:flex-start; gap:3px; margin-top:6px; font-size:10px;">
+          <span><i class="ph ph-sun" style="font-size:12px;"></i> Em férias: ${totalFerias}</span>
+          <span><i class="ph ph-hospital" style="font-size:12px;"></i> Em afastamento: ${totalAfastamentos}</span>
         </div>
         <div class="deco-line pink"></div>
       `;
@@ -846,7 +848,40 @@
   }
 
   // ============================================================
-  // FUNÇÃO PARA RENDERIZAR GRÁFICOS
+  // FUNÇÃO PARA CONFIGURAR FILTROS DE PERÍODO
+  // ============================================================
+
+  function configurarFiltrosPeriodo() {
+    const filtros = document.querySelectorAll(".period-filter-btn");
+    
+    filtros.forEach((btn) => {
+      btn.addEventListener("click", function() {
+        // Remover active de todos
+        filtros.forEach((b) => {
+          b.classList.remove("active");
+          b.style.borderColor = "rgba(255,255,255,0.08)";
+          b.style.background = "transparent";
+          b.style.color = "var(--gray)";
+        });
+        
+        // Adicionar active no clicado
+        this.classList.add("active");
+        this.style.borderColor = "var(--gold-light)";
+        this.style.background = "rgba(212,160,23,0.15)";
+        this.style.color = "var(--gold-light)";
+        
+        // Atualizar período
+        const periodo = this.dataset.periodo;
+        graficoPeriodo = periodo;
+        
+        // Recarregar gráficos com o novo período
+        renderizarGraficos(dados);
+      });
+    });
+  }
+
+  // ============================================================
+  // FUNÇÃO PARA RENDERIZAR GRÁFICOS (HORIZONTAIS)
   // ============================================================
 
   function renderizarGraficos(dados) {
@@ -872,15 +907,6 @@
       `;
       return;
     }
-
-    // Seletor de período
-    const periodOptions = [
-      { value: "atual", label: "Mês atual" },
-      { value: "ultimo", label: "Último mês" },
-      { value: "3m", label: "3 meses" },
-      { value: "6m", label: "6 meses" },
-      { value: "12m", label: "12 meses" },
-    ];
 
     // Filtrar dados conforme período selecionado
     let meses = dadosGraficos.meses || [];
@@ -935,21 +961,36 @@
       Math.max(...saldos, 0) + 1000
     );
 
-    // ========== GRÁFICO 1: Receitas vs Despesas ==========
+    // ========== GRÁFICO 1: Receitas vs Despesas (HORIZONTAL) ==========
     let graficoBarrasHtml = "";
     if (meses.length > 0) {
       const maxBar = Math.max(...receitas, ...despesas, 1);
+      
+      // Para cada mês, criar barras horizontais empilhadas
       graficoBarrasHtml = meses
         .map((mes, i) => {
           const pctReceita = Math.round((receitas[i] / maxBar) * 100);
           const pctDespesa = Math.round((despesas[i] / maxBar) * 100);
+          const valorReceita = receitas[i] || 0;
+          const valorDespesa = despesas[i] || 0;
+          
           return `
-            <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:30px;">
-              <div style="display:flex; justify-content:center; gap:2px; height:60px; align-items:flex-end;">
-                <div style="width:12px; height:${Math.max(pctReceita, 2)}%; background:${CORES_GRAFICO.receita}; border-radius:3px 3px 0 0; min-height:4px; transition:height 0.6s ease;"></div>
-                <div style="width:12px; height:${Math.max(pctDespesa, 2)}%; background:${CORES_GRAFICO.despesa}; border-radius:3px 3px 0 0; min-height:4px; transition:height 0.6s ease;"></div>
+            <div style="display:flex; flex-direction:column; gap:3px; flex:1; min-width:40px; padding:0 2px;">
+              <div style="display:flex; flex-direction:column; gap:2px; width:100%;">
+                <div style="display:flex; align-items:center; gap:4px; width:100%;">
+                  <span style="font-size:0.4rem; color:var(--gray-dark); min-width:18px; text-align:right; font-weight:600;">${formatCurrency(valorReceita)}</span>
+                  <div style="flex:1; height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;">
+                    <div style="width:${Math.max(pctReceita, 2)}%; height:100%; background:${CORES_GRAFICO.receita}; border-radius:3px; min-width:3px; transition:width 0.6s ease;"></div>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:4px; width:100%;">
+                  <span style="font-size:0.4rem; color:var(--gray-dark); min-width:18px; text-align:right; font-weight:600;">${formatCurrency(valorDespesa)}</span>
+                  <div style="flex:1; height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;">
+                    <div style="width:${Math.max(pctDespesa, 2)}%; height:100%; background:${CORES_GRAFICO.despesa}; border-radius:3px; min-width:3px; transition:width 0.6s ease;"></div>
+                  </div>
+                </div>
               </div>
-              <div style="font-size:0.5rem; color:var(--gray-dark); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${mes.substring(0, 3)}</div>
+              <div style="font-size:0.45rem; color:var(--gray-dark); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; font-weight:500;">${mes.substring(0, 3)}</div>
             </div>
           `;
         })
@@ -991,12 +1032,12 @@
             const label = tiposLabels[tipo] || tipo;
             const cor = tiposCores[tipo] || "#9e9e9e";
             return `
-              <div style="display:flex; align-items:center; gap:8px; padding:2px 0;">
-                <div style="width:12px; height:12px; border-radius:50%; background:${cor}; flex-shrink:0;"></div>
-                <span style="font-size:0.65rem; color:var(--gray); flex:1;">${label}</span>
-                <span style="font-size:0.65rem; font-weight:600; color:var(--white);">${pct}%</span>
-                <div style="width:60px; height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden;">
-                  <div style="width:${pct}%; height:100%; background:${cor}; border-radius:2px;"></div>
+              <div style="display:flex; align-items:center; gap:8px; padding:3px 0;">
+                <div style="width:14px; height:14px; border-radius:50%; background:${cor}; flex-shrink:0; border:1px solid rgba(255,255,255,0.1);"></div>
+                <span style="font-size:0.7rem; color:var(--gray); flex:1;">${label}</span>
+                <span style="font-size:0.7rem; font-weight:600; color:var(--white);">${pct}%</span>
+                <div style="width:70px; height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;">
+                  <div style="width:${pct}%; height:100%; background:${cor}; border-radius:3px; transition:width 0.6s ease;"></div>
                 </div>
               </div>
             `;
@@ -1039,12 +1080,12 @@
               gap:2px;
             ">
               <div style="
-                width:8px;
-                height:8px;
+                width:10px;
+                height:10px;
                 border-radius:50%;
                 background:${isPositive ? CORES_GRAFICO.success : CORES_GRAFICO.error};
                 border:2px solid var(--black-soft);
-                box-shadow:0 0 8px ${isPositive ? 'rgba(76,175,80,0.3)' : 'rgba(255,82,82,0.3)'};
+                box-shadow:0 0 10px ${isPositive ? 'rgba(76,175,80,0.3)' : 'rgba(255,82,82,0.3)'};
                 cursor:pointer;
                 transition:all 0.2s ease;
               " 
@@ -1052,7 +1093,7 @@
               onmouseleave="this.style.transform='scale(1)'"
               title="${formatCurrency(saldo)}">
               </div>
-              <span style="font-size:0.45rem; color:var(--gray-dark);">${formatCurrency(saldo)}</span>
+              <span style="font-size:0.5rem; color:var(--gray-dark);">${formatCurrency(saldo)}</span>
             </div>
           `;
         })
@@ -1074,7 +1115,7 @@
               points="${linePoints}"
               fill="none"
               stroke="${CORES_GRAFICO.linha}"
-              stroke-width="2"
+              stroke-width="2.5"
               stroke-linecap="round"
               stroke-linejoin="round"
               opacity="0.6"
@@ -1086,13 +1127,13 @@
               stroke-width="1"
               stroke-linecap="round"
               stroke-linejoin="round"
-              opacity="0.3"
+              opacity="0.2"
               stroke-dasharray="4,4"
             />
           </svg>
           ${pontos}
         </div>
-        <div style="display:flex; justify-content:space-between; font-size:0.5rem; color:var(--gray-dark); padding:0 4px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.55rem; color:var(--gray-dark); padding:0 4px; font-weight:500;">
           ${meses.map(m => `<span>${m.substring(0, 3)}</span>`).join('')}
         </div>
       `;
@@ -1100,33 +1141,7 @@
 
     // ========== MONTAR HTML DOS GRÁFICOS ==========
     const html = `
-      <!-- Seletor de Período -->
-      <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:12px;">
-        ${periodOptions.map(opt => `
-          <button class="period-grafico-btn ${graficoPeriodo === opt.value ? 'active' : ''}" 
-                  data-periodo="${opt.value}"
-                  style="
-                    padding:4px 12px;
-                    border-radius:16px;
-                    border:1px solid ${graficoPeriodo === opt.value ? 'var(--gold-light)' : 'rgba(255,255,255,0.08)'};
-                    background:${graficoPeriodo === opt.value ? 'rgba(212,160,23,0.15)' : 'transparent'};
-                    color:${graficoPeriodo === opt.value ? 'var(--gold-light)' : 'var(--gray)'};
-                    font-size:0.6rem;
-                    font-weight:500;
-                    cursor:pointer;
-                    transition:all 0.2s ease;
-                    font-family:inherit;
-                    min-height:30px;
-                  "
-                  onmouseenter="this.style.borderColor='var(--gold-light)'; this.style.color='var(--white)';"
-                  onmouseleave="this.style.borderColor='${graficoPeriodo === opt.value ? 'var(--gold-light)' : 'rgba(255,255,255,0.08)'}'; this.style.color='${graficoPeriodo === opt.value ? 'var(--gold-light)' : 'var(--gray)'}';"
-                  onclick="window.Dashboard.mudarPeriodoGrafico('${opt.value}')">
-            ${opt.label}
-          </button>
-        `).join('')}
-      </div>
-
-      <!-- Gráfico 1: Receitas vs Despesas -->
+      <!-- Gráfico 1: Receitas vs Despesas (Horizontal) -->
       <div class="big-card" style="padding:14px 16px; margin-bottom:12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
           <div style="font-size:11px; font-weight:600; color:var(--gold-light); display:flex; align-items:center; gap:6px;">
@@ -1143,8 +1158,8 @@
             </span>
           </div>
         </div>
-        <div style="display:flex; gap:4px; height:80px; align-items:flex-end; padding:4px 0;">
-          ${graficoBarrasHtml || '<div style="color:var(--gray-dark);font-size:0.7rem;text-align:center;width:100%;">Sem dados</div>'}
+        <div style="display:flex; gap:4px; min-height:120px; align-items:flex-end; padding:4px 0; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+          ${graficoBarrasHtml || '<div style="color:var(--gray-dark);font-size:0.7rem;text-align:center;width:100%;padding:20px 0;">Sem dados</div>'}
         </div>
       </div>
 
@@ -1167,27 +1182,6 @@
 
     container.innerHTML = html;
   }
-
-  // ============================================================
-  // FUNÇÃO PARA MUDAR PERÍODO DOS GRÁFICOS
-  // ============================================================
-
-  window.mudarPeriodoGrafico = function (periodo) {
-    graficoPeriodo = periodo;
-    renderizarGraficos(dados);
-
-    // Atualizar estilo dos botões
-    document.querySelectorAll(".period-grafico-btn").forEach((btn) => {
-      const isActive = btn.dataset.periodo === periodo;
-      btn.style.borderColor = isActive
-        ? "var(--gold-light)"
-        : "rgba(255,255,255,0.08)";
-      btn.style.background = isActive
-        ? "rgba(212,160,23,0.15)"
-        : "transparent";
-      btn.style.color = isActive ? "var(--gold-light)" : "var(--gray)";
-    });
-  };
 
   // ============================================================
   // FUNÇÃO PARA ATUALIZAR OS DADOS (Refresh)
@@ -1218,9 +1212,7 @@
     // Renderização
     renderizarGeral,
     renderizarGraficos,
-
-    // Gráficos
-    mudarPeriodoGrafico: window.mudarPeriodoGrafico,
+    configurarFiltrosPeriodo,
 
     // Utilitários
     gerarEventosFinanceiros,
