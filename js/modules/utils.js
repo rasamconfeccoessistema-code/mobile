@@ -1,7 +1,7 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // Módulo de Utilitários (utils.js)
-// Versão 1.0 - Funções auxiliares puras
+// Versão 2.0 - Com funções auxiliares para período e seletores
 // ============================================================
 
 (function (global) {
@@ -115,6 +115,102 @@
     const parts = name.trim().split(" ");
     if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  // ============================================================
+  // FUNÇÕES DE MÊS E ANO (PARA SELETORES)
+  // ============================================================
+
+  /**
+   * Retorna o nome do mês em português
+   * @param {number} mes - Número do mês (0-11)
+   * @returns {string} Nome do mês com primeira letra maiúscula
+   */
+  function getMonthName(mes) {
+    const meses = [
+      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+    return meses[mes] || "Janeiro";
+  }
+
+  /**
+   * Retorna um array com os meses para select
+   * @returns {Array} Array de objetos {value, label}
+   */
+  function getMonthsOptions() {
+    const meses = [
+      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+    return meses.map((nome, index) => ({
+      value: index,
+      label: nome
+    }));
+  }
+
+  /**
+   * Retorna um array com anos para select (últimos 5 + próximos 5)
+   * @param {number} anosAntes - Quantos anos antes do atual
+   * @param {number} anosDepois - Quantos anos depois do atual
+   * @returns {Array} Array de objetos {value, label}
+   */
+  function getYearsOptions(anosAntes = 5, anosDepois = 5) {
+    const anoAtual = new Date().getFullYear();
+    const anos = [];
+    for (let ano = anoAtual - anosAntes; ano <= anoAtual + anosDepois; ano++) {
+      anos.push({
+        value: ano,
+        label: String(ano)
+      });
+    }
+    return anos;
+  }
+
+  /**
+   * Retorna o intervalo de anos para o seletor
+   * @param {number} anosAntes - Quantos anos antes do atual
+   * @param {number} anosDepois - Quantos anos depois do atual
+   * @returns {Object} { min, max, current, options }
+   */
+  function getYearsRange(anosAntes = 5, anosDepois = 5) {
+    const anoAtual = new Date().getFullYear();
+    const min = anoAtual - anosAntes;
+    const max = anoAtual + anosDepois;
+    const options = [];
+    for (let ano = min; ano <= max; ano++) {
+      options.push({ value: ano, label: String(ano) });
+    }
+    return {
+      min,
+      max,
+      current: anoAtual,
+      options
+    };
+  }
+
+  /**
+   * Formata a exibição do período (ex: "Janeiro 2026")
+   * @param {Date} data - Data de referência
+   * @returns {string} Período formatado
+   */
+  function formatPeriodDisplay(data) {
+    if (!data || !(data instanceof Date)) data = new Date();
+    const mes = getMonthName(data.getMonth());
+    const ano = data.getFullYear();
+    return `${mes} ${ano}`;
+  }
+
+  /**
+   * Verifica se duas datas estão no mesmo mês/ano
+   * @param {Date} d1 - Primeira data
+   * @param {Date} d2 - Segunda data
+   * @returns {boolean} True se estiverem no mesmo mês/ano
+   */
+  function isSameMonth(d1, d2) {
+    if (!d1 || !d2) return false;
+    return d1.getMonth() === d2.getMonth() && 
+           d1.getFullYear() === d2.getFullYear();
   }
 
   // ============================================================
@@ -397,6 +493,7 @@
       "Novo Afastamento": "plus-circle",
       "Editar Afastamento": "pencil-simple",
       "Detalhes do Afastamento": "eye",
+      "Selecionar Período": "calendar",
     };
     return icons[title] || "file";
   }
@@ -420,7 +517,15 @@
     capitalizeFirst,
     getInitials,
 
-    // Mês/Ano
+    // Mês e Ano (para seletores)
+    getMonthName,
+    getMonthsOptions,
+    getYearsOptions,
+    getYearsRange,
+    formatPeriodDisplay,
+    isSameMonth,
+
+    // Mês/Ano (data)
     getMonthRange,
     getMonthRangeForDate,
     getProximoDiaUtil,
