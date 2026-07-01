@@ -1,7 +1,7 @@
 // ============================================================
 // APP GESTOR - FACÇÃO JEANS
 // Módulo Dashboard (dashboard.js) - Aba Geral
-// Versão 2.0 - Com novos cards, gráficos e métricas expandidas
+// Versão 2.1 - Com correções de hierarquia visual e gráficos
 // ============================================================
 
 (function (global) {
@@ -626,22 +626,24 @@
       });
     }
 
-    // ========== KPI CARDS ==========
+    // ========== KPI CARDS COM HIERARQUIA VERTICAL ==========
 
     // Card: Produção
     const kpiProducao = document.getElementById("kpiProducao");
     if (kpiProducao) {
       kpiProducao.innerHTML = `
         <div class="kpi-label"><i class="ph ph-factory"></i> Produção</div>
-        <div class="kpi-value">${totalOS || 0}</div>
-        <div class="kpi-detail">
-          📥 ${recebidos || 0} recebidos • 🧵 ${emCostura || 0} em costura • ✅ ${costurados || 0} costurados
-        </div>
-        <div class="kpi-detail" style="margin-top:2px;">
-          📦 ${entregues || 0} entregues • 💰 ${pagos || 0} pagos • ⏳ ${pendentes || 0} pendentes
-        </div>
-        <div class="kpi-detail" style="margin-top:2px; color:var(--gold-light); font-weight:600;">
-          💰 Valor total: ${formatCurrency(valorTotalProducao || 0)}
+        <div class="kpi-value">${totalOS || 0} lotes</div>
+        <div class="kpi-detail" style="display:flex; flex-direction:column; align-items:center; gap:2px; margin-top:4px;">
+          <span><i class="ph ph-inbox"></i> Recebidos: ${recebidos || 0}</span>
+          <span><i class="ph ph-sewing-needle"></i> Em Costura: ${emCostura || 0}</span>
+          <span><i class="ph ph-check-circle"></i> Costurados: ${costurados || 0}</span>
+          <span><i class="ph ph-truck"></i> Entregues: ${entregues || 0}</span>
+          <span><i class="ph ph-currency-dollar"></i> Pagos: ${pagos || 0}</span>
+          <span><i class="ph ph-clock"></i> Pendentes: ${pendentes || 0}</span>
+          <span style="color:var(--gold-light); font-weight:600; margin-top:2px;">
+            <i class="ph ph-currency-circle-dollar"></i> Valor total: ${formatCurrency(valorTotalProducao || 0)}
+          </span>
         </div>
         <div class="deco-line gold"></div>
       `;
@@ -654,11 +656,11 @@
       kpiFinanceiro.innerHTML = `
         <div class="kpi-label"><i class="ph ph-currency-circle-dollar"></i> Financeiro</div>
         <div class="kpi-value ${saldoClass}">${formatCurrency(saldo || 0)}</div>
-        <div class="kpi-detail">
-          💳 A Receber: ${formatCurrency(totalReceber || 0)} • 💰 A Pagar: ${formatCurrency(totalPagar || 0)}
-        </div>
-        <div class="kpi-detail" style="margin-top:2px;">
-          🔴 ${contasVencidas || 0} vencidas • ⏰ ${contasVencerProximas || 0} vencem em 7 dias
+        <div class="kpi-detail" style="display:flex; flex-direction:column; align-items:center; gap:2px; margin-top:4px;">
+          <span><i class="ph ph-arrow-circle-up"></i> A Receber: ${formatCurrency(totalReceber || 0)}</span>
+          <span><i class="ph ph-arrow-circle-down"></i> A Pagar: ${formatCurrency(totalPagar || 0)}</span>
+          <span><i class="ph ph-warning-circle"></i> Vencidas: ${contasVencidas || 0}</span>
+          <span><i class="ph ph-clock"></i> Vencem em 7 dias: ${contasVencerProximas || 0}</span>
         </div>
         <div class="deco-line green"></div>
       `;
@@ -676,8 +678,9 @@
       kpiRH.innerHTML = `
         <div class="kpi-label"><i class="ph ph-users"></i> Recursos Humanos</div>
         <div class="kpi-value">${totalFuncionarios}</div>
-        <div class="kpi-detail">
-          🌴 ${totalFerias} em férias • 🏥 ${totalAfastamentos} em afastamento
+        <div class="kpi-detail" style="display:flex; flex-direction:column; align-items:center; gap:2px; margin-top:4px;">
+          <span><i class="ph ph-sun"></i> Em férias: ${totalFerias}</span>
+          <span><i class="ph ph-hospital"></i> Em afastamento: ${totalAfastamentos}</span>
         </div>
         <div class="deco-line pink"></div>
       `;
@@ -858,12 +861,14 @@
       return;
     }
 
+    // Verificar se dadosGraficos existe e tem dados
     if (!dadosGraficos || !dadosGraficos.meses || dadosGraficos.meses.length === 0) {
       container.innerHTML = `
         <div class="big-card" style="padding:14px 16px; margin-bottom:12px;">
           <div style="text-align:center; padding:20px 0; color:var(--gray-dark);">
             <i class="ph ph-chart-line" style="font-size:28px;display:block;margin-bottom:8px;color:var(--gray);"></i>
             <p style="font-size:12px;">Nenhum dado disponível para gráficos</p>
+            <p style="font-size:10px;color:var(--gray);margin-top:4px;">Cadastre transações financeiras para visualizar os gráficos</p>
           </div>
         </div>
       `;
@@ -911,6 +916,19 @@
       receitas = receitas.slice(-limite);
       despesas = despesas.slice(-limite);
       saldos = saldos.slice(-limite);
+    }
+
+    // Verificar se após o filtro ainda há dados
+    if (meses.length === 0) {
+      container.innerHTML = `
+        <div class="big-card" style="padding:14px 16px; margin-bottom:12px;">
+          <div style="text-align:center; padding:20px 0; color:var(--gray-dark);">
+            <i class="ph ph-chart-line" style="font-size:28px;display:block;margin-bottom:8px;color:var(--gray);"></i>
+            <p style="font-size:12px;">Sem dados para o período selecionado</p>
+          </div>
+        </div>
+      `;
+      return;
     }
 
     const maxValor = Math.max(
