@@ -65,56 +65,48 @@
         </div>
 
         <!-- ============================================================
-            ABA: GERAL (DASHBOARD) - MODO LEITURA
+            ABA: GERAL (DASHBOARD) - COM NOVOS CARDS E GRÁFICOS
             ============================================================ -->
         <div class="tab-content active" id="tab-geral">
           <div class="dashboard-grid">
-            <!-- LINHA 1: 3 cards pequenos -->
+            <!-- LINHA 1: 3 cards grandes (Produção, Financeiro, RH) -->
             <div class="cards-grid cards-grid-3">
-              <div class="kpi-card">
-                <div class="kpi-label">Em Produção</div>
-                <div class="kpi-value" id="kpiEmProducao">-</div>
-                <div class="kpi-detail">OS ativas no mês</div>
-              </div>
-              <div class="kpi-card">
-                <div class="kpi-label">Contas Vencidas</div>
-                <div class="kpi-value danger" id="kpiContasVencidas">-</div>
-                <div class="kpi-detail">do mês atual</div>
-              </div>
-              <div class="kpi-card">
-                <div class="kpi-label">Em Férias</div>
-                <div class="kpi-value warning" id="kpiFerias">-</div>
-                <div class="kpi-detail">funcionários</div>
-              </div>
-            </div>
-
-            <!-- LINHA 2: 2 cards grandes -->
-            <div class="dashboard-row-2col">
-              <div class="big-card">
-                <div class="card-label">Saldo do Mês</div>
-                <div class="card-value danger" id="kpiSaldoMes">R$ --</div>
-                <div class="card-detail">receitas - despesas</div>
+              <div class="kpi-card" id="kpiProducao">
+                <div class="kpi-label"><i class="ph ph-factory"></i> Produção</div>
+                <div class="kpi-value">-</div>
+                <div class="kpi-detail">Carregando...</div>
                 <div class="deco-line gold"></div>
               </div>
-              <div class="big-card">
-                <div class="card-label">Entregas do Mês</div>
-                <div class="card-value" id="kpiEntregasMes">-</div>
-                <div class="card-detail">lotes entregues</div>
+              <div class="kpi-card" id="kpiFinanceiro">
+                <div class="kpi-label"><i class="ph ph-currency-circle-dollar"></i> Financeiro</div>
+                <div class="kpi-value">-</div>
+                <div class="kpi-detail">Carregando...</div>
                 <div class="deco-line green"></div>
+              </div>
+              <div class="kpi-card" id="kpiRH">
+                <div class="kpi-label"><i class="ph ph-users"></i> Recursos Humanos</div>
+                <div class="kpi-value">-</div>
+                <div class="kpi-detail">Carregando...</div>
+                <div class="deco-line pink"></div>
               </div>
             </div>
 
-            <!-- LINHA 3: Dívidas Ativas -->
-            <div class="big-card">
-              <div class="card-label">Dívidas Ativas</div>
+            <!-- LINHA 2: Card de Dívidas Ativas -->
+            <div class="big-card" id="kpiDividas">
+              <div class="card-label" style="display:flex; align-items:center; gap:8px;">
+                <i class="ph ph-warning-circle" style="color:var(--warning);"></i>
+                Dívidas Ativas
+                <span style="margin-left:auto; font-size:0.6rem; color:var(--gray-dark);">carregando...</span>
+              </div>
               <div class="divida-card">
                 <div class="left">
-                  <div class="card-value danger" id="kpiDividasAtivas">
-                    R$ --
+                  <div class="card-value danger" style="font-size:24px;">R$ --</div>
+                  <div class="card-detail" style="font-size:10px;">Carregando...</div>
+                  <div style="margin-top:6px; height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden;">
+                    <div style="width:0%; height:100%; background:linear-gradient(90deg, var(--warning), var(--success)); border-radius:2px; transition:width 0.8s ease;"></div>
                   </div>
-                  <div class="card-detail">total em aberto</div>
                 </div>
-                <div class="right" id="gaugeContainer">
+                <div class="right" style="width:60px; height:60px;">
                   <svg viewBox="0 0 72 72">
                     <circle class="gauge-bg" cx="36" cy="36" r="30" />
                     <circle
@@ -140,245 +132,71 @@
                       </linearGradient>
                     </defs>
                   </svg>
-                  <div class="gauge-center">
+                  <div class="gauge-center" style="font-size:10px;">
                     <span id="gaugePercent">0%</span>
                   </div>
                 </div>
               </div>
+              <div class="deco-line gold"></div>
             </div>
 
-            <!-- LINHA 4: Alertas + Resumo Financeiro -->
-            <div class="dashboard-row-2col">
-              <div class="big-card" style="padding: 14px 16px">
-                <div
-                  style="
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 10px;
-                  "
-                >
-                  <div
-                    style="
-                      font-size: 12px;
-                      font-weight: 600;
-                      color: var(--gold-light);
-                      display: flex;
-                      align-items: center;
-                      gap: 6px;
-                    "
-                  >
-                    <i class="ph ph-bell"></i> Alertas
-                  </div>
-                  <span
-                    style="
-                      font-size: 10px;
-                      font-weight: 700;
-                      color: var(--white);
-                      background: rgba(255, 82, 82, 0.2);
-                      padding: 2px 10px;
-                      border-radius: 20px;
-                      border: 1px solid rgba(255, 82, 82, 0.2);
-                    "
-                    id="alertasCount"
-                    >0</span
-                  >
-                </div>
-                <div id="alertasContainer">
-                  <div
-                    class="loading-state"
-                    style="
-                      padding: 12px 0;
-                      text-align: center;
-                      color: var(--gray-dark);
-                      font-size: 11px;
-                    "
-                  >
-                    <i class="ph ph-spinner spinning"></i> Carregando...
-                  </div>
+            <!-- LINHA 3: Gráficos -->
+            <div id="graficosContainer">
+              <div class="big-card" style="padding:14px 16px; margin-bottom:12px;">
+                <div style="text-align:center; padding:20px 0; color:var(--gray-dark);">
+                  <i class="ph ph-chart-line" style="font-size:28px;display:block;margin-bottom:8px;color:var(--gray);"></i>
+                  <p style="font-size:12px;">Carregando gráficos...</p>
                 </div>
               </div>
+            </div>
 
-              <div class="big-card" style="padding: 14px 16px">
+            <!-- LINHA 4: Alertas -->
+            <div class="big-card" style="padding: 14px 16px">
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 10px;
+                "
+              >
                 <div
                   style="
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: var(--gold-light);
                     display: flex;
-                    justify-content: space-between;
                     align-items: center;
-                    margin-bottom: 10px;
+                    gap: 6px;
                   "
                 >
-                  <div
-                    style="
-                      font-size: 12px;
-                      font-weight: 600;
-                      color: var(--gold-light);
-                      display: flex;
-                      align-items: center;
-                      gap: 6px;
-                    "
-                  >
-                    <i class="ph ph-currency-circle-dollar"></i> Resumo
-                    Financeiro
-                  </div>
-                  <span
-                    style="font-size: 8px; color: var(--gray-dark)"
-                    id="resumoPeriodo"
-                    >Mês atual</span
-                  >
+                  <i class="ph ph-bell"></i> Alertas
                 </div>
-                <div
-                  class="bar-chart"
+                <span
                   style="
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-                    margin-bottom: 10px;
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: var(--white);
+                    background: rgba(255, 82, 82, 0.2);
+                    padding: 2px 10px;
+                    border-radius: 20px;
+                    border: 1px solid rgba(255, 82, 82, 0.2);
+                  "
+                  id="alertasCount"
+                  >0</span
+                >
+              </div>
+              <div id="alertasContainer">
+                <div
+                  class="loading-state"
+                  style="
+                    padding: 12px 0;
+                    text-align: center;
+                    color: var(--gray-dark);
+                    font-size: 11px;
                   "
                 >
-                  <div
-                    class="bar-row"
-                    style="display: flex; align-items: center; gap: 10px"
-                  >
-                    <span
-                      class="bar-label"
-                      style="
-                        font-size: 10px;
-                        color: var(--gray);
-                        width: 56px;
-                        flex-shrink: 0;
-                        text-align: right;
-                      "
-                      >Receitas</span
-                    >
-                    <div
-                      class="bar-track"
-                      style="
-                        flex: 1;
-                        height: 8px;
-                        background: rgba(255, 255, 255, 0.04);
-                        border-radius: 4px;
-                        overflow: hidden;
-                        position: relative;
-                      "
-                    >
-                      <div
-                        class="bar-fill receita"
-                        id="barReceita"
-                        style="
-                          height: 100%;
-                          border-radius: 4px;
-                          background: linear-gradient(
-                            90deg,
-                            var(--success),
-                            #66bb6a
-                          );
-                          width: 0%;
-                          transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-                        "
-                      ></div>
-                    </div>
-                    <span
-                      class="bar-value positive"
-                      style="
-                        font-size: 10px;
-                        font-weight: 600;
-                        width: 80px;
-                        flex-shrink: 0;
-                        text-align: right;
-                        color: var(--success);
-                      "
-                      id="valorReceita"
-                      >R$ 0</span
-                    >
-                  </div>
-                  <div
-                    class="bar-row"
-                    style="display: flex; align-items: center; gap: 10px"
-                  >
-                    <span
-                      class="bar-label"
-                      style="
-                        font-size: 10px;
-                        color: var(--gray);
-                        width: 56px;
-                        flex-shrink: 0;
-                        text-align: right;
-                      "
-                      >Despesas</span
-                    >
-                    <div
-                      class="bar-track"
-                      style="
-                        flex: 1;
-                        height: 8px;
-                        background: rgba(255, 255, 255, 0.04);
-                        border-radius: 4px;
-                        overflow: hidden;
-                        position: relative;
-                      "
-                    >
-                      <div
-                        class="bar-fill despesa"
-                        id="barDespesa"
-                        style="
-                          height: 100%;
-                          border-radius: 4px;
-                          background: linear-gradient(
-                            90deg,
-                            var(--error),
-                            #ff8a80
-                          );
-                          width: 0%;
-                          transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-                        "
-                      ></div>
-                    </div>
-                    <span
-                      class="bar-value negative"
-                      style="
-                        font-size: 10px;
-                        font-weight: 600;
-                        width: 80px;
-                        flex-shrink: 0;
-                        text-align: right;
-                        color: var(--error);
-                      "
-                      id="valorDespesa"
-                      >R$ 0</span
-                    >
-                  </div>
-                </div>
-                <div
-                  class="saldo-final"
-                  style="
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding-top: 10px;
-                    border-top: 1px solid rgba(255, 255, 255, 0.04);
-                    margin-top: 4px;
-                  "
-                >
-                  <span
-                    class="label"
-                    style="
-                      font-size: 10px;
-                      color: var(--gray-dark);
-                      font-weight: 500;
-                    "
-                    >Saldo do mês</span
-                  >
-                  <span
-                    class="value"
-                    style="
-                      font-size: 18px;
-                      font-weight: 800;
-                      color: var(--error);
-                    "
-                    id="saldoFinal"
-                    >R$ 0,00</span
-                  >
+                  <i class="ph ph-spinner spinning"></i> Carregando...
                 </div>
               </div>
             </div>
@@ -520,11 +338,11 @@
         </div>
 
         <!-- ============================================================
-            ABA: FINANCEIRO - MODO LEITURA COM VISUAL PREMIUM E CALENDÁRIO
+            ABA: FINANCEIRO - APENAS VISUALIZAÇÃO (SEM CRUD)
             ============================================================ -->
         <div class="tab-content" id="tab-financeiro">
           <!-- ============================================================
-               PANEL HEADER PARA O BOTÃO DE TOGGLE E EXPORTAR PDF
+               PANEL HEADER PARA EXPORTAR PDF
                ============================================================ -->
           <div
             class="panel-header"
@@ -588,7 +406,7 @@
             </div>
           </div>
 
-          <!-- Lista de lançamentos (cards ou calendário) -->
+          <!-- Lista de lançamentos (apenas visualização) -->
           <div class="big-card" style="padding: 14px 16px">
             <div
               style="
@@ -621,7 +439,7 @@
         </div>
 
         <!-- ============================================================
-            ABA: RH - COM CONTROLE DE AFASTAMENTOS E FÉRIAS
+            ABA: RH - APENAS VISUALIZAÇÃO (SEM CRUD)
             ============================================================ -->
         <div class="tab-content" id="tab-rh">
           <div class="tab-section-title">
@@ -661,23 +479,6 @@
             </div>
           </div>
 
-          <!-- Botão Novo Afastamento -->
-          <div
-            style="
-              display: flex;
-              justify-content: flex-end;
-              margin-bottom: 12px;
-            "
-          >
-            <button
-              class="btn-primary"
-              id="btnNovoAfastamento"
-              style="padding: 8px 16px; font-size: 0.8rem"
-            >
-              <i class="ph ph-plus-circle"></i> Novo Afastamento
-            </button>
-          </div>
-
           <!-- Férias em andamento -->
           <div class="big-card" style="padding: 14px 16px; margin-bottom: 12px">
             <div
@@ -709,7 +510,7 @@
             </div>
           </div>
 
-          <!-- Afastamentos -->
+          <!-- Afastamentos (apenas visualização) -->
           <div class="big-card" style="padding: 14px 16px; margin-bottom: 12px">
             <div
               style="
@@ -773,7 +574,7 @@
         </div>
 
         <!-- ============================================================
-            ABA: DÍVIDAS - MODO LEITURA COM VISUAL PREMIUM
+            ABA: DÍVIDAS - APENAS VISUALIZAÇÃO (SEM CRUD)
             ============================================================ -->
         <div class="tab-content" id="tab-dividas">
           <div class="tab-section-title">
@@ -820,7 +621,7 @@
             </div>
           </div>
 
-          <!-- Lista de dívidas -->
+          <!-- Lista de dívidas (apenas visualização) -->
           <div class="big-card" style="padding: 14px 16px">
             <div
               style="
@@ -850,19 +651,6 @@
               </div>
             </div>
             <div id="paginacaoDividas"></div>
-          </div>
-
-          <!-- Botão Nova Dívida -->
-          <div
-            style="display: flex; justify-content: flex-end; margin-top: 12px"
-          >
-            <button
-              class="btn-primary"
-              id="btnNovaDivida"
-              style="padding: 8px 16px; font-size: 0.8rem"
-            >
-              <i class="ph ph-plus-circle"></i> Nova Dívida
-            </button>
           </div>
         </div>
 
