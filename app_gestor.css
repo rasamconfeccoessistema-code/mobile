@@ -1,7 +1,7 @@
 /* ============================================================
    APP GESTOR - FACÇÃO JEANS
    Estilos completos para o aplicativo do gestor
-   VERSÃO 3.1 - COM MODAIS REFATORADOS, SELETOR DE PERÍODO E MENU DE AÇÕES
+   VERSÃO 3.2 - COM NOVOS CARDS, GRÁFICOS E MELHORIAS VISUAIS
    ============================================================ */
 
 /* ---------- RESET & BASE ---------- */
@@ -449,6 +449,10 @@ body {
   color: var(--gray-dark);
   letter-spacing: 0.8px;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .kpi-card .kpi-value {
@@ -488,6 +492,90 @@ body {
   font-size: 8px;
   color: var(--gray-dark);
   margin-top: 1px;
+  line-height: 1.3;
+}
+
+.kpi-card .deco-line {
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  margin-top: 8px;
+  opacity: 0.5;
+  animation: decoPulse 2s ease-in-out infinite;
+}
+
+.kpi-card .deco-line.gold {
+  background: linear-gradient(
+    90deg,
+    var(--pink),
+    var(--orange),
+    var(--gold-light)
+  );
+}
+.kpi-card .deco-line.green {
+  background: linear-gradient(90deg, var(--success), #66bb6a, #a5d6a7);
+}
+.kpi-card .deco-line.pink {
+  background: linear-gradient(
+    90deg,
+    var(--pink),
+    var(--pink-light),
+    var(--gold-light)
+  );
+}
+.kpi-card .deco-line.blue {
+  background: linear-gradient(90deg, #2196f3, #42a5f5, #64b5f6);
+}
+
+/* ---------- NOVOS CARDS DO DASHBOARD ---------- */
+.kpi-card .kpi-producao-status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 6px;
+  font-size: 0.55rem;
+  color: var(--gray);
+  margin-top: 2px;
+}
+
+.kpi-card .kpi-producao-status .status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.kpi-card .kpi-producao-status .status-item .dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 2px;
+}
+
+.kpi-card .kpi-producao-status .status-item .dot.recebido {
+  background: #9e9e9e;
+}
+.kpi-card .kpi-producao-status .status-item .dot.em-costura {
+  background: #2196f3;
+}
+.kpi-card .kpi-producao-status .status-item .dot.costurado {
+  background: #4caf50;
+}
+.kpi-card .kpi-producao-status .status-item .dot.entregue {
+  background: #d4a017;
+}
+.kpi-card .kpi-producao-status .status-item .dot.pago {
+  background: #2e7d32;
+}
+.kpi-card .kpi-producao-status .status-item .dot.pendente {
+  background: #ffc107;
+}
+
+.kpi-card .kpi-producao-valor {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--gold-light);
+  margin-top: 3px;
 }
 
 /* ---------- BIG CARD ---------- */
@@ -672,6 +760,181 @@ body {
   font-size: 7px;
   font-weight: 400;
   color: var(--gray-dark);
+}
+
+/* ---------- GRÁFICOS ---------- */
+.period-grafico-btn {
+  padding: 4px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: var(--gray);
+  font-size: 0.6rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  min-height: 30px;
+}
+
+.period-grafico-btn.active {
+  border-color: var(--gold-light);
+  background: rgba(212, 160, 23, 0.15);
+  color: var(--gold-light);
+}
+
+.period-grafico-btn:hover {
+  border-color: var(--gold-light);
+  color: var(--white);
+}
+
+.grafico-container {
+  margin-top: 8px;
+}
+
+.grafico-barras {
+  display: flex;
+  gap: 4px;
+  height: 80px;
+  align-items: flex-end;
+  padding: 4px 0;
+}
+
+.grafico-barra-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 20px;
+}
+
+.grafico-barra-item .barra-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  height: 60px;
+  align-items: flex-end;
+}
+
+.grafico-barra-item .barra-receita {
+  width: 12px;
+  background: var(--success);
+  border-radius: 3px 3px 0 0;
+  min-height: 4px;
+  transition: height 0.6s ease;
+}
+
+.grafico-barra-item .barra-despesa {
+  width: 12px;
+  background: var(--error);
+  border-radius: 3px 3px 0 0;
+  min-height: 4px;
+  transition: height 0.6s ease;
+}
+
+.grafico-barra-item .barra-label {
+  font-size: 0.5rem;
+  color: var(--gray-dark);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grafico-pizza-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.grafico-pizza-item .pizza-cor {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.grafico-pizza-item .pizza-label {
+  font-size: 0.65rem;
+  color: var(--gray);
+  flex: 1;
+}
+
+.grafico-pizza-item .pizza-valor {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.grafico-pizza-item .pizza-bar {
+  width: 60px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.grafico-pizza-item .pizza-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+.grafico-linha-container {
+  position: relative;
+  width: 100%;
+  height: 100px;
+  margin: 8px 0;
+}
+
+.grafico-linha-container .linha-base {
+  position: absolute;
+  bottom: 10%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.grafico-linha-container svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.grafico-linha-container .ponto-saldo {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.grafico-linha-container .ponto-saldo .ponto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid var(--black-soft);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.grafico-linha-container .ponto-saldo .ponto:hover {
+  transform: scale(1.3);
+}
+
+.grafico-linha-container .ponto-saldo .ponto-valor {
+  font-size: 0.45rem;
+  color: var(--gray-dark);
+}
+
+.grafico-linha-container .linha-meses {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.5rem;
+  color: var(--gray-dark);
+  padding: 0 4px;
 }
 
 /* ---------- LISTAS ---------- */
@@ -2577,6 +2840,26 @@ body {
   .modal-status-banner .status-title {
     font-size: 0.9rem;
   }
+
+  /* Ajustes para gráficos */
+  .grafico-barras {
+    height: 60px;
+  }
+  .grafico-barra-item .barra-wrapper {
+    height: 45px;
+  }
+  .grafico-barra-item .barra-receita,
+  .grafico-barra-item .barra-despesa {
+    width: 10px;
+  }
+  .grafico-linha-container {
+    height: 80px;
+  }
+  .period-grafico-btn {
+    font-size: 0.5rem;
+    padding: 3px 8px;
+    min-height: 26px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -2599,6 +2882,20 @@ body {
   }
   .modal-actions .btn-action {
     flex: 1 1 100%;
+  }
+
+  .grafico-barras {
+    height: 50px;
+  }
+  .grafico-barra-item .barra-wrapper {
+    height: 38px;
+  }
+  .grafico-barra-item .barra-receita,
+  .grafico-barra-item .barra-despesa {
+    width: 8px;
+  }
+  .grafico-linha-container {
+    height: 60px;
   }
 }
 
